@@ -1,0 +1,10 @@
+FROM ubuntu
+MAINTAINER Kaspars Mickevics (kaspars@fx.lv)
+COPY . /sscom-tracker
+WORKDIR /sscom-tracker
+RUN apt update
+RUN apt upgrade -y
+RUN apt install locales -y
+RUN locale-gen --lang en_US.UTF-8
+RUN apt install python3-pip ipython3 -y
+RUN pip3 install requests lxml python-pushover
