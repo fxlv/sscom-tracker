@@ -7,6 +7,7 @@ import os
 import pickle
 from pushover import Client
 import json
+import sys
 
 
 local_cache = "cache.db"
@@ -43,9 +44,8 @@ class AdCache:
             print("Cache file saved")
 
 
-
-
-class Ad:
+class Classified:
+    """Base class for all classifieds"""
 
     def __init__(self):
         self.title = None
@@ -53,10 +53,23 @@ class Ad:
         self.street = None
 
     def __str__(self):
-        return "Ad: {} / Str: {} / rooms: {} / floor: {}".format(self.title, self.street, self.rooms, self.floor)
+        return "Classified: {} / Str: {}".format(self.title, self.street)
 
     def __repr__(self):
         return self.__str__()
+
+
+class Apartment(Classified):
+
+    def __str__(self):
+        return "Apartment: {} / Str: {} / rooms: {} / floor: {}".format(self.title, self.street, self.rooms, self.floor)
+
+class House(Classified):
+
+    def __str__(self):
+        return "House: {} / Str: {}".format(self.title, self.street)
+
+
 
 def get_id_from_attrib(attrib):
     return attrib["id"].split("_")[1]
@@ -64,26 +77,39 @@ def get_id_from_attrib(attrib):
 def get_text_from_element(k, xpath):
     return k.body.findall(xpath)[0].text
 
-def find_by_id(k,id):
-    ad = Ad()
-    ad.title = get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(id))
-    ad.street = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
-    ad.rooms = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
-    ad.space = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
-    ad.floor = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
-    ad.series = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
-    ad.price_per_m = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
-    ad.price = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[10]".format(id))
-    return ad
+def find_apartment_by_id(k,id):
+    apartment = Apartment()
+    apartment.title = get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(id))
+    apartment.street = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+    apartment.rooms = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+    apartment.space = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
+    apartment.floor = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
+    apartment.series = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
+    apartment.price_per_m = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
+    apartment.price = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[10]".format(id))
+    return apartment
 
-def get_ss_data():
+def find_house_by_id(k,id):
+    house = House()
+    house.title = get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(id))
+    house.street = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+    house.space = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+    house.floors = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
+    house.rooms = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
+    house.land = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
+    house.price = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
+    return house
+
+
+def get_ss_data(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"}
-    r = requests.get("https://www.ss.com/lv/real-estate/flats/riga/teika/today-2/sell/", headers=headers)
+    r = requests.get(url, headers=headers)
+
     tree = html.fromstring(r.content)
     return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]
 
-def get_ad_list(content):
+def get_ad_list(content, ad_type):
     rows = content.body.findall(".//tr")[0]
     ad_rows = rows.findall("..//td[@class='msg2']/div[@class='d1']/a")
 
@@ -94,7 +120,13 @@ def get_ad_list(content):
 
     ad_list = []
     for i in id_list:
-        ad_list.append(find_by_id(content, i))
+        if ad_type == "apartment":
+            ad_list.append(find_apartment_by_id(content, i))
+        elif ad_type == "house":
+            ad_list.append(find_house_by_id(content, i))
+        else:
+            print("Unknown ad type!")
+            sys.exit(1)
     return ad_list
 
 def get_ad_hash(ad):
@@ -123,19 +155,28 @@ def main():
 
     cache = AdCache()
     p = Push(settings)
-    k = get_ss_data()
-    ad_list = get_ad_list(k)
+    tracking_list = settings["tracking_list"]
+    for item in tracking_list:
+        print("Looking for type: {}".format(item))
+        k = get_ss_data(tracking_list[item]["url"])
+        ad_list = get_ad_list(k, item)
 
-    for a in ad_list:
-        if cache.is_known(a):
-            print("OLD: {} [{}]".format(a,get_ad_hash(a)))
-        else:
-            print("NEW: {} [{}]".format(a,get_ad_hash(a)))
-            if int(a.rooms) >= settings["filter_room_count"]:
-                print("NEW Ad matchinng filtering criteria found")
-                p.send_pushover_message(a)
+        for a in ad_list:
+            if cache.is_known(a):
+                print("OLD: {} [{}]".format(a,get_ad_hash(a)))
             else:
-                print("Not enough rooms ({})".format(a.rooms))
+                print("NEW: {} [{}]".format(a,get_ad_hash(a)))
+                if item == "apartment":
+                    if a.rooms is None:
+                        pass
+                    if int(a.rooms) >= tracking_list[item]["filter_room_count"]:
+                        print("NEW Classified matching filtering criteria found")
+                        p.send_pushover_message(a)
+                elif item == "house":
+                        print("NEW House found")
+                        p.send_pushover_message(a)
+                else:
+                    print("Not enough rooms ({})".format(a.rooms))
 
 
 
