@@ -1,74 +1,38 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import requests
 from lxml import html
 import hashlib
-import os
-import pickle
 from pushover import Client
 import json
 import sys
+import logging
+import argparse
+import time
+import cache
 
+from datastructures import Apartment, House
 
 local_cache = "cache.db"
 
+def func_log(function_name):
+    """Decorator for logging and timing function execution."""
 
-class AdCache:
+    def log_it(*args, **kwargs):
+        """Log function and its args, execute the function and return the result."""
+        t_start = time.time()
+        result = function_name(*args, **kwargs)
+        t_end = time.time() - t_start
+        msg = "Function call: {}".format(function_name.__name__)
+        if args:
+            msg += " with args: {}".format(args)
+        if kwargs:
+            msg += " with kwargs {}".format(args, kwargs)
+        msg += " executed in: {:5.5f} sec".format(t_end)
+        logging.debug(msg)
+        return result
 
-    def __init__(self):
-        if not os.path.exists(local_cache):
-            print("Local cache does not exist, will create a new one.")
-            self.cache = []
-        else:
-            cache_file = open(local_cache,"rb")
-            self.cache = pickle.load(cache_file)
-    def __del__(self):
-        print("Destructor called...")
-        self.save()
-    def add(self, h):
-        """Store a hash in local cache"""
-        return self.cache.append(h)
-
-    def is_known(self, ad):
-        """Check hash against local cahe"""
-        h = get_ad_hash(ad)
-        if h in self.cache:
-            return True
-        else:
-            self.add(h)
-            return False
-
-    def save(self):
-        with open(local_cache, "wb") as cache_file:
-            pickle.dump(self.cache, cache_file)
-            print("Cache file saved")
-
-
-class Classified:
-    """Base class for all classifieds"""
-
-    def __init__(self):
-        self.title = None
-        self.id = None
-        self.street = None
-
-    def __str__(self):
-        return "Classified: {} / Str: {}".format(self.title, self.street)
-
-    def __repr__(self):
-        return self.__str__()
-
-
-class Apartment(Classified):
-
-    def __str__(self):
-        return "Apartment: {} / Str: {} / rooms: {} / floor: {}".format(self.title, self.street, self.rooms, self.floor)
-
-class House(Classified):
-
-    def __str__(self):
-        return "House: {} / Str: {}".format(self.title, self.street)
-
+    return log_it
 
 
 def get_id_from_attrib(attrib):
@@ -100,7 +64,7 @@ def find_house_by_id(k,id):
     house.price = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
     return house
 
-
+@func_log
 def get_ss_data(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"}
@@ -108,7 +72,7 @@ def get_ss_data(url):
 
     tree = html.fromstring(r.content)
     return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]
-
+@func_log
 def get_ad_list(content, ad_type):
     rows = content.body.findall(".//tr")[0]
     ad_rows = rows.findall("..//td[@class='msg2']/div[@class='d1']/a")
@@ -148,12 +112,29 @@ class Push:
         else:
             print("Push messages not enabled!")
 
+def parse_user_args():
+    """Parse commandline arguments."""
+    parser = argparse.ArgumentParser()
+    parser.description = "SS.COM Tracker"
+    parser.add_argument("--debug", action="store_true", help="Enable DEBUG logging")
+    args = parser.parse_args()
+    return args
 
+@func_log
 def main():
+    args = parse_user_args()
+    log_format = "%(asctime)s %(levelname)s %(name)s " \
+                 "%(filename)s %(lineno)d >> %(message)s"
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG, filename="debug.log", format=log_format)
+        logging.debug('Logging started.')
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     with open("settings.json","r") as settings_file:
         settings = json.load(settings_file)
 
-    cache = AdCache()
+    c = cache.Cache()
     p = Push(settings)
     tracking_list = settings["tracking_list"]
     for item in tracking_list:
@@ -162,7 +143,7 @@ def main():
         ad_list = get_ad_list(k, item)
 
         for a in ad_list:
-            if cache.is_known(a):
+            if c.is_known(a):
                 print("OLD: {} [{}]".format(a,get_ad_hash(a)))
             else:
                 print("NEW: {} [{}]".format(a,get_ad_hash(a)))
