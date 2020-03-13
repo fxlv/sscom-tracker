@@ -1,3 +1,5 @@
+import hashlib
+
 class Classified:
     """Base class for all classifieds"""
 
@@ -11,6 +13,9 @@ class Classified:
 
     def __repr__(self):
         return self.__str__()
+
+    def get_hash(self):
+        return hashlib.sha256(str(self).encode("utf-8")).hexdigest()
 
 
 class Apartment(Classified):

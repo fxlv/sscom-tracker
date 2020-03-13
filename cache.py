@@ -2,7 +2,7 @@ import os
 import pickle
 
 
-from main import local_cache, get_ad_hash
+from tracker import local_cache
 
 
 class Cache:
@@ -23,7 +23,7 @@ class Cache:
 
     def is_known(self, ad):
         """Check hash against local cache"""
-        h = get_ad_hash(ad)
+        h = ad.get_hash()
         if h in self.cache:
             return True
         else:

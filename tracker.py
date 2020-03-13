@@ -2,8 +2,6 @@
 
 import requests
 from lxml import html
-import hashlib
-from pushover import Client
 import json
 import sys
 import logging
@@ -12,6 +10,7 @@ import time
 import cache
 
 from datastructures import Apartment, House
+from push import Push
 
 local_cache = "cache.db"
 
@@ -93,24 +92,8 @@ def get_ad_list(content, ad_type):
             sys.exit(1)
     return ad_list
 
-def get_ad_hash(ad):
-    return hashlib.sha256(str(ad).encode("utf-8")).hexdigest()
 
-class Push:
 
-    def __init__(self, settings):
-        self.client = Client(settings["pushover_user_key"], api_token=settings["pushover_api_token"])
-        if settings["pushover-enabled"] == True:
-            self.enabled = True
-        else:
-            self.enabled = False
-
-    def send_pushover_message(self, message):
-        if self.enabled:
-            print("Sending push message")
-            self.client.send_message(message, title="New apartment found by sscom-tracker")
-        else:
-            print("Push messages not enabled!")
 
 def parse_user_args():
     """Parse commandline arguments."""
@@ -144,9 +127,9 @@ def main():
 
         for a in ad_list:
             if c.is_known(a):
-                print("OLD: {} [{}]".format(a,get_ad_hash(a)))
+                print("OLD: {} [{}]".format(a,a.get_hash()))
             else:
-                print("NEW: {} [{}]".format(a,get_ad_hash(a)))
+                print("NEW: {} [{}]".format(a,a.get_hash()))
                 if item == "apartment":
                     if a.rooms is None:
                         pass
