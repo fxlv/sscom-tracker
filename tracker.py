@@ -11,12 +11,11 @@ import lib.cache
 import lib.push
 from lib.datastructures import Apartment, House
 
-
 local_cache = "cache.db"
+
 
 def func_log(function_name):
     """Decorator for logging and timing function execution."""
-
     def log_it(*args, **kwargs):
         """Log function and its args, execute the function and return the result."""
         t_start = time.time()
@@ -37,40 +36,62 @@ def func_log(function_name):
 def get_id_from_attrib(attrib):
     return attrib["id"].split("_")[1]
 
+
 def get_text_from_element(k, xpath):
     return k.body.findall(xpath)[0].text
 
-def find_apartment_by_id(k,id):
+
+def find_apartment_by_id(k, id):
     apartment = Apartment()
-    apartment.title = get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(id))
-    apartment.street = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
-    apartment.rooms = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
-    apartment.space = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
-    apartment.floor = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
-    apartment.series = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
-    apartment.price_per_m = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
-    apartment.price = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[10]".format(id))
+    apartment.title = get_text_from_element(k,
+                                            ".//a[@id=\"dm_{}\"]".format(id))
+    apartment.street = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+    apartment.rooms = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+    apartment.space = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
+    apartment.floor = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
+    apartment.series = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
+    apartment.price_per_m = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
+    apartment.price = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[10]".format(id))
     return apartment
 
-def find_house_by_id(k,id):
+
+def find_house_by_id(k, id):
     house = House()
     house.title = get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(id))
-    house.street = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
-    house.space = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
-    house.floors = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
-    house.rooms = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
-    house.land = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
-    house.price = get_text_from_element(k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
+    house.street = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+    house.space = get_text_from_element(k,
+                                        ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+    house.floors = get_text_from_element(
+        k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
+    house.rooms = get_text_from_element(k,
+                                        ".//*[@id=\"tr_{}\"]/td[7]".format(id))
+    house.land = get_text_from_element(k,
+                                       ".//*[@id=\"tr_{}\"]/td[8]".format(id))
+    house.price = get_text_from_element(k,
+                                        ".//*[@id=\"tr_{}\"]/td[9]".format(id))
     return house
+
 
 @func_log
 def get_ss_data(url):
     headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"}
+        "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+    }
     r = requests.get(url, headers=headers)
 
     tree = html.fromstring(r.content)
     return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]
+
+
 @func_log
 def get_ad_list(content, ad_type):
     rows = content.body.findall(".//tr")[0]
@@ -93,15 +114,16 @@ def get_ad_list(content, ad_type):
     return ad_list
 
 
-
-
 def parse_user_args():
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser()
     parser.description = "SS.COM Tracker"
-    parser.add_argument("--debug", action="store_true", help="Enable DEBUG logging")
+    parser.add_argument("--debug",
+                        action="store_true",
+                        help="Enable DEBUG logging")
     args = parser.parse_args()
     return args
+
 
 @func_log
 def main():
@@ -109,12 +131,14 @@ def main():
     log_format = "%(asctime)s %(levelname)s %(name)s " \
                  "%(filename)s %(lineno)d >> %(message)s"
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG, filename="debug.log", format=log_format)
+        logging.basicConfig(level=logging.DEBUG,
+                            filename="debug.log",
+                            format=log_format)
         logging.debug('Logging started.')
     else:
         logging.basicConfig(level=logging.INFO)
 
-    with open("settings.json","r") as settings_file:
+    with open("settings.json", "r") as settings_file:
         settings = json.load(settings_file)
 
     c = lib.cache.Cache()
@@ -127,25 +151,23 @@ def main():
 
         for a in ad_list:
             if c.is_known(a):
-                print("OLD: {} [{}]".format(a,a.get_hash()))
+                print("OLD: {} [{}]".format(a, a.get_hash()))
             else:
-                print("NEW: {} [{}]".format(a,a.get_hash()))
+                print("NEW: {} [{}]".format(a, a.get_hash()))
                 if item == "apartment":
                     if a.rooms is None:
                         pass
-                    if int(a.rooms) >= tracking_list[item]["filter_room_count"]:
-                        print("NEW Classified matching filtering criteria found")
+                    if int(a.rooms
+                           ) >= tracking_list[item]["filter_room_count"]:
+                        print(
+                            "NEW Classified matching filtering criteria found")
                         p.send_pushover_message(a)
                 elif item == "house":
-                        print("NEW House found")
-                        p.send_pushover_message(a)
+                    print("NEW House found")
+                    p.send_pushover_message(a)
                 else:
                     print("Not enough rooms ({})".format(a.rooms))
 
 
-
 if __name__ == "__main__":
     main()
-
-
-
