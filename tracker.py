@@ -7,10 +7,10 @@ import sys
 import logging
 import argparse
 import time
-import cache
+import lib.cache
+import lib.push
+from lib.datastructures import Apartment, House
 
-from datastructures import Apartment, House
-from push import Push
 
 local_cache = "cache.db"
 
@@ -117,8 +117,8 @@ def main():
     with open("settings.json","r") as settings_file:
         settings = json.load(settings_file)
 
-    c = cache.Cache()
-    p = Push(settings)
+    c = lib.cache.Cache()
+    p = lib.push.Push(settings)
     tracking_list = settings["tracking_list"]
     for item in tracking_list:
         print("Looking for type: {}".format(item))
