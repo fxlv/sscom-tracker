@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
+#
+# SS.COM Tracker
+# Monitor classifieds and send push notifications
+# when a new classified is found.
+#
+# kaspars@fx.lv
+#
+import argparse
+import json
+import logging
+import sys
+import time
 
 import requests
 from lxml import html
-import json
-import sys
-import logging
-import argparse
-import time
+
 import lib.cache
 import lib.push
 from lib.datastructures import Apartment, House
 
-local_cache = "cache.db"
-
 
 def func_log(function_name):
     """Decorator for logging and timing function execution."""
+
     def log_it(*args, **kwargs):
         """Log function and its args, execute the function and return the result."""
         t_start = time.time()
@@ -84,7 +91,7 @@ def find_house_by_id(k, id):
 def get_ss_data(url):
     headers = {
         "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
     }
     r = requests.get(url, headers=headers)
 
@@ -109,7 +116,7 @@ def get_ad_list(content, ad_type):
         elif ad_type == "house":
             ad_list.append(find_house_by_id(content, i))
         else:
-            print("Unknown ad type!")
+            logging.warning("Unknown classified type!")
             sys.exit(1)
     return ad_list
 
@@ -141,11 +148,11 @@ def main():
     with open("settings.json", "r") as settings_file:
         settings = json.load(settings_file)
 
-    c = lib.cache.Cache()
+    c = lib.cache.Cache(settings)
     p = lib.push.Push(settings)
     tracking_list = settings["tracking_list"]
     for item in tracking_list:
-        print("Looking for type: {}".format(item))
+        logging.info("Looking for type: {}".format(item))
         k = get_ss_data(tracking_list[item]["url"])
         ad_list = get_ad_list(k, item)
 
@@ -163,10 +170,10 @@ def main():
                             "NEW Classified matching filtering criteria found")
                         p.send_pushover_message(a)
                 elif item == "house":
-                    print("NEW House found")
+                    logging.info("NEW House found")
                     p.send_pushover_message(a)
                 else:
-                    print("Not enough rooms ({})".format(a.rooms))
+                    logging.info("Not enough rooms ({})".format(a.rooms))
 
 
 if __name__ == "__main__":

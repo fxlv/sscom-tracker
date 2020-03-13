@@ -1,5 +1,6 @@
 import hashlib
 
+
 class Classified:
     """Base class for all classifieds"""
 

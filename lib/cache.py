@@ -1,27 +1,28 @@
+import logging
 import os
 import pickle
 
 
-from tracker import local_cache
-
-
 class Cache:
 
-    def __init__(self):
-        if not os.path.exists(local_cache):
-            print("Local cache does not exist, will create a new one.")
+    def __init__(self, settings: object) -> None:
+        self.local_cache = settings["local_cache"]
+        if not os.path.exists(self.local_cache):
+            logging.debug("Local cache does not exist, will create a new one.")
             self.cache = []
         else:
-            cache_file = open(local_cache,"rb")
+            cache_file = open(self.local_cache, "rb")
             self.cache = pickle.load(cache_file)
+
     def __del__(self):
-        print("Destructor called...")
+        logging.debug("Destructor called...")
         self.save()
-    def add(self, h):
+
+    def add(self, h) -> bool:
         """Store a hash in local cache"""
         return self.cache.append(h)
 
-    def is_known(self, ad):
+    def is_known(self, ad) -> bool:
         """Check hash against local cache"""
         h = ad.get_hash()
         if h in self.cache:
@@ -31,6 +32,6 @@ class Cache:
             return False
 
     def save(self):
-        with open(local_cache, "wb") as cache_file:
+        with open(self.local_cache, "wb") as cache_file:
             pickle.dump(self.cache, cache_file)
-            print("Cache file saved")
+            logging.debug("Cache file saved")

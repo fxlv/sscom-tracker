@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.dirname(os.getcwd()))
-print(sys.path)
 import lib.datastructures
 
 
