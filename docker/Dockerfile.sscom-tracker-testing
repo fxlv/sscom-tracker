@@ -1,0 +1,9 @@
+FROM sscom-tracker-base
+MAINTAINER Kaspars Mickevics (kaspars@fx.lv)
+COPY . /sscom-tracker
+WORKDIR /sscom-tracker
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8     
+RUN pip3 install flake8 pydocstyle prospector radon pytest
