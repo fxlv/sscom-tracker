@@ -1,1 +1,8 @@
-{"pushover-enabled": false, "pushover_user_key":".....", "pushover_api_token":".....", "filter_room_count":3}
+{
+  "pushover-enabled": false,
+  "pushover_user_key":".....",
+  "pushover_api_token":".....",
+  "tracking_list":{
+    "apartment": { "url":"https://www.ss.com/lv/real-estate/flats/riga/teika/today-2/sell/", "filter_room_count":3 },
+    "house": {"url":"https://www.ss.com/lv/real-estate/homes-summer-residences/riga/teika/today-2/sell/"} }
+}
