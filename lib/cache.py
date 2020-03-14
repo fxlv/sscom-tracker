@@ -52,13 +52,3 @@ class Cache:
             logging.debug("Cache saved to file: {}".format(self.local_cache))
 
 
-class ClassifiedCache(Cache):
-
-    def is_known(self, ad: lib.datastructures.Classified) -> bool:
-        """Check hash against local cache"""
-        h = ad.get_hash()
-        if h in self.cache:
-            return True
-        else:
-            self.add(h)
-            return False

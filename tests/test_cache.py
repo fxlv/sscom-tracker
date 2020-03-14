@@ -71,26 +71,3 @@ def test_destructor():
     assert time2 > time1
 
 
-def test_ClassifiedCache():
-    test_cache_name = "test.ClassifiedCache.db"
-    settings = {"local_cache": test_cache_name}
-    # ensure clean environment, delete cache file if it exists
-    if os.path.exists(test_cache_name):
-        os.unlink(test_cache_name)
-    # make sure file does not exist before continuing
-    assert os.path.exists(test_cache_name) is False
-    cache = lib.cache.ClassifiedCache(settings)
-    # make sure new cache has been initialized and is empty
-    assert len(cache.cache) == 0
-    # test adding and checking for a presence of an object
-    test_object = lib.datastructures.Classified()
-    test_object.title = "Something"
-    test_object.id = 1
-    test_object.street = "Some street"
-    cache.add(test_object)
-    # first assert will fail as the hash has not yet been added to cache
-    assert not cache.is_known(test_object)
-    # second assert will succeed as the hash has been added to the cache
-    assert cache.is_known(test_object)
-
-

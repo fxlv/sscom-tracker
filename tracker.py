@@ -49,11 +49,17 @@ def get_text_from_element(k, xpath):
 
 
 def find_apartment_by_id(k, id):
-    apartment = Apartment()
-    apartment.title = get_text_from_element(k,
+
+    title = get_text_from_element(k,
                                             ".//a[@id=\"dm_{}\"]".format(id))
-    apartment.street = get_text_from_element(
+    street = get_text_from_element(
         k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+
+    if title is None or street is None:
+        logging.warning("Invalid data for classified with ID: {}".format(id))
+        return False
+    apartment = Apartment(title, street)
+
     apartment.rooms = get_text_from_element(
         k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
     apartment.space = get_text_from_element(
@@ -130,9 +136,19 @@ def get_ad_list(content, ad_type):
     ad_list = []
     for i in id_list:
         if ad_type == "apartment":
-            ad_list.append(find_apartment_by_id(content, i))
+            apartment = find_apartment_by_id(content, i)
+            if not apartment:
+                continue # skip items that are False (could happen with malformed input)
+            if apartment.rooms and apartment.floor:
+                ad_list.append(apartment)
+            else:
+                logging.debug("Skipping invalid apartment: {}".format(apartment))
         elif ad_type == "house":
-            ad_list.append(find_house_by_id(content, i))
+            house = find_apartment_by_id(content, i)
+            if house.title:
+                ad_list.append(house)
+            else:
+                logging.debug("Skipping invalid house: {}".format(apartment))
         else:
             logging.warning("Unknown classified type!")
             sys.exit(1)
@@ -169,7 +185,7 @@ def main():
     with open("settings.json", "r") as settings_file:
         settings = json.load(settings_file)
 
-    c = lib.cache.ClassifiedCache(settings)
+    cache = lib.cache.Cache(settings)
     p = lib.push.Push(settings)
     tracking_list = settings["tracking_list"]
     for item in tracking_list:
@@ -178,16 +194,16 @@ def main():
         ad_list = get_ad_list(k, item)
 
         for a in ad_list:
-            if c.is_known(a):
+
+            if cache.is_known(a):
                 print("OLD: {} [{}]".format(a, a.get_hash()))
             else:
+                cache.add(a)
                 print("NEW: {} [{}]".format(a, a.get_hash()))
                 if item == "apartment":
-                    if a.rooms is None:
-                        pass
                     if int(a.rooms
                            ) >= tracking_list[item]["filter_room_count"]:
-                        print(
+                        logging.debug(
                             "NEW Classified matching filtering criteria found")
                         p.send_pushover_message(a)
                 elif item == "house":
