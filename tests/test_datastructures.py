@@ -20,7 +20,7 @@ def test_classified_repr():
     c.title = "Something"
     c.id = 1
     c.street = "Some street"
-    assert str(c) == "Classified: Something / Str: Some street"
+    assert repr(c) == "Classified(\"Something\",\"Some street\")"
 
 def test_apartment_str():
     c = lib.datastructures.Apartment()

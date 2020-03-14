@@ -4,16 +4,17 @@ import hashlib
 class Classified:
     """Base class for all classifieds"""
 
-    def __init__(self):
-        self.title = None
+    def __init__(self, title=None, street=None):
+        self.title = title
         self.id = None
-        self.street = None
+        self.street = street
 
     def __str__(self):
         return "Classified: {} / Str: {}".format(self.title, self.street)
 
     def __repr__(self):
-        return self.__str__()
+        repr = "Classified(\"{}\",\"{}\")".format(self.title, self.street)
+        return repr
 
     def get_hash(self):
         return hashlib.sha256(str(self).encode("utf-8")).hexdigest()

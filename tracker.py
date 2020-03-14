@@ -86,9 +86,27 @@ def find_house_by_id(k, id):
                                         ".//*[@id=\"tr_{}\"]/td[9]".format(id))
     return house
 
+@func_log
+def retrieve_ss_data(url: str) -> bool:
+    """Retrieve SS.COM data and store in cache.
+
+    Retrieve the data using the URL provided.
+    Store it in the cache and return bool result.
+    """
+
+    #hashlib.sha256(str(self).encode("utf-8")).hexdigest()
+    headers = {
+        "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+    }
+    r = requests.get(url, headers=headers)
+
+    tree = html.fromstring(r.content)
+    return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]
+
 
 @func_log
-def get_ss_data(url):
+def get_ss_data(url: str) -> object:
     headers = {
         "User-Agent":
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
@@ -132,12 +150,10 @@ def parse_user_args():
     return args
 
 
-@func_log
-def main():
-    args = parse_user_args()
+def set_up_logging(debug=False):
     log_format = "%(asctime)s %(levelname)s %(name)s " \
                  "%(filename)s %(lineno)d >> %(message)s"
-    if args.debug:
+    if debug:
         logging.basicConfig(level=logging.DEBUG,
                             filename="debug.log",
                             format=log_format)
@@ -145,10 +161,15 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
 
+@func_log
+def main():
+    args = parse_user_args()
+
+    set_up_logging(args.debug)
     with open("settings.json", "r") as settings_file:
         settings = json.load(settings_file)
 
-    c = lib.cache.Cache(settings)
+    c = lib.cache.ClassifiedCache(settings)
     p = lib.push.Push(settings)
     tracking_list = settings["tracking_list"]
     for item in tracking_list:
