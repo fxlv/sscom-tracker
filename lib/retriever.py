@@ -60,6 +60,7 @@ class Retriever:
         return r.content
 
     def get_ss_data_from_cache(self,url: str) -> object:
+        logging.debug("Retrieving data from cache for URL: {}".format(url))
         data = self.data_cache.get(url)
         tree = html.fromstring(data)
         return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]

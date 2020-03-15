@@ -8,13 +8,13 @@
 #
 import argparse
 import json
-import logging
-
 import lib.cache
 import lib.push
-
 import lib.retriever
+
+from lib.filter import Filter
 from lib.log import func_log, set_up_logging
+import lib.datastructures
 
 
 def parse_user_args():
@@ -40,32 +40,30 @@ def main():
     p = lib.push.Push(settings)
     tracking_list = settings["tracking_list"]
     retriever = lib.retriever.Retriever(settings)
+    classified_filter = Filter(retriever, cache, settings)
+    # get data
     if not retriever.is_cache_fresh():
         retriever.update_data_cache()
-
-    for item in tracking_list:
-        logging.info("Looking for type: {}".format(item))
-        k = retriever.get_ss_data_from_cache (tracking_list[item]["url"])
-        ad_list = retriever.get_ad_list(k, item)
-
-        for a in ad_list:
-
-            if cache.is_known(a):
-                print("OLD: {} [{}]".format(a, a.get_hash()))
-            else:
-                cache.add(a)
-                print("NEW: {} [{}]".format(a, a.get_hash()))
-                if item == "apartment":
-                    if int(a.rooms
-                           ) >= tracking_list[item]["filter_room_count"]:
-                        logging.debug(
-                            "NEW Classified matching filtering criteria found")
-                        p.send_pushover_message(a)
-                elif item == "house":
-                    logging.info("NEW House found")
-                    p.send_pushover_message(a)
-                else:
-                    logging.info("Not enough rooms ({})".format(a.rooms))
+    results = classified_filter.filter_tracking_list()
+    # display results and send push notifications
+    for classified_type in results:
+        print("{} Results for: {} {}".format("=" * 10, classified_type,
+                                             "=" * 10))
+        if len(results[classified_type]["old"]) > 0:
+            print("=> OLD/Known classifieds:")
+            for r in results[classified_type]["old"]:
+                print(r)
+            print()
+        else:
+            print("No OLD classifieds for type: {}".format(classified_type))
+        if len(results[classified_type]["new"]) > 0:
+            print("=> New classifieds:")
+            for r in results[classified_type]["new"]:
+                print(r)
+                p.send_pushover_message(r)
+            print()
+        else:
+            print("No NEW classifieds for type: {}".format(classified_type))
 
 
 if __name__ == "__main__":
