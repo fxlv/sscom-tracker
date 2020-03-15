@@ -5,6 +5,7 @@ import os
 import  lib.log
 import logging
 import datetime
+import time
 lib.log.set_up_logging(debug=True, log_file="tests_debug.log")
 
 @pytest.fixture
@@ -76,6 +77,7 @@ def test_destructor():
     assert len(cache.cache) == 0
     cache.save()
     time1 = os.path.getmtime(test_cache_name)
+    time.sleep(0.1)
     # delete object, by decrementing its reference counter
     del(cache)
     time2 = os.path.getmtime(test_cache_name)
