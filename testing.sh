@@ -20,5 +20,5 @@ radon mi lib/*.py
 radon mi *.py
 echo "Running tests"
 echo
-pytest --cov-report term-missing --cov='.' -v
+pytest -v tests/* --cov-report term-missing --cov='lib/' --cov='./tracker.py' -v
 echo "All done."
