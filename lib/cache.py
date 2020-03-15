@@ -9,10 +9,16 @@ class Cache:
 
     def __init__(self, settings: object, local_cache=None) -> None:
         """Construct the cache object."""
+
         if local_cache is None:
+            # use the cache as specified in settings
             self.local_cache = settings["local_cache"]
+            logging.debug("Using cache file specified in settings")
         else:
+            # use the cache specified in constructor arguments
             self.local_cache = local_cache
+            logging.debug("Using cache file from constructor arguments")
+
         self.cache = None
         if not self.load_cache_from_disk():
             self.create_new_cache()
@@ -22,6 +28,7 @@ class Cache:
         """Load cache from pickle file."""
         if not os.path.exists(self.local_cache):
             return False
+        logging.debug("Loading cache file from disk")
         cache_file = open(self.local_cache, "rb")
         self.cache = pickle.load(cache_file)
         return True
@@ -29,6 +36,7 @@ class Cache:
 
     def create_new_cache(self):
         """Initialize new cache object."""
+        logging.debug("Creating a new cache object")
         self.cache = []
 
 
@@ -40,6 +48,7 @@ class Cache:
 
     def add(self, item: object) -> bool:
         """Add an item to the cache."""
+        logging.debug("Adding item {}... to cache".format(item[:20]))
         return self.cache.append(item)
 
 
@@ -76,4 +85,4 @@ class DataCache(Cache):
 
     def is_known(self, key: str) -> bool:
         """Return True if key is in cache."""
-        return self.cache["data"].has_key(key)
+        return key in self.cache["data"].keys()

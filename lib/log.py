@@ -22,12 +22,12 @@ def func_log(function_name):
     return log_it
 
 
-def set_up_logging(debug=False):
+def set_up_logging(debug=False, log_file="debug.log"):
     log_format = "%(asctime)s %(levelname)s %(name)s " \
                  "%(filename)s %(lineno)d >> %(message)s"
     if debug:
         logging.basicConfig(level=logging.DEBUG,
-                            filename="debug.log",
+                            filename=log_file,
                             format=log_format)
         logging.debug('Logging started.')
     else:
