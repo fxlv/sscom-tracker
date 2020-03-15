@@ -2,14 +2,17 @@ import logging
 import os
 import pickle
 import lib.datastructures
-
+import datetime
 
 class Cache:
     """Generic cache class."""
 
-    def __init__(self, settings: object) -> None:
+    def __init__(self, settings: object, local_cache=None) -> None:
         """Construct the cache object."""
-        self.local_cache = settings["local_cache"]
+        if local_cache is None:
+            self.local_cache = settings["local_cache"]
+        else:
+            self.local_cache = local_cache
         self.cache = None
         if not self.load_cache_from_disk():
             self.create_new_cache()
@@ -52,3 +55,25 @@ class Cache:
             logging.debug("Cache saved to file: {}".format(self.local_cache))
 
 
+class DataCache(Cache):
+    def __init__(self, settings: object) -> None:
+        Cache.__init__(self,settings, local_cache=settings["data_cache"])
+
+    def create_new_cache(self):
+        """Initialize new cache object."""
+        self.cache = {"data": {}, "last_update": None}
+
+    def get_timestamp(self):
+        return self.cache["last_update"]
+
+    def get(self, key: str) -> object:
+        return self.cache["data"][key]
+
+    def add(self, key: str, item: object) -> None:
+        """Add an item to the cache."""
+        self.cache["data"][key] = item
+        self.cache["last_update"] = datetime.datetime.now()
+
+    def is_known(self, key: str) -> bool:
+        """Return True if key is in cache."""
+        return self.cache["data"].has_key(key)
