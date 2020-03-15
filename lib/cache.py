@@ -48,7 +48,7 @@ class Cache:
 
     def add(self, item: object) -> bool:
         """Add an item to the cache."""
-        logging.debug("Adding item {}... to cache".format(item[:20]))
+        logging.debug("Adding item {}... to cache".format(str(item)[:20]))
         return self.cache.append(item)
 
 

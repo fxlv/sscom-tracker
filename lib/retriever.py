@@ -1,6 +1,6 @@
 import logging
 import sys
-
+import os
 import requests
 from lxml import html
 
@@ -18,6 +18,9 @@ class Retriever:
 
     @func_log
     def is_cache_fresh(self):
+        if not os.path.exists(self.data_cache.local_cache):
+            logging.debug("Local cache {} does not exist".format(self.data_cache.local_cache))
+            return False
         current_timestamp = datetime.datetime.now()
         cache_timestamp = self.data_cache.get_timestamp()
         delta = current_timestamp - cache_timestamp
