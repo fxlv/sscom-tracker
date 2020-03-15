@@ -4,7 +4,6 @@ import time
 
 def func_log(function_name):
     """Decorator for logging and timing function execution."""
-
     def log_it(*args, **kwargs):
         """Log function and its args, execute the function and return the result."""
         t_start = time.time()

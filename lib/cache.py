@@ -4,9 +4,9 @@ import pickle
 import lib.datastructures
 import datetime
 
+
 class Cache:
     """Generic cache class."""
-
     def __init__(self, settings: object, local_cache=None) -> None:
         """Construct the cache object."""
 
@@ -23,7 +23,6 @@ class Cache:
         if not self.load_cache_from_disk():
             self.create_new_cache()
 
-
     def load_cache_from_disk(self) -> bool:
         """Load cache from pickle file."""
         if not os.path.exists(self.local_cache):
@@ -33,29 +32,24 @@ class Cache:
         self.cache = pickle.load(cache_file)
         return True
 
-
     def create_new_cache(self):
         """Initialize new cache object."""
         logging.debug("Creating a new cache object")
         self.cache = []
-
 
     def __del__(self) -> None:
         """Save cache upon destruction."""
         logging.debug("Destructor called for Cache object {}".format(self))
         self.save()
 
-
     def add(self, item: object) -> bool:
         """Add an item to the cache."""
         logging.debug("Adding item {}... to cache".format(str(item)[:20]))
         return self.cache.append(item)
 
-
     def is_known(self, item: object) -> bool:
         """Return True if object is in cache."""
         return item in self.cache
-
 
     def save(self) -> None:
         """Save cache to pickle file."""
@@ -66,7 +60,7 @@ class Cache:
 
 class DataCache(Cache):
     def __init__(self, settings: object) -> None:
-        Cache.__init__(self,settings, local_cache=settings["data_cache"])
+        Cache.__init__(self, settings, local_cache=settings["data_cache"])
 
     def create_new_cache(self):
         """Initialize new cache object."""
