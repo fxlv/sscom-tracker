@@ -18,8 +18,7 @@ class Retriever:
     @func_log
     def is_cache_fresh(self):
         if not os.path.exists(self.data_cache.local_cache):
-            logging.debug("Local cache {} does not exist".format(
-                self.data_cache.local_cache))
+            logging.debug("Local cache %s does not exist", self.data_cache.local_cache)
             return False
         current_timestamp = datetime.datetime.now()
         cache_timestamp = self.data_cache.get_timestamp()
@@ -27,11 +26,11 @@ class Retriever:
         delta_seconds = delta.total_seconds()
         if delta_seconds > self.settings["cache_freshness"]:
             logging.debug(
-                "Cache is not fresh. Delta: {} seconds".format(delta_seconds))
+                "Cache is not fresh. Delta: %s seconds", delta_seconds)
             return False
         else:
             logging.debug(
-                "Cache is fresh. Delta: {} seconds".format(delta_seconds))
+                "Cache is fresh. Delta: %s seconds", delta_seconds)
             return True
 
     @func_log
@@ -40,11 +39,11 @@ class Retriever:
 
         for item in tracking_list:
             url = tracking_list[item]["url"]
-            logging.info("Looking for type: {}".format(item))
+            logging.info("Looking for type: %s", item)
             # TODO: only update cache if it is cold
 
             data = self.retrieve_ss_data(url)
-            logging.debug("{} -> {}".format(url, data))
+            logging.debug("%s -> %s", url, data)
             self.data_cache.add(url, data)
 
     @func_log
@@ -63,7 +62,7 @@ class Retriever:
         return r.content
 
     def get_ss_data_from_cache(self, url: str) -> object:
-        logging.debug("Retrieving data from cache for URL: {}".format(url))
+        logging.debug("Retrieving data from cache for URL: %s", url)
         data = self.data_cache.get(url)
         tree = html.fromstring(data)
         return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]
@@ -83,7 +82,7 @@ class Retriever:
 
         if title is None or street is None:
             logging.warning(
-                "Invalid data for classified with ID: {}".format(id))
+                "Invalid data for classified with ID: %s", id)
             return False
         apartment = Apartment(title, street)
 
@@ -140,14 +139,14 @@ class Retriever:
                     ad_list.append(apartment)
                 else:
                     logging.debug(
-                        "Skipping invalid apartment: {}".format(apartment))
+                        "Skipping invalid apartment: %s", apartment)
             elif ad_type == "house":
                 house = self.find_apartment_by_id(content, i)
                 if house.title:
                     ad_list.append(house)
                 else:
                     logging.debug(
-                        "Skipping invalid house: {}".format(apartment))
+                        "Skipping invalid house: %s", apartment)
             else:
                 logging.warning("Unknown classified type!")
                 sys.exit(1)

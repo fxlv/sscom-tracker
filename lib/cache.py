@@ -39,12 +39,12 @@ class Cache:
 
     def __del__(self) -> None:
         """Save cache upon destruction."""
-        logging.debug("Destructor called for Cache object {}".format(self))
+        logging.debug("Destructor called for Cache object %s", str(self))
         self.save()
 
     def add(self, item: object) -> bool:
         """Add an item to the cache."""
-        logging.debug("Adding item {}... to cache".format(str(item)[:20]))
+        logging.debug("Adding item %s... to cache", str(item)[:20])
         return self.cache.append(item)
 
     def is_known(self, item: object) -> bool:
@@ -55,7 +55,7 @@ class Cache:
         """Save cache to pickle file."""
         with open(self.local_cache, "wb") as cache_file:
             pickle.dump(self.cache, cache_file)
-            logging.debug("Cache saved to file: {}".format(self.local_cache))
+            logging.debug("Cache saved to file: %s", self.local_cache)
 
 
 class DataCache(Cache):

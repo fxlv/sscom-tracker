@@ -22,8 +22,8 @@ class Filter:
 
     def filter_by_type(self, classified_type: str,
                        url: str) -> Tuple[List, List]:
-        logging.info("Looking for type: {} using URL: {}".format(
-            classified_type, url))
+        logging.info("Looking for type: %s using URL: %s",
+            classified_type, url)
         k = self.retriever.get_ss_data_from_cache(url)
         ad_list = self.retriever.get_ad_list(k, classified_type)
         results_old = []
@@ -31,11 +31,11 @@ class Filter:
         for a in ad_list:
 
             if self.cache.is_known(a):
-                logging.info("OLD: {} [{}]".format(a, a.get_hash()))
+                logging.info("OLD: %s [%s]", a, a.get_hash())
                 results_old.append(a)
             else:
                 self.cache.add(a)
-                logging.info("NEW: {} [{}]".format(a, a.get_hash()))
+                logging.info("NEW: %s [%s]", a, a.get_hash())
 
                 if classified_type == "apartment":
                     if int(a.rooms) >= self.tracking_list[classified_type][
@@ -44,8 +44,8 @@ class Filter:
                             "NEW Apartment matching filtering criteria found")
                         results_new.append(a)
                 elif classified_type == "house":
-                    logging.info("NEW House found: {}".format(a))
+                    logging.info("NEW House found: %s", str(a))
                     results_new.append(a)
                 else:
-                    logging.info("Not enough rooms ({})".format(a.rooms))
+                    logging.info("Not enough rooms (%s)", a.rooms)
         return results_new, results_old
