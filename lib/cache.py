@@ -1,12 +1,12 @@
+import datetime
 import logging
 import os
 import pickle
-import lib.datastructures
-import datetime
 
 
 class Cache:
     """Generic cache class."""
+
     def __init__(self, settings: object, local_cache=None) -> None:
         """Construct the cache object."""
 

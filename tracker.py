@@ -8,13 +8,13 @@
 #
 import argparse
 import json
+
 import lib.cache
+import lib.datastructures
 import lib.push
 import lib.retriever
-
 from lib.filter import Filter
 from lib.log import func_log, set_up_logging
-import lib.datastructures
 
 
 def parse_user_args():

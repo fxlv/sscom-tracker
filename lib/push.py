@@ -3,6 +3,7 @@ from pushover import Client
 
 class Push:
     """Send push notifications using Pushover service."""
+
     def __init__(self, settings):
         self.client = Client(settings["pushover_user_key"],
                              api_token=settings["pushover_api_token"])

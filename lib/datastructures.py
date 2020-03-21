@@ -1,6 +1,7 @@
 import hashlib
 import logging
 
+
 class Classified:
     """Base class for all classifieds"""
 
@@ -12,7 +13,7 @@ class Classified:
         """
         self.title = title.strip()
         # sometimes there are newlines in the title, get rid of them
-        self.title = self.title.replace("\r\n","").replace("\n","")
+        self.title = self.title.replace("\r\n", "").replace("\n", "")
         self.street = street.strip()
         self.hash = self.get_hash()
 
@@ -33,7 +34,7 @@ class Classified:
 
     def get_hash(self) -> str:
         """Return hash based on title and street."""
-        return hashlib.sha256(str(self.title+self.street).encode("utf-8")).hexdigest()
+        return hashlib.sha256(str(self.title + self.street).encode("utf-8")).hexdigest()
 
 
 class Apartment(Classified):

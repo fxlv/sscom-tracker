@@ -23,7 +23,7 @@ class Filter:
     def filter_by_type(self, classified_type: str,
                        url: str) -> Tuple[List, List]:
         logging.info("Looking for type: %s using URL: %s",
-            classified_type, url)
+                     classified_type, url)
         k = self.retriever.get_ss_data_from_cache(url)
         ad_list = self.retriever.get_ad_list(k, classified_type)
         results_old = []
@@ -39,7 +39,7 @@ class Filter:
 
                 if classified_type == "apartment":
                     if int(a.rooms) >= self.tracking_list[classified_type][
-                            "filter_room_count"]:
+                         "filter_room_count"]:
                         logging.debug(
                             "NEW Apartment matching filtering criteria found")
                         results_new.append(a)

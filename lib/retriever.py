@@ -1,11 +1,12 @@
+import datetime
 import logging
-import sys
 import os
+import sys
+
 import requests
 from lxml import html
 
 import lib.cache
-import datetime
 from lib.datastructures import Apartment, House
 from lib.log import func_log
 
@@ -56,7 +57,7 @@ class Retriever:
         # hashlib.sha256(str(self).encode("utf-8")).hexdigest()
         headers = {
             "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
         }
         r = requests.get(url, headers=headers)
         return r.content
