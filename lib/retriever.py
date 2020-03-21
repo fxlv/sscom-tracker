@@ -103,11 +103,12 @@ class Retriever:
 
     @func_log
     def find_house_by_id(self, k, id):
-        house = House()
-        house.title = self.get_text_from_element(
+
+        title = self.get_text_from_element(
             k, ".//a[@id=\"dm_{}\"]".format(id))
-        house.street = self.get_text_from_element(
+        street = self.get_text_from_element(
             k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+        house = House(title, street)
         house.space = self.get_text_from_element(
             k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
         house.floors = self.get_text_from_element(
@@ -142,7 +143,7 @@ class Retriever:
                     logging.debug(
                         "Skipping invalid apartment: %s", apartment)
             elif ad_type == "house":
-                house = self.find_apartment_by_id(content, i)
+                house = self.find_house_by_id(content, i)
                 if house.title:
                     ad_list.append(house)
                 else:
