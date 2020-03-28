@@ -52,7 +52,7 @@ class Animal:
         self.hash = self.get_hash()
 
     def __str__(self):
-        return "Classified: {} / Str: {}".format(self.title, self.age)
+        return "Classified: {} / Age: {}".format(self.title, self.age)
 
     def __repr__(self):
         repr = "Classified(\"{}\",\"{}\")".format(self.title, self.age)

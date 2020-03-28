@@ -37,3 +37,25 @@ def test_home_str():
     c = lib.datastructures.House("Something","Some street")
     c.id = 1
     assert str(c) == "House: Something / Str: Some street"
+
+
+def test_animal_str():
+    a = lib.datastructures.Animal("Nice dog", "2 months")
+    assert str(a) == "Classified: Nice dog / Age: 2 months"
+
+def test_animal_repr():
+    a = lib.datastructures.Animal("Nice dog", "2 months")
+    assert repr(a) == "Classified(\"Nice dog\",\"2 months\")"
+
+def test_animal_hash():
+    a = lib.datastructures.Animal("Nice dog", "2 months")
+    assert a.__hash__() == hash((a.title, a.age))
+
+def test_animal_eq():
+    a = lib.datastructures.Animal("Nice dog", "some age")
+    a2 = lib.datastructures.Animal("Nice dog", "some age")
+    assert a == a2
+
+def test_dog_str():
+    a = lib.datastructures.Dog("Nice dog", "2 months")
+    assert str(a) == "Dog: Nice dog / Age: 2 months"
