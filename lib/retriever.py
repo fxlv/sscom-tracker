@@ -7,32 +7,15 @@ import requests
 from lxml import html
 
 import lib.cache
-from lib.datastructures import Apartment, House
+from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
 
 class Retriever:
-    def __init__(self, settings):
-        self.settings = settings
-        self.data_cache = lib.cache.DataCache(self.settings)
 
-    @func_log
-    def is_cache_fresh(self):
-        if not os.path.exists(self.data_cache.local_cache):
-            logging.debug("Local cache %s does not exist", self.data_cache.local_cache)
-            return False
-        current_timestamp = datetime.datetime.now()
-        cache_timestamp = self.data_cache.get_timestamp()
-        delta = current_timestamp - cache_timestamp
-        delta_seconds = delta.total_seconds()
-        if delta_seconds > self.settings["cache_freshness"]:
-            logging.debug(
-                "Cache is not fresh. Delta: %s seconds", delta_seconds)
-            return False
-        else:
-            logging.debug(
-                "Cache is fresh. Delta: %s seconds", delta_seconds)
-            return True
+    def __init__(self, settings, data_cache):
+        self.settings = settings
+        self.data_cache = data_cache
 
     @func_log
     def update_data_cache(self):
@@ -54,7 +37,7 @@ class Retriever:
         Retrieve the data using the URL provided.
         """
 
-        # hashlib.sha256(str(self).encode("utf-8")).hexdigest()
+        # TODO: add randomization of user agent here
         headers = {
             "User-Agent":
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
@@ -72,7 +55,11 @@ class Retriever:
         return attrib["id"].split("_")[1]
 
     def get_text_from_element(self, k, xpath):
+        if k.body.findall(xpath)[0].text == None:
+            # Handle cases when classified has been enclosed in a <b>tag</b>
+            xpath=xpath+"/b"
         return k.body.findall(xpath)[0].text
+
 
     @func_log
     def find_apartment_by_id(self, k, id):
@@ -122,6 +109,21 @@ class Retriever:
         return house
 
     @func_log
+    def find_dog_by_id(self, k, id):
+        title = self.get_text_from_element(
+            k, ".//a[@id=\"dm_{}\"]".format(id))
+        age = self.get_text_from_element(
+            k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+        if title is None or age is None:
+            logging.warning(
+                "Invalid data for dog with ID: %s", id)
+            return False
+        dog = Dog(title, age)
+        dog.price = self.get_text_from_element(
+            k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+        return dog
+
+    @func_log
     def get_ad_list(self, content, ad_type):
         rows = content.body.findall(".//tr")[0]
         ad_rows = rows.findall("..//td[@class='msg2']/div[@class='d1']/a")
@@ -149,7 +151,14 @@ class Retriever:
                 else:
                     logging.debug(
                         "Skipping invalid house: %s", apartment)
+            elif ad_type == "dog":
+                dog = self.find_dog_by_id(content, i)
+                if dog.title:
+                    ad_list.append(dog)
+                else:
+                    logging.debug(
+                        "Skipping invalid dog: %s", dog)
             else:
-                logging.warning("Unknown classified type!")
+                logging.critical("Unknown classified type!")
                 sys.exit(1)
         return ad_list

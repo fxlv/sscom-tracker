@@ -46,6 +46,9 @@ class Filter:
                 elif classified_type == "house":
                     logging.info("NEW House found: %s", str(a))
                     results_new.append(a)
+                elif classified_type == "dog":
+                    logging.info("NEW Dog found: %s", str(a))
+                    results_new.append(a)
                 else:
                     logging.info("Not enough rooms (%s)", a.rooms)
         return results_new, results_old

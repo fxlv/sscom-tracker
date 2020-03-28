@@ -18,6 +18,7 @@ class Cache:
             # use the cache specified in constructor arguments
             self.local_cache = local_cache
             logging.debug("Using cache file from constructor arguments")
+        self.settings = settings
 
         self.cache = None
         if not self.load_cache_from_disk():
@@ -57,20 +58,51 @@ class Cache:
             pickle.dump(self.cache, cache_file)
             logging.debug("Cache saved to file: %s", self.local_cache)
 
+    def cache_file_exists(self) -> bool:
+        if not os.path.exists(self.local_cache):
+            logging.debug("Local cache %s does not exist", self.local_cache)
+            return False
+        return True
+
+
 
 class DataCache(Cache):
+    """Data Cache class for storing html response data."""
+
     def __init__(self, settings: object) -> None:
+        """Constructor calls parent and overrides local_cache."""
         Cache.__init__(self, settings, local_cache=settings["data_cache"])
 
     def create_new_cache(self):
         """Initialize new cache object."""
         self.cache = {"data": {}, "last_update": None}
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> datetime:
         return self.cache["last_update"]
 
     def get(self, key: str) -> object:
+        """Returns cache object."""
         return self.cache["data"][key]
+
+    def is_fresh(self):
+        """Return True if cache is fresh.
+
+        Returns True if cache age in seconds is less than defined in 'cache_freshness' variable in settings.
+        """
+        if not self.cache_file_exists():
+            return False
+        current_timestamp = datetime.datetime.now()
+        cache_timestamp = self.get_timestamp()
+        delta = current_timestamp - cache_timestamp
+        delta_seconds = delta.total_seconds()
+        if delta_seconds > self.settings["cache_freshness"]:
+            logging.debug(
+                "Cache is not fresh. Delta: %s seconds", delta_seconds)
+            return False
+        else:
+            logging.debug(
+                "Cache is fresh. Delta: %s seconds", delta_seconds)
+            return True
 
     def add(self, key: str, item: object) -> None:
         """Add an item to the cache."""

@@ -37,12 +37,15 @@ def main():
         settings = json.load(settings_file)
 
     cache = lib.cache.Cache(settings)
+    data_cache = lib.cache.DataCache(settings)
+
     p = lib.push.Push(settings)
     tracking_list = settings["tracking_list"]
-    retriever = lib.retriever.Retriever(settings)
+    retriever = lib.retriever.Retriever(settings, data_cache)
     classified_filter = Filter(retriever, cache, settings)
     # get data
-    if not retriever.is_cache_fresh():
+
+    if not data_cache.is_fresh():
         retriever.update_data_cache()
     results = classified_filter.filter_tracking_list()
     # display results and send push notifications

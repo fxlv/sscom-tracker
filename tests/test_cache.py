@@ -84,21 +84,38 @@ def test_destructor():
     # now compare timestamps before and after destruction
     assert time2 > time1
 
-def test_DataCache():
 
+@pytest.fixture()
+def settings_data_cache():
     test_cache_name = "test_data_cache.db"
     settings = {
         "data_cache": test_cache_name,
         "cache_freshness": 300
     }
+    return settings
 
+
+@pytest.fixture()
+def data_cache(settings_data_cache):
+    test_cache_name = settings_data_cache["data_cache"]
     # ensure clean environment, delete cache file if it exists
     if os.path.exists(test_cache_name):
         os.unlink(test_cache_name)
-    # make sure file does not exist before continuing
-    assert os.path.exists(test_cache_name) is False
+    cache = lib.cache.DataCache(settings_data_cache)
+    return cache
 
-    cache = lib.cache.DataCache(settings)
+
+def test_cache_file_exists(data_cache):
+    """Create cache and check that cache file was created."""
+    cache = data_cache
+    # cache is not saved yet, so the file should not exist
+    assert cache.cache_file_exists() is False
+    cache.save()
+    assert cache.cache_file_exists()
+
+
+def test_data_cache(data_cache):
+    cache = data_cache
     # make sure new cache has been initialized and is empty
     # at this point it should only contain: {"data": {}, "last_update": None}
     assert len(cache.cache.keys()) == 2
@@ -109,3 +126,18 @@ def test_DataCache():
     assert cache.get("test_item") == "something"
     assert cache.is_known("test_item")
     assert type(cache.get_timestamp()) == datetime.datetime
+
+
+def test_data_cache_freshness(data_cache):
+    cache = data_cache
+    assert cache.is_fresh() is False
+    timestamp = datetime.datetime.now()
+    timestamp_old = timestamp.replace(hour=timestamp.hour-1)
+    cache.cache["last_update"] = timestamp_old
+    cache.save()
+    assert cache.is_fresh() is False
+    cache.cache["last_update"] = timestamp
+    cache.save()
+    assert cache.is_fresh()
+
+
