@@ -7,7 +7,7 @@ class Push:
     def __init__(self, settings):
         self.client = Client(settings["pushover_user_key"],
                              api_token=settings["pushover_api_token"])
-        if settings["pushover-enabled"] == True:
+        if settings["pushover-enabled"]:
             self.enabled = True
         else:
             self.enabled = False

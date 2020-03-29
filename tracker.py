@@ -40,7 +40,6 @@ def main():
     data_cache = lib.cache.DataCache(settings)
 
     p = lib.push.Push(settings)
-    tracking_list = settings["tracking_list"]
     retriever = lib.retriever.Retriever(settings, data_cache)
     classified_filter = Filter(retriever, cache, settings)
     # get data

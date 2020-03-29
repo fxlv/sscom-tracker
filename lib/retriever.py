@@ -1,12 +1,9 @@
-import datetime
 import logging
-import os
 import sys
 
 import requests
 from lxml import html
 
-import lib.cache
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
@@ -55,72 +52,71 @@ class Retriever:
         return attrib["id"].split("_")[1]
 
     def get_text_from_element(self, k, xpath):
-        if k.body.findall(xpath)[0].text == None:
+        if k.body.findall(xpath)[0].text is None:
             # Handle cases when classified has been enclosed in a <b>tag</b>
-            xpath=xpath+"/b"
+            xpath = xpath+"/b"
         return k.body.findall(xpath)[0].text
 
-
     @func_log
-    def find_apartment_by_id(self, k, id):
+    def find_apartment_by_id(self, k, apartment_id):
 
-        title = self.get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(id))
+        title = self.get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(apartment_id))
         street = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[4]".format(apartment_id))
 
         if title is None or street is None:
             logging.warning(
-                "Invalid data for classified with ID: %s", id)
+                "Invalid data for classified with ID: %s", apartment_id)
             return False
         apartment = Apartment(title, street)
 
         apartment.rooms = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[5]".format(apartment_id))
         apartment.space = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[6]".format(apartment_id))
         apartment.floor = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[7]".format(apartment_id))
         apartment.series = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[8]".format(apartment_id))
         apartment.price_per_m = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[9]".format(apartment_id))
         apartment.price = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[10]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[10]".format(apartment_id))
         return apartment
 
     @func_log
-    def find_house_by_id(self, k, id):
+    def find_house_by_id(self, k, house_id):
 
         title = self.get_text_from_element(
-            k, ".//a[@id=\"dm_{}\"]".format(id))
+            k, ".//a[@id=\"dm_{}\"]".format(house_id))
         street = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[4]".format(house_id))
         house = House(title, street)
         house.space = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[5]".format(house_id))
         house.floors = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[6]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[6]".format(house_id))
         house.rooms = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[7]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[7]".format(house_id))
         house.land = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[8]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[8]".format(house_id))
         house.price = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[9]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[9]".format(house_id))
         return house
 
     @func_log
-    def find_dog_by_id(self, k, id):
+    def find_dog_by_id(self, k, dog_id):
         title = self.get_text_from_element(
-            k, ".//a[@id=\"dm_{}\"]".format(id))
+            k, ".//a[@id=\"dm_{}\"]".format(dog_id))
         age = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[4]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[4]".format(dog_id))
         if title is None or age is None:
             logging.warning(
-                "Invalid data for dog with ID: %s", id)
+                "Invalid data for dog with ID: %s", dog_id)
             return False
         dog = Dog(title, age)
         dog.price = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[5]".format(id))
+            k, ".//*[@id=\"tr_{}\"]/td[5]".format(dog_id))
         return dog
 
     @func_log
