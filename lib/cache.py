@@ -65,7 +65,6 @@ class Cache:
         return True
 
 
-
 class DataCache(Cache):
     """Data Cache class for storing html response data."""
 
@@ -99,10 +98,10 @@ class DataCache(Cache):
             logging.debug(
                 "Cache is not fresh. Delta: %s seconds", delta_seconds)
             return False
-        else:
-            logging.debug(
+        # if cache is fresh, continue
+        logging.debug(
                 "Cache is fresh. Delta: %s seconds", delta_seconds)
-            return True
+        return True
 
     def add(self, key: str, item: object) -> None:
         """Add an item to the cache."""
