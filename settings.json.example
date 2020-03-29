@@ -6,5 +6,7 @@
   "data_cache":"data_cache.db",
   "tracking_list":{
     "apartment": { "url":"https://www.ss.com/lv/real-estate/flats/riga/teika/today-2/sell/", "filter_room_count":3 },
-    "house": {"url":"https://www.ss.com/lv/real-estate/homes-summer-residences/riga/teika/today-2/sell/"} }
+    "house": {"url":"https://www.ss.com/lv/real-estate/homes-summer-residences/riga/teika/today-2/sell/"},
+    "dog":  {"url": "https://www.ss.com/lv/animals/dogs/bouledogue-francais/today-5/sell/"}
+    }
 }
