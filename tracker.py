@@ -62,7 +62,8 @@ def main():
             print("=> New classifieds:")
             for r in results[classified_type]["new"]:
                 print(r)
-                p.send_pushover_message(r)
+                push_message = lib.push.PushMessage(r, classified_type)
+                p.send_pushover_message(push_message)
             print()
         else:
             print("No NEW classifieds for type: {}".format(classified_type))

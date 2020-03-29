@@ -1,25 +1,31 @@
+import datetime
+import logging
+import os
+import time
+
+import pytest
+
 import lib.cache
 import lib.datastructures
-import pytest
-import os
-import  lib.log
-import logging
-import datetime
-import time
+import lib.log
+
 lib.log.set_up_logging(debug=True, log_file="tests_debug.log")
+
 
 @pytest.fixture
 def local_cache():
-    settings = {"local_cache":"test.cache.db"}
+    settings = {"local_cache": "test.cache.db"}
     cache = lib.cache.Cache(settings)
     return cache
+
 
 def test_initialize_cache(local_cache):
     cache = local_cache
     assert isinstance(cache, lib.cache.Cache)
 
+
 def test_initialize_cache_with_overriden_cache_file():
-    settings = {"local_cache":"test.cache.db"}
+    settings = {"local_cache": "test.cache.db"}
     test_cache_name = "test_cache_overriden.db"
     if os.path.exists(test_cache_name):
         logging.debug("Previous cache file {} exists. Deleting it.".format(test_cache_name))
@@ -30,10 +36,12 @@ def test_initialize_cache_with_overriden_cache_file():
     assert os.path.exists(test_cache_name)
     assert isinstance(cache, lib.cache.Cache)
 
+
 def test_add(local_cache: lib.cache.Cache):
     test_object = "Test item 1"
     local_cache.add(test_object)
     assert local_cache.is_known(test_object)
+
 
 def test_save(local_cache):
     """Test writing, saving and reading back from cache."""
@@ -59,6 +67,7 @@ def test_save(local_cache):
     assert len(cache.cache) == 1
     assert cache2.is_known(test_object)
 
+
 def test_destructor():
     """Ensure cache is dumped to disk before destruction.
 
@@ -79,7 +88,7 @@ def test_destructor():
     time1 = os.path.getmtime(test_cache_name)
     time.sleep(0.1)
     # delete object, by decrementing its reference counter
-    del(cache)
+    del (cache)
     time2 = os.path.getmtime(test_cache_name)
     # now compare timestamps before and after destruction
     assert time2 > time1
@@ -132,12 +141,10 @@ def test_data_cache_freshness(data_cache):
     cache = data_cache
     assert cache.is_fresh() is False
     timestamp = datetime.datetime.now()
-    timestamp_old = timestamp.replace(hour=timestamp.hour-1)
+    timestamp_old = timestamp.replace(hour=timestamp.hour - 1)
     cache.cache["last_update"] = timestamp_old
     cache.save()
     assert cache.is_fresh() is False
     cache.cache["last_update"] = timestamp
     cache.save()
     assert cache.is_fresh()
-
-
