@@ -15,9 +15,14 @@ prospector *.py
 echo "Cyclomatic Complexity"
 radon cc lib/*.py
 radon cc *.py
+echo
 echo "maintainability index"
 radon mi lib/*.py
 radon mi *.py
+echo
+echo "Running mypy"
+python3 -m mypy tracker.py
+echo
 echo "Running tests"
 echo
 pytest -v tests/* --cov-report term-missing --cov='lib/' --cov='./tracker.py' -v
