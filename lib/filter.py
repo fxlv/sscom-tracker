@@ -1,4 +1,4 @@
-import logging
+from loguru import logger
 from typing import Tuple, List
 
 
@@ -20,7 +20,7 @@ class Filter:
         return results
 
     def filter_by_type(self, classified_type: str, url: str) -> Tuple[List, List]:
-        logging.info("Looking for type: %s using URL: %s", classified_type, url)
+        logger.info(f"Looking for type: {classified_type} using URL: {url}")
         k = self.retriever.get_ss_data_from_cache(url)
         ad_list = self.retriever.get_ad_list(k, classified_type)
         results_old = []
@@ -28,25 +28,25 @@ class Filter:
         for a in ad_list:
 
             if self.cache.is_known(a):
-                logging.info("OLD: %s [%s]", a, a.get_hash())
+                logger.info(f"OLD: {a} [{a.get_hash()}]")
                 results_old.append(a)
             else:
                 self.cache.add(a)
-                logging.info("NEW: %s [%s]", a, a.get_hash())
+                logger.info(f"NEW: {a} [{a.get_hash()}]")
 
                 if classified_type == "apartment":
                     if (
                         int(a.rooms)
                         >= self.tracking_list[classified_type]["filter_room_count"]
                     ):
-                        logging.debug("NEW Apartment matching filtering criteria found")
+                        logger.debug("NEW Apartment matching filtering criteria found")
                         results_new.append(a)
                 elif classified_type == "house":
-                    logging.info("NEW House found: %s", str(a))
+                    logger.info(f"NEW House found: {a}")
                     results_new.append(a)
                 elif classified_type == "dog":
-                    logging.info("NEW Dog found: %s", str(a))
+                    logger.info(f"NEW Dog found: {a}")
                     results_new.append(a)
                 else:
-                    logging.info("Not enough rooms (%s)", a.rooms)
+                    logger.info(f"Not enough rooms ({a.rooms})")
         return results_new, results_old

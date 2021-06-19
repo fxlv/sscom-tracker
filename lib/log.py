@@ -1,5 +1,7 @@
 import logging
+import sys
 import time
+from loguru import logger
 
 
 def func_log(function_name):
@@ -16,18 +18,18 @@ def func_log(function_name):
         if kwargs:
             msg += f" with kwargs {args}"
         msg += f" executed in: {t_end:5.5f} sec"
-        logging.debug(msg)
+        logger.debug(msg)
         return result
 
     return log_it
 
 
-def set_up_logging(debug=False, log_file="debug.log"):
-    log_format = (
-        "%(asctime)s %(levelname)s %(name)s " "%(filename)s %(lineno)d >> %(message)s"
-    )
+def set_up_logging(debug=False, log_file_name="tracker.log"):
+    logger.remove()  # remove the default logger output
+    logger.add(
+        "tracker.log", rotation="10 MB", retention="1 week", compression="zip"
+    )  # always log to a file
+    logger.add(sys.stderr, level="WARNING")
     if debug:
-        logging.basicConfig(level=logging.DEBUG, filename=log_file, format=log_format)
-        logging.debug("Logging started.")
-    else:
-        logging.basicConfig(level=logging.INFO)
+        logger.add(sys.stdout, level="DEBUG")
+        logger.debug("DEBUG Logging started.")

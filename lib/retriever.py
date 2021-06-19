@@ -1,6 +1,5 @@
-import logging
 import sys
-
+from loguru import logger
 import requests
 from lxml import html
 
@@ -19,11 +18,11 @@ class Retriever:
 
         for item in tracking_list:
             url = tracking_list[item]["url"]
-            logging.info("Looking for type: %s", item)
+            logger.info(f"Looking for type: {item}")
             # TODO: only update cache if it is cold
 
             data = self.retrieve_ss_data(url)
-            logging.debug("%s -> %s", url, data)
+            logger.debug(f"{url} -> {data}")
             self.data_cache.add(url, data)
 
     @func_log
@@ -41,7 +40,7 @@ class Retriever:
         return r.content
 
     def get_ss_data_from_cache(self, url: str) -> object:
-        logging.debug("Retrieving data from cache for URL: %s", url)
+        logger.debug(f"Retrieving data from cache for URL: {url}")
         data = self.data_cache.get(url)
         tree = html.fromstring(data)
         return tree.xpath('//*[@id="filter_frm"]/table[2]')[0]
@@ -62,7 +61,7 @@ class Retriever:
         street = self.get_text_from_element(k, f'.//*[@id="tr_{apartment_id}"]/td[4]')
 
         if title is None or street is None:
-            logging.warning("Invalid data for classified with ID: %s", apartment_id)
+            logger.warning(f"Invalid data for classified with ID: {apartment_id}")
             return False
         apartment = Apartment(title, street)
 
@@ -104,7 +103,7 @@ class Retriever:
         title = self.get_text_from_element(k, f'.//a[@id="dm_{dog_id}"]')
         age = self.get_text_from_element(k, f'.//*[@id="tr_{dog_id}"]/td[4]')
         if title is None or age is None:
-            logging.warning("Invalid data for dog with ID: %s", dog_id)
+            logger.warning(f"Invalid data for dog with ID: {dog_id}")
             return False
         dog = Dog(title, age)
         dog.price = self.get_text_from_element(k, f'.//*[@id="tr_{dog_id}"]/td[5]')
@@ -129,20 +128,20 @@ class Retriever:
                 if apartment.rooms and apartment.floor:
                     ad_list.append(apartment)
                 else:
-                    logging.debug("Skipping invalid apartment: %s", apartment)
+                    logger.debug(f"Skipping invalid apartment: {apartment}")
             elif ad_type == "house":
                 house = self.find_house_by_id(content, i)
                 if house.title:
                     ad_list.append(house)
                 else:
-                    logging.debug("Skipping invalid house: %s", apartment)
+                    logger.debug(f"Skipping invalid house: {apartment}")
             elif ad_type == "dog":
                 dog = self.find_dog_by_id(content, i)
                 if dog.title:
                     ad_list.append(dog)
                 else:
-                    logging.debug("Skipping invalid dog: %s", dog)
+                    logger.debug(f"Skipping invalid dog: {dog}")
             else:
-                logging.critical("Unknown classified type!")
+                logger.critical("Unknown classified type!")
                 sys.exit(1)
         return ad_list

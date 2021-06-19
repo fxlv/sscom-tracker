@@ -2,7 +2,7 @@ import lib.push
 import pytest
 import lib.log
 
-lib.log.set_up_logging(debug=True, log_file="tests_debug.log")
+lib.log.set_up_logging(debug=True, log_file_name="tests_debug.log")
 
 
 @pytest.fixture

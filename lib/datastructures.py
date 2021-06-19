@@ -1,5 +1,5 @@
 import hashlib
-import logging
+from loguru import logger
 
 
 class Classified:
@@ -25,11 +25,11 @@ class Classified:
         return repr
 
     def __hash__(self):
-        logging.debug("Calling built in hash method")
+        logger.debug("Calling built in hash method")
         return hash((self.title, self.street))
 
     def __eq__(self, other):
-        logging.debug("Calling built in __eq__ method")
+        logger.trace("Calling built in __eq__ method")
         return self.hash == other.hash
 
     def get_hash(self) -> str:
@@ -60,11 +60,11 @@ class Animal:
         return repr
 
     def __hash__(self):
-        logging.debug("Calling built in hash method")
+        logger.debug("Calling built in hash method")
         return hash((self.title, self.age))
 
     def __eq__(self, other):
-        logging.debug("Calling built in __eq__ method")
+        logger.trace("Calling built in __eq__ method")
         return self.hash == other.hash
 
     def get_hash(self) -> str:

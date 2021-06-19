@@ -1,4 +1,6 @@
 from pushover import Client
+from loguru import logger
+from lib.log import func_log
 
 
 class PushMessage:
@@ -25,10 +27,11 @@ class Push:
         else:
             self.enabled = False
 
+    @func_log
     def send_pushover_message(self, message: PushMessage):
         """Send a message, if push is enabled."""
         if self.enabled:
-            print("Sending push message")
+            logger.debug("Sending push message")
             self.client.send_message(message=message.message, title=message.title)
         else:
             print(

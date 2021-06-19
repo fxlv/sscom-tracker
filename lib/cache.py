@@ -1,7 +1,7 @@
 import datetime
-import logging
 import os
 import pickle
+from loguru import logger
 
 
 class Cache:
@@ -13,11 +13,11 @@ class Cache:
         if local_cache is None:
             # use the cache as specified in settings
             self.local_cache = settings["local_cache"]
-            logging.debug("Using cache file specified in settings")
+            logger.debug("Using cache file specified in settings")
         else:
             # use the cache specified in constructor arguments
             self.local_cache = local_cache
-            logging.debug("Using cache file from constructor arguments")
+            logger.debug("Using cache file from constructor arguments")
         self.settings = settings
 
         self.cache = None
@@ -28,24 +28,24 @@ class Cache:
         """Load cache from pickle file."""
         if not os.path.exists(self.local_cache):
             return False
-        logging.debug("Loading cache file from disk")
+        logger.debug("Loading cache file from disk")
         cache_file = open(self.local_cache, "rb")
         self.cache = pickle.load(cache_file)
         return True
 
     def create_new_cache(self):
         """Initialize new cache object."""
-        logging.debug("Creating a new cache object")
+        logger.debug("Creating a new cache object")
         self.cache = []
 
     def __del__(self) -> None:
         """Save cache upon destruction."""
-        logging.debug("Destructor called for Cache object %s", str(self))
+        logger.debug(f"Destructor called for Cache object {self}")
         self.save()
 
     def add(self, item: object) -> bool:
         """Add an item to the cache."""
-        logging.debug("Adding item %s... to cache", str(item)[:20])
+        logger.debug(f"Adding item {str(item)[:20]} to cache")
         return self.cache.append(item)
 
     def is_known(self, item: object) -> bool:
@@ -56,11 +56,11 @@ class Cache:
         """Save cache to pickle file."""
         with open(self.local_cache, "wb") as cache_file:
             pickle.dump(self.cache, cache_file)
-            logging.debug("Cache saved to file: %s", self.local_cache)
+            logger.debug(f"Cache saved to file: {self.local_cache}")
 
     def cache_file_exists(self) -> bool:
         if not os.path.exists(self.local_cache):
-            logging.debug("Local cache %s does not exist", self.local_cache)
+            logger.debug(f"Local cache {self.local_cache} does not exist")
             return False
         return True
 
@@ -95,10 +95,10 @@ class DataCache(Cache):
         delta = current_timestamp - cache_timestamp
         delta_seconds = delta.total_seconds()
         if delta_seconds > self.settings["cache_freshness"]:
-            logging.debug("Cache is not fresh. Delta: %s seconds", delta_seconds)
+            logger.debug(f"Cache is not fresh. Delta: {delta_seconds} seconds")
             return False
         # if cache is fresh, continue
-        logging.debug("Cache is fresh. Delta: %s seconds", delta_seconds)
+        logger.debug(f"Cache is fresh. Delta: {delta_seconds} seconds")
         return True
 
     def add(self, key: str, item: object) -> None:
