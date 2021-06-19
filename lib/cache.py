@@ -95,12 +95,10 @@ class DataCache(Cache):
         delta = current_timestamp - cache_timestamp
         delta_seconds = delta.total_seconds()
         if delta_seconds > self.settings["cache_freshness"]:
-            logging.debug(
-                "Cache is not fresh. Delta: %s seconds", delta_seconds)
+            logging.debug("Cache is not fresh. Delta: %s seconds", delta_seconds)
             return False
         # if cache is fresh, continue
-        logging.debug(
-                "Cache is fresh. Delta: %s seconds", delta_seconds)
+        logging.debug("Cache is fresh. Delta: %s seconds", delta_seconds)
         return True
 
     def add(self, key: str, item: object) -> None:

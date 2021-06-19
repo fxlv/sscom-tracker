@@ -28,7 +28,7 @@ def test_initialize_cache_with_overriden_cache_file():
     settings = {"local_cache": "test.cache.db"}
     test_cache_name = "test_cache_overriden.db"
     if os.path.exists(test_cache_name):
-        logging.debug("Previous cache file {} exists. Deleting it.".format(test_cache_name))
+        logging.debug(f"Previous cache file {test_cache_name} exists. Deleting it.")
         os.unlink(test_cache_name)
     assert os.path.exists(test_cache_name) is False
     cache = lib.cache.Cache(settings, test_cache_name)
@@ -88,7 +88,7 @@ def test_destructor():
     time1 = os.path.getmtime(test_cache_name)
     time.sleep(0.1)
     # delete object, by decrementing its reference counter
-    del (cache)
+    del cache
     time2 = os.path.getmtime(test_cache_name)
     # now compare timestamps before and after destruction
     assert time2 > time1
@@ -97,10 +97,7 @@ def test_destructor():
 @pytest.fixture()
 def settings_data_cache():
     test_cache_name = "test_data_cache.db"
-    settings = {
-        "data_cache": test_cache_name,
-        "cache_freshness": 300
-    }
+    settings = {"data_cache": test_cache_name, "cache_freshness": 300}
     return settings
 
 

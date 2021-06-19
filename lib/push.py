@@ -9,7 +9,7 @@ class PushMessage:
         self.message = message
         # use message type in title, or use word 'match' if type not provided
         self.message_type = message_type if message_type else "match"
-        self.title = "New {} found".format(message_type)
+        self.title = f"New {message_type} found"
 
 
 class Push:
@@ -17,8 +17,9 @@ class Push:
 
     def __init__(self, settings):
         """Construct the object based on settings."""
-        self.client = Client(settings["pushover_user_key"],
-                             api_token=settings["pushover_api_token"])
+        self.client = Client(
+            settings["pushover_user_key"], api_token=settings["pushover_api_token"]
+        )
         if settings["pushover-enabled"]:
             self.enabled = True
         else:
@@ -28,7 +29,10 @@ class Push:
         """Send a message, if push is enabled."""
         if self.enabled:
             print("Sending push message")
-            self.client.send_message(
-                message=message.message, title=message.title)
+            self.client.send_message(message=message.message, title=message.title)
         else:
-            print("Push messages not enabled! [Title: {} Message: {}]".format(message.title, message.message))
+            print(
+                "Push messages not enabled! [Title: {} Message: {}]".format(
+                    message.title, message.message
+                )
+            )

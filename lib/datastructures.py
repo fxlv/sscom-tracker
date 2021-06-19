@@ -18,10 +18,10 @@ class Classified:
         self.hash = self.get_hash()
 
     def __str__(self):
-        return "Classified: {} / Str: {}".format(self.title, self.street)
+        return f"Classified: {self.title} / Str: {self.street}"
 
     def __repr__(self):
-        repr = "Classified(\"{}\",\"{}\")".format(self.title, self.street)
+        repr = f'Classified("{self.title}","{self.street}")'
         return repr
 
     def __hash__(self):
@@ -35,6 +35,7 @@ class Classified:
     def get_hash(self) -> str:
         """Return hash based on title and street."""
         return hashlib.sha256(str(self.title + self.street).encode("utf-8")).hexdigest()
+
 
 class Animal:
     """Base class for all animals"""
@@ -52,10 +53,10 @@ class Animal:
         self.hash = self.get_hash()
 
     def __str__(self):
-        return "Classified: {} / Age: {}".format(self.title, self.age)
+        return f"Classified: {self.title} / Age: {self.age}"
 
     def __repr__(self):
-        repr = "Classified(\"{}\",\"{}\")".format(self.title, self.age)
+        repr = f'Classified("{self.title}","{self.age}")'
         return repr
 
     def __hash__(self):
@@ -72,17 +73,17 @@ class Animal:
 
 
 class Apartment(Classified):
-
     def __str__(self):
-        return "Apartment: {} / Str: {} / rooms: {} / floor: {}".format(self.title, self.street, self.rooms, self.floor)
+        return "Apartment: {} / Str: {} / rooms: {} / floor: {}".format(
+            self.title, self.street, self.rooms, self.floor
+        )
 
 
 class House(Classified):
-
     def __str__(self):
-        return "House: {} / Str: {}".format(self.title, self.street)
+        return f"House: {self.title} / Str: {self.street}"
+
 
 class Dog(Animal):
-
     def __str__(self):
-        return "Dog: {} / Age: {}".format(self.title, self.age)
+        return f"Dog: {self.title} / Age: {self.age}"

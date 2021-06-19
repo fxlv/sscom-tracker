@@ -21,9 +21,7 @@ def parse_user_args():
     """Parse commandline arguments."""
     parser = argparse.ArgumentParser()
     parser.description = "SS.COM Tracker"
-    parser.add_argument("--debug",
-                        action="store_true",
-                        help="Enable DEBUG logging")
+    parser.add_argument("--debug", action="store_true", help="Enable DEBUG logging")
     args = parser.parse_args()
     return args
 
@@ -33,7 +31,7 @@ def main():
     args = parse_user_args()
 
     set_up_logging(args.debug)
-    with open("settings.json", "r") as settings_file:
+    with open("settings.json") as settings_file:
         settings = json.load(settings_file)
 
     cache = lib.cache.Cache(settings)
@@ -49,15 +47,14 @@ def main():
     results = classified_filter.filter_tracking_list()
     # display results and send push notifications
     for classified_type in results:
-        print("{} Results for: {} {}".format("=" * 10, classified_type,
-                                             "=" * 10))
+        print("{} Results for: {} {}".format("=" * 10, classified_type, "=" * 10))
         if len(results[classified_type]["old"]) > 0:
             print("=> OLD/Known classifieds:")
             for r in results[classified_type]["old"]:
                 print(r)
             print()
         else:
-            print("No OLD classifieds for type: {}".format(classified_type))
+            print(f"No OLD classifieds for type: {classified_type}")
         if len(results[classified_type]["new"]) > 0:
             print("=> New classifieds:")
             for r in results[classified_type]["new"]:
@@ -66,7 +63,7 @@ def main():
                 p.send_pushover_message(push_message)
             print()
         else:
-            print("No NEW classifieds for type: {}".format(classified_type))
+            print(f"No NEW classifieds for type: {classified_type}")
 
 
 if __name__ == "__main__":

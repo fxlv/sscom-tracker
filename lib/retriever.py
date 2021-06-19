@@ -9,7 +9,6 @@ from lib.log import func_log
 
 
 class Retriever:
-
     def __init__(self, settings, data_cache):
         self.settings = settings
         self.data_cache = data_cache
@@ -36,8 +35,7 @@ class Retriever:
 
         # TODO: add randomization of user agent here
         headers = {
-            "User-Agent":
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
         }
         r = requests.get(url, headers=headers)
         return r.content
@@ -46,7 +44,7 @@ class Retriever:
         logging.debug("Retrieving data from cache for URL: %s", url)
         data = self.data_cache.get(url)
         tree = html.fromstring(data)
-        return tree.xpath("//*[@id=\"filter_frm\"]/table[2]")[0]
+        return tree.xpath('//*[@id="filter_frm"]/table[2]')[0]
 
     def get_id_from_attrib(self, attrib):
         return attrib["id"].split("_")[1]
@@ -54,69 +52,62 @@ class Retriever:
     def get_text_from_element(self, k, xpath):
         if k.body.findall(xpath)[0].text is None:
             # Handle cases when classified has been enclosed in a <b>tag</b>
-            xpath = xpath+"/b"
+            xpath = xpath + "/b"
         return k.body.findall(xpath)[0].text
 
     @func_log
     def find_apartment_by_id(self, k, apartment_id):
 
-        title = self.get_text_from_element(k, ".//a[@id=\"dm_{}\"]".format(apartment_id))
-        street = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[4]".format(apartment_id))
+        title = self.get_text_from_element(k, f'.//a[@id="dm_{apartment_id}"]')
+        street = self.get_text_from_element(k, f'.//*[@id="tr_{apartment_id}"]/td[4]')
 
         if title is None or street is None:
-            logging.warning(
-                "Invalid data for classified with ID: %s", apartment_id)
+            logging.warning("Invalid data for classified with ID: %s", apartment_id)
             return False
         apartment = Apartment(title, street)
 
         apartment.rooms = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[5]".format(apartment_id))
+            k, f'.//*[@id="tr_{apartment_id}"]/td[5]'
+        )
         apartment.space = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[6]".format(apartment_id))
+            k, f'.//*[@id="tr_{apartment_id}"]/td[6]'
+        )
         apartment.floor = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[7]".format(apartment_id))
+            k, f'.//*[@id="tr_{apartment_id}"]/td[7]'
+        )
         apartment.series = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[8]".format(apartment_id))
+            k, f'.//*[@id="tr_{apartment_id}"]/td[8]'
+        )
         apartment.price_per_m = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[9]".format(apartment_id))
+            k, f'.//*[@id="tr_{apartment_id}"]/td[9]'
+        )
         apartment.price = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[10]".format(apartment_id))
+            k, f'.//*[@id="tr_{apartment_id}"]/td[10]'
+        )
         return apartment
 
     @func_log
     def find_house_by_id(self, k, house_id):
 
-        title = self.get_text_from_element(
-            k, ".//a[@id=\"dm_{}\"]".format(house_id))
-        street = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[4]".format(house_id))
+        title = self.get_text_from_element(k, f'.//a[@id="dm_{house_id}"]')
+        street = self.get_text_from_element(k, f'.//*[@id="tr_{house_id}"]/td[4]')
         house = House(title, street)
-        house.space = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[5]".format(house_id))
-        house.floors = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[6]".format(house_id))
-        house.rooms = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[7]".format(house_id))
-        house.land = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[8]".format(house_id))
-        house.price = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[9]".format(house_id))
+        house.space = self.get_text_from_element(k, f'.//*[@id="tr_{house_id}"]/td[5]')
+        house.floors = self.get_text_from_element(k, f'.//*[@id="tr_{house_id}"]/td[6]')
+        house.rooms = self.get_text_from_element(k, f'.//*[@id="tr_{house_id}"]/td[7]')
+        house.land = self.get_text_from_element(k, f'.//*[@id="tr_{house_id}"]/td[8]')
+        house.price = self.get_text_from_element(k, f'.//*[@id="tr_{house_id}"]/td[9]')
         return house
 
     @func_log
     def find_dog_by_id(self, k, dog_id):
-        title = self.get_text_from_element(
-            k, ".//a[@id=\"dm_{}\"]".format(dog_id))
-        age = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[4]".format(dog_id))
+        title = self.get_text_from_element(k, f'.//a[@id="dm_{dog_id}"]')
+        age = self.get_text_from_element(k, f'.//*[@id="tr_{dog_id}"]/td[4]')
         if title is None or age is None:
-            logging.warning(
-                "Invalid data for dog with ID: %s", dog_id)
+            logging.warning("Invalid data for dog with ID: %s", dog_id)
             return False
         dog = Dog(title, age)
-        dog.price = self.get_text_from_element(
-            k, ".//*[@id=\"tr_{}\"]/td[5]".format(dog_id))
+        dog.price = self.get_text_from_element(k, f'.//*[@id="tr_{dog_id}"]/td[5]')
         return dog
 
     @func_log
@@ -138,22 +129,19 @@ class Retriever:
                 if apartment.rooms and apartment.floor:
                     ad_list.append(apartment)
                 else:
-                    logging.debug(
-                        "Skipping invalid apartment: %s", apartment)
+                    logging.debug("Skipping invalid apartment: %s", apartment)
             elif ad_type == "house":
                 house = self.find_house_by_id(content, i)
                 if house.title:
                     ad_list.append(house)
                 else:
-                    logging.debug(
-                        "Skipping invalid house: %s", apartment)
+                    logging.debug("Skipping invalid house: %s", apartment)
             elif ad_type == "dog":
                 dog = self.find_dog_by_id(content, i)
                 if dog.title:
                     ad_list.append(dog)
                 else:
-                    logging.debug(
-                        "Skipping invalid dog: %s", dog)
+                    logging.debug("Skipping invalid dog: %s", dog)
             else:
                 logging.critical("Unknown classified type!")
                 sys.exit(1)

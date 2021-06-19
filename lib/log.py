@@ -10,12 +10,12 @@ def func_log(function_name):
         t_start = time.time()
         result = function_name(*args, **kwargs)
         t_end = time.time() - t_start
-        msg = "Function call: {}".format(function_name.__name__)
+        msg = f"Function call: {function_name.__name__}"
         if args:
-            msg += " with args: {}".format(args)
+            msg += f" with args: {args}"
         if kwargs:
-            msg += " with kwargs {}".format(args, kwargs)
-        msg += " executed in: {:5.5f} sec".format(t_end)
+            msg += f" with kwargs {args}"
+        msg += f" executed in: {t_end:5.5f} sec"
         logging.debug(msg)
         return result
 
@@ -23,12 +23,11 @@ def func_log(function_name):
 
 
 def set_up_logging(debug=False, log_file="debug.log"):
-    log_format = "%(asctime)s %(levelname)s %(name)s " \
-                 "%(filename)s %(lineno)d >> %(message)s"
+    log_format = (
+        "%(asctime)s %(levelname)s %(name)s " "%(filename)s %(lineno)d >> %(message)s"
+    )
     if debug:
-        logging.basicConfig(level=logging.DEBUG,
-                            filename=log_file,
-                            format=log_format)
-        logging.debug('Logging started.')
+        logging.basicConfig(level=logging.DEBUG, filename=log_file, format=log_format)
+        logging.debug("Logging started.")
     else:
         logging.basicConfig(level=logging.INFO)

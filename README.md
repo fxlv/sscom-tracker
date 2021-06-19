@@ -16,7 +16,7 @@ Edit `settings.json`. Use the provided example settings file.
 You need to change two things, first what classifieds you'd like to monitor. Currently houses and apartments are tested and supported.
 
 The URL you use is same URL as you type in the browser, so you can kind of browse around, see what works for you and then put it into settings.
-In addition to URL, the apartment search also supports filtering by room count using the setting `filter_room_count`. 
+In addition to URL, the apartment search also supports filtering by room count using the setting `filter_room_count`.
 This will look for apartments with room count `>=` the one you specified.
 
 If you'd like to receive [Pushover](https://pushover.net) push notifications, you need to set `pushover-enabled` to `True` and provide your user key and API token.
@@ -43,7 +43,7 @@ Tests are written with `pytest` and you can run them with:
 
 ### Docker
 
-Bunch of docker files are provided in `docker` directory. 
+Bunch of docker files are provided in `docker` directory.
 You can build an environment and fire all the tests from within `docker` directory with:
 
 ```
@@ -51,6 +51,3 @@ docker build -f Dockerfile.sscom-tracker-base -t sscom-tracker-base --no-cache .
 docker build -f Dockerfile.sscom-tracker-testing -t sscom-tracker-testing --no-cache ..
 docker run -ti sscom-tracker-testing ./testing.sh
 ```
-
-
-
