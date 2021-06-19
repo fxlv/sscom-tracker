@@ -23,6 +23,10 @@ echo
 echo "Running mypy"
 python3 -m mypy tracker.py
 echo
+
+echo "Running pre-commit"
+pre-commit run  --all-files
+echo
 echo "Running tests"
 echo
 pytest -v --cov-report term-missing --cov='lib/' --cov='./tracker.py' -v
