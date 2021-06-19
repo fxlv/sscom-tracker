@@ -25,5 +25,5 @@ python3 -m mypy tracker.py
 echo
 echo "Running tests"
 echo
-pytest -v tests/* --cov-report term-missing --cov='lib/' --cov='./tracker.py' -v
+pytest -v --cov-report term-missing --cov='lib/' --cov='./tracker.py' -v
 echo "All done."
