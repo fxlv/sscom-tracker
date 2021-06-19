@@ -20,6 +20,7 @@ importlib-metadata==4.4.0
 iniconfig==1.1.1
 isort==5.8.0
 lazy-object-proxy==1.6.0
+lxml==4.6.3
 mando==0.6.4
 mccabe==0.6.1
 mypy==0.902
