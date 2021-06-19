@@ -6,22 +6,24 @@
 #
 # kaspars@fx.lv
 #
-import argparse
 import json
-
+import click
 import lib.cache
 import lib.datastructures
 import lib.push
 import lib.retriever
+from lib.display import print_results_to_console
 from lib.filter import Filter
 from lib.log import func_log, set_up_logging
-import click
+from lib.push import send_push
 
 
 @func_log
 @click.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-def main(debug):
+@click.option("--print/--no-print", default=True, help="Print results to console")
+@click.option("--push/--no-push", default=False, help="Send push notifications")
+def main(debug, print, push):
 
     set_up_logging(debug)
     with open("settings.json") as settings_file:
@@ -30,33 +32,18 @@ def main(debug):
     cache = lib.cache.Cache(settings)
     data_cache = lib.cache.DataCache(settings)
 
-    p = lib.push.Push(settings)
     retriever = lib.retriever.Retriever(settings, data_cache)
     classified_filter = Filter(retriever, cache, settings)
-    # get data
 
     if not data_cache.is_fresh():
         retriever.update_data_cache()
     results = classified_filter.filter_tracking_list()
-    # display results and send push notifications
-    for classified_type in results:
-        print("{} Results for: {} {}".format("=" * 10, classified_type, "=" * 10))
-        if len(results[classified_type]["old"]) > 0:
-            print("=> OLD/Known classifieds:")
-            for r in results[classified_type]["old"]:
-                print(r)
-            print()
-        else:
-            print(f"No OLD classifieds for type: {classified_type}")
-        if len(results[classified_type]["new"]) > 0:
-            print("=> New classifieds:")
-            for r in results[classified_type]["new"]:
-                print(r)
-                push_message = lib.push.PushMessage(r, classified_type)
-                p.send_pushover_message(push_message)
-            print()
-        else:
-            print(f"No NEW classifieds for type: {classified_type}")
+
+    if print:
+        print_results_to_console(results)
+
+    if push:
+        send_push(settings, results)
 
 
 if __name__ == "__main__":

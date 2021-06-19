@@ -39,3 +39,12 @@ class Push:
                     message.title, message.message
                 )
             )
+
+
+def send_push(settings, results):
+    # send notifications for new results
+    p = Push(settings)
+    for classified_type in results:
+        for r in results[classified_type]["new"]:
+            push_message = PushMessage(r, classified_type)
+            p.send_pushover_message(push_message)
