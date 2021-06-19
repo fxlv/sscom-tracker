@@ -15,22 +15,15 @@ import lib.push
 import lib.retriever
 from lib.filter import Filter
 from lib.log import func_log, set_up_logging
-
-
-def parse_user_args():
-    """Parse commandline arguments."""
-    parser = argparse.ArgumentParser()
-    parser.description = "SS.COM Tracker"
-    parser.add_argument("--debug", action="store_true", help="Enable DEBUG logging")
-    args = parser.parse_args()
-    return args
+import click
 
 
 @func_log
-def main():
-    args = parse_user_args()
+@click.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+def main(debug):
 
-    set_up_logging(args.debug)
+    set_up_logging(debug)
     with open("settings.json") as settings_file:
         settings = json.load(settings_file)
 

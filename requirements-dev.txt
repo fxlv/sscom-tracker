@@ -1,5 +1,5 @@
 appdirs==1.4.4
-astroid==2.5.6
+astroid==2.4.1
 attrs==21.2.0
 black==21.6b0
 certifi==2021.5.30
@@ -7,6 +7,7 @@ cfgv==3.3.0
 chardet==4.0.0
 click==8.0.1
 colorama==0.4.4
+commonmark==0.9.1
 coverage==5.5
 distlib==0.3.2
 dodgy==0.2.1
@@ -18,8 +19,9 @@ identify==2.2.10
 idna==2.10
 importlib-metadata==4.4.0
 iniconfig==1.1.1
-isort==5.8.0
-lazy-object-proxy==1.6.0
+isort==4.3.21
+lazy-object-proxy==1.4.3
+loguru==0.5.3
 lxml==4.6.3
 mando==0.6.4
 mccabe==0.6.1
@@ -37,7 +39,8 @@ py==1.10.0
 pycodestyle==2.6.0
 pydocstyle==6.1.1
 pyflakes==2.2.0
-pylint==2.8.3
+Pygments==2.9.0
+pylint==2.5.3
 pylint-celery==0.3
 pylint-django==2.1.0
 pylint-flask==0.6
@@ -52,6 +55,7 @@ radon==4.5.2
 regex==2021.4.4
 requests==2.25.1
 requirements-detector==0.7
+rich==10.4.0
 setoptconf==0.2.0
 six==1.16.0
 snowballstemmer==2.1.0
