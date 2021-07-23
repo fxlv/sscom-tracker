@@ -26,6 +26,11 @@ You deploy it to a box that is always on and add it to `cron`.
 
 Of course set the candence to a frequency that suits you.
 
+### Known issues
+
+With latest pylint and prospector there is a bug, covered [here](https://github.com/PyCQA/prospector/issues/393).
+The suggested workaround in the github issue to comment out a line in `pylint` code works.
+
 ## Cache
 
 The original idea was to make it bigger and to make a nice frontend for it.
