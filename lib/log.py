@@ -24,12 +24,12 @@ def func_log(function_name):
     return log_it
 
 
-def set_up_logging(debug=False, log_file_name="tracker.log"):
+def set_up_logging(debug=False, log_file_name="tracker.log", rotation="10 MB"):
     logger.remove()  # remove the default logger output
     logger.add(
-        "tracker.log", rotation="10 MB", retention="1 week", compression="zip"
+        log_file_name, rotation=rotation, retention="1 week", compression="zip"
     )  # always log to a file
     logger.add(sys.stderr, level="WARNING")
     if debug:
-        logger.add(sys.stdout, level="DEBUG")
+        logger.add(sys.stderr, level="DEBUG")
         logger.debug("DEBUG Logging started.")
