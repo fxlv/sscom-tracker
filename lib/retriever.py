@@ -2,19 +2,21 @@ import sys
 from loguru import logger
 import requests
 from lxml import html
+import feedparser
+import lib.settings
 
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
 
 class Retriever:
-    def __init__(self, settings, data_cache):
+    def __init__(self, settings: lib.settings.Settings, data_cache):
         self.settings = settings
         self.data_cache = data_cache
 
     @func_log
     def update_data_cache(self):
-        tracking_list = self.settings["tracking_list"]
+        tracking_list = self.settings.tracking_list
 
         for item in tracking_list:
             url = tracking_list[item]["url"]

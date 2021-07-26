@@ -14,6 +14,7 @@ import lib.push
 import lib.retriever
 from lib.display import print_results_to_console
 from lib.filter import Filter
+import lib.settings
 from lib.log import func_log, set_up_logging
 from lib.push import send_push
 
@@ -26,9 +27,7 @@ from lib.push import send_push
 def main(debug, print, push):
 
     set_up_logging(debug)
-    with open("settings.json") as settings_file:
-        settings = json.load(settings_file)
-
+    settings = lib.settings.Settings()
     cache = lib.cache.Cache(settings)
     data_cache = lib.cache.DataCache(settings)
 

@@ -1,13 +1,14 @@
 from loguru import logger
 from typing import Tuple, List
+import lib.settings
 
 
 class Filter:
-    def __init__(self, retriever, cache, settings):
+    def __init__(self, retriever, cache, settings: lib.settings.Settings):
         self.retriever = retriever
         self.cache = cache
         self.settings = settings
-        self.tracking_list = self.settings["tracking_list"]
+        self.tracking_list = self.settings.tracking_list
 
     def filter_tracking_list(self):
         results = {}
