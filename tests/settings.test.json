@@ -4,7 +4,7 @@
   "pushover_api_token":"testtest",
   "local_cache":"cache.db",
   "data_cache":"data_cache.db",
-  "cache_validity_time": 300,
+  "cache_validity_time": 600,
   "tracking_list":{
     "apartment": { "url":"https://www.ss.com/lv/real-estate/flats/riga/teika/today-2/sell/", "filter_room_count":3 },
     "house": {"url":"https://www.ss.com/lv/real-estate/homes-summer-residences/riga/teika/today-2/sell/"},

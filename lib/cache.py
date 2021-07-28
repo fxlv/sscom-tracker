@@ -73,6 +73,10 @@ class DataCache(Cache):
         """Constructor calls parent and overrides local_cache."""
         Cache.__init__(self, settings, local_cache=settings.data_cache)
 
+    def __contains__(self, item):
+        """For the membership operator."""
+        return item in self.cache["data"].keys()
+
     def create_new_cache(self):
         """Initialize new cache object."""
         self.cache = {"data": {}, "last_update": None}

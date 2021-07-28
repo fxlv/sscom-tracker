@@ -4,20 +4,45 @@ import requests
 from lxml import html
 import feedparser
 import lib.settings
+import lib.cache
 
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
 
 class RSSRetriever:
-    def __init__(self, data_cache):
+    @func_log
+    def __init__(self, data_cache: lib.cache.DataCache = None):
         self.data_cache = data_cache
 
+    @func_log
+    def _fetch(self, url):
+        response = feedparser.parse(url)
+        if self.data_cache:
+            self.data_cache.add(url, response)
+        return response
+
+    @func_log
     def get(self, url):
         # if cache if fresh, use it
+        if self.data_cache:
+            if self.data_cache.is_fresh():
+                if url in self.data_cache:
+                    logger.warning(f"Cache is fresh and our url {url} is in it")
+                    return self.data_cache.get(url)
+                else:
+                    logger.warning(
+                        f"Cache is fresh, but our url {url} is missing from it"
+                    )
+                    return self._fetch(url)
+            else:
+                logger.warning("Cache is cold.")
+                return self._fetch(url)
+        else:
+            logger.warning("No cache is being used.")
+            return self._fetch(url)
 
         # if cache is cold, do retrieve the data
-        response = feedparser.parse(url)
 
 
 class Retriever:
