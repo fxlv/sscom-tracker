@@ -2,8 +2,9 @@ import json
 
 import os
 
+
 class Settings:
-    def __init__(self, settings_file_name: str ="settings.json"):
+    def __init__(self, settings_file_name: str = "settings.json"):
         self.settings_file_name = settings_file_name
         if not self._settings_file_exists():
             raise RuntimeError("Settings file is missing")
@@ -15,7 +16,7 @@ class Settings:
         self.local_cache: str = None
         self.data_cache: str = None
         self.cache_validity_time: int = None
-        self.tracking_list :dict = None
+        self.tracking_list: dict = None
 
         self._parse_settings()
 
@@ -41,3 +42,16 @@ class Settings:
 
     def _settings_file_exists(self):
         return os.path.exists(self.settings_file_name)
+
+
+class TestSettings(Settings):
+    """Dummy Settings class meant for Unittesting purposes."""
+
+    def __init__(self, local_cache=None):
+        self.pushover_enabled: bool = None
+        self.pushover_user_key: str = None
+        self.pushover_api_token: str = None
+        self.local_cache: str = local_cache
+        self.data_cache: str = None
+        self.cache_validity_time: int = None
+        self.tracking_list: dict = None
