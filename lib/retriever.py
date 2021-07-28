@@ -9,6 +9,17 @@ from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
 
+class RSSRetriever:
+    def __init__(self, data_cache):
+        self.data_cache = data_cache
+
+    def get(self, url):
+        # if cache if fresh, use it
+
+        # if cache is cold, do retrieve the data
+        response = feedparser.parse(url)
+
+
 class Retriever:
     def __init__(self, settings: lib.settings.Settings, data_cache):
         self.settings = settings
