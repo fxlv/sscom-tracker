@@ -5,6 +5,9 @@ import os
 
 class TestSettings:
     settings_file_name = "settings.test.json"
+    settings_invalid_file_name = (
+        "settings.test.invalid.json"  # file with one missing settings key
+    )
 
     @pytest.fixture
     def load_settings(self):
@@ -30,3 +33,9 @@ class TestSettings:
     def test_construction_with_custom_settings_file_name(self, chdir, load_settings):
         s = load_settings
         assert isinstance(s, lib.settings.Settings)
+
+    def test_construction_with_an_invalid_settings_file(self, chdir):
+        with pytest.raises(TypeError):
+            s = lib.settings.Settings(
+                settings_file_name=self.settings_invalid_file_name
+            )

@@ -33,7 +33,12 @@ class Settings:
 
         self.local_cache = self._get_setting("local_cache")
         self.data_cache = self._get_setting("data_cache")
-        self.cache_validity_time = int(self._get_setting("cache_validity_time"))
+        try:
+            self.cache_validity_time = int(self._get_setting("cache_validity_time"))
+        except TypeError:
+            raise TypeError(
+                "Cache validity time in settings is either missing or invalid."
+            )
         self.tracking_list = self._get_setting("tracking_list")
 
     def _load_settings_from_file(self):
