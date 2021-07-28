@@ -8,14 +8,21 @@ import pytest
 import lib.cache
 import lib.datastructures
 import lib.log
+import lib.settings
 
 lib.log.set_up_logging(debug=True, log_file_name="tests_debug.log")
 
 
 @pytest.fixture
-def local_cache():
-    settings = {"local_cache": "test.cache.db"}
-    cache = lib.cache.Cache(settings)
+def test_settings():
+    settings = lib.settings.TestSettings()
+    settings.local_cache = "test_cache.db"
+    return settings
+
+
+@pytest.fixture
+def local_cache(test_settings):
+    cache = lib.cache.Cache(test_settings)
     return cache
 
 
@@ -43,16 +50,16 @@ def test_add(local_cache: lib.cache.Cache):
     assert local_cache.is_known(test_object)
 
 
-def test_save(local_cache):
+def test_save(local_cache, test_settings):
     """Test writing, saving and reading back from cache."""
     test_cache_name = "test_cache2.db"
-    settings = {"local_cache": test_cache_name}
+    test_settings.local_cache = test_cache_name
     # ensure clean environment, delete cache file if it exists
     if os.path.exists(test_cache_name):
         os.unlink(test_cache_name)
     # make sure file does not exist before continuing
     assert os.path.exists(test_cache_name) is False
-    cache = lib.cache.Cache(settings)
+    cache = lib.cache.Cache(test_settings)
     # make sure new cache has been initialized and is empty
     assert len(cache.cache) == 0
     # add an item to cache
@@ -63,25 +70,25 @@ def test_save(local_cache):
     assert os.path.exists(test_cache_name)
     # now load cache from disk and check consitency
     # by expecting to see one item in it
-    cache2 = lib.cache.Cache(settings)
+    cache2 = lib.cache.Cache(test_settings)
     assert len(cache.cache) == 1
     assert cache2.is_known(test_object)
 
 
-def test_destructor():
+def test_destructor(test_settings):
     """Ensure cache is dumped to disk before destruction.
 
     Test this by comparing modification time
     before and after destruction.
     """
     test_cache_name = "test_cache3.db"
-    settings = {"local_cache": test_cache_name}
+    test_settings.local_cache = test_cache_name
     # ensure clean environment, delete cache file if it exists
     if os.path.exists(test_cache_name):
         os.unlink(test_cache_name)
     # make sure file does not exist before continuing
     assert os.path.exists(test_cache_name) is False
-    cache = lib.cache.Cache(settings)
+    cache = lib.cache.Cache(test_settings)
     # make sure new cache has been initialized and is empty
     assert len(cache.cache) == 0
     cache.save()
@@ -95,15 +102,16 @@ def test_destructor():
 
 
 @pytest.fixture()
-def settings_data_cache():
+def settings_data_cache(test_settings):
     test_cache_name = "test_data_cache.db"
-    settings = {"data_cache": test_cache_name, "cache_freshness": 300}
-    return settings
+    test_settings.data_cache = test_cache_name
+    test_settings.cache_validity_time = 300
+    return test_settings
 
 
 @pytest.fixture()
 def data_cache(settings_data_cache):
-    test_cache_name = settings_data_cache["data_cache"]
+    test_cache_name = settings_data_cache.data_cache
     # ensure clean environment, delete cache file if it exists
     if os.path.exists(test_cache_name):
         os.unlink(test_cache_name)

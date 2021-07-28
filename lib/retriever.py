@@ -2,19 +2,57 @@ import sys
 from loguru import logger
 import requests
 from lxml import html
+import feedparser
+import lib.settings
+import lib.cache
 
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
 
+class RSSRetriever:
+    @func_log
+    def __init__(self, data_cache: lib.cache.DataCache = None):
+        self.data_cache = data_cache
+
+    @func_log
+    def _fetch(self, url):
+        response = feedparser.parse(url)
+        if self.data_cache:
+            self.data_cache.add(url, response)
+        return response
+
+    @func_log
+    def get(self, url):
+        # if cache if fresh, use it
+        if self.data_cache:
+            if self.data_cache.is_fresh():
+                if url in self.data_cache:
+                    logger.warning(f"Cache is fresh and our url {url} is in it")
+                    return self.data_cache.get(url)
+                else:
+                    logger.warning(
+                        f"Cache is fresh, but our url {url} is missing from it"
+                    )
+                    return self._fetch(url)
+            else:
+                logger.warning("Cache is cold.")
+                return self._fetch(url)
+        else:
+            logger.warning("No cache is being used.")
+            return self._fetch(url)
+
+        # if cache is cold, do retrieve the data
+
+
 class Retriever:
-    def __init__(self, settings, data_cache):
+    def __init__(self, settings: lib.settings.Settings, data_cache):
         self.settings = settings
         self.data_cache = data_cache
 
     @func_log
     def update_data_cache(self):
-        tracking_list = self.settings["tracking_list"]
+        tracking_list = self.settings.tracking_list
 
         for item in tracking_list:
             url = tracking_list[item]["url"]

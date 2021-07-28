@@ -2,17 +2,18 @@ import datetime
 import os
 import pickle
 from loguru import logger
+import lib.settings
 
 
 class Cache:
     """Generic cache class."""
 
-    def __init__(self, settings: object, local_cache=None) -> None:
+    def __init__(self, settings: lib.settings.Settings, local_cache=None) -> None:
         """Construct the cache object."""
 
         if local_cache is None:
             # use the cache as specified in settings
-            self.local_cache = settings["local_cache"]
+            self.local_cache = settings.local_cache
             logger.debug("Using cache file specified in settings")
         else:
             # use the cache specified in constructor arguments
@@ -68,9 +69,13 @@ class Cache:
 class DataCache(Cache):
     """Data Cache class for storing html response data."""
 
-    def __init__(self, settings: object) -> None:
+    def __init__(self, settings: lib.settings.Settings) -> None:
         """Constructor calls parent and overrides local_cache."""
-        Cache.__init__(self, settings, local_cache=settings["data_cache"])
+        Cache.__init__(self, settings, local_cache=settings.data_cache)
+
+    def __contains__(self, item):
+        """For the membership operator."""
+        return item in self.cache["data"].keys()
 
     def create_new_cache(self):
         """Initialize new cache object."""
@@ -94,7 +99,7 @@ class DataCache(Cache):
         cache_timestamp = self.get_timestamp()
         delta = current_timestamp - cache_timestamp
         delta_seconds = delta.total_seconds()
-        if delta_seconds > self.settings["cache_freshness"]:
+        if delta_seconds > self.settings.cache_validity_time:
             logger.debug(f"Cache is not fresh. Delta: {delta_seconds} seconds")
             return False
         # if cache is fresh, continue
