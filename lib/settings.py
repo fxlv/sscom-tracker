@@ -15,6 +15,7 @@ class Settings:
         self.pushover_api_token: str = None
         self.local_cache: str = None
         self.data_cache: str = None
+        self.cache_dir: str = None
         self.cache_validity_time: int = None
         self.tracking_list: dict = None
 
@@ -32,6 +33,7 @@ class Settings:
         self.pushover_user_key = self._get_setting("pushover_user_key")
 
         self.local_cache = self._get_setting("local_cache")
+        self.cache_dir = self._get_setting("cache_dir")
         self.data_cache = self._get_setting("data_cache")
         try:
             self.cache_validity_time = int(self._get_setting("cache_validity_time"))

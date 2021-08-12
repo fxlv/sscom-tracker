@@ -39,3 +39,18 @@ class TestSettings:
             s = lib.settings.Settings(
                 settings_file_name=self.settings_invalid_file_name
             )
+
+    def test_tracking_list(self, chdir, load_settings):
+        """Ensure that tracking list is interpreted correctly.
+
+        Tracking list should be dictionary->list->dictionary.
+        Each tracking entry should also specify the retrieval type.
+        """
+        s = load_settings
+        assert isinstance(
+            s.tracking_list, dict
+        )  # dictionary of 'tracking item type': list
+        assert isinstance(s.tracking_list["apartment"], list)  # list of dictionaries
+        assert isinstance(
+            s.tracking_list["apartment"][0]["type"], str
+        )  # type is either 'rss' or 'scrape'

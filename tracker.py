@@ -19,15 +19,32 @@ from lib.log import func_log, set_up_logging
 from lib.push import send_push
 
 
+@click.group()
+def cli():
+    pass
+
+
 @func_log
-@click.command()
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+def update(debug):
+    set_up_logging(debug)
+    settings = lib.settings.Settings()
+    click.echo("Updating...")
+    rm = lib.retriever.RetrieverManager(settings)
+    rm.update_all()
+
+
+@func_log
+@cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 @click.option("--print/--no-print", default=True, help="Print results to console")
 @click.option("--push/--no-push", default=False, help="Send push notifications")
-def main(debug, print, push):
+def print(debug, print, push):
 
     set_up_logging(debug)
     settings = lib.settings.Settings()
+
     cache = lib.cache.Cache(settings)
     data_cache = lib.cache.DataCache(settings)
 
@@ -46,4 +63,4 @@ def main(debug, print, push):
 
 
 if __name__ == "__main__":
-    main()
+    cli()

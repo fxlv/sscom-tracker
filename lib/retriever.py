@@ -1,3 +1,4 @@
+import datetime
 import sys
 from loguru import logger
 import requests
@@ -5,47 +6,141 @@ from lxml import html
 import feedparser
 import lib.settings
 import lib.cache
+import os
+from pathlib import Path
+import hashlib
+import pickle
+import arrow
+import random
+from abc import ABC, abstractmethod
 
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 
 
-class RSSRetriever:
-    @func_log
-    def __init__(self, data_cache: lib.cache.DataCache = None):
-        self.data_cache = data_cache
+class Store(ABC):
+    """Abstract class that defines the interface for storage."""
+
+    @abstractmethod
+    def write(self, data):
+        pass
+
+
+class RSSStore(Store):
+    def __init__(self, settings: lib.settings.Settings):
+        self.s = settings
+        self.cache_dir = self.s.cache_dir
+        self._create_cache_dir_if_not_exists()
 
     @func_log
-    def _fetch(self, url):
+    def _hash(self, string: str):
+        """Hash a string and return a hex digest."""
+        return hashlib.sha256(string.encode("utf-8")).hexdigest()
+
+    @func_log
+    def _get_full_file_name(self, url, file_date=datetime.datetime.now()) -> Path:
+        file_name = self._hash(url)
+        full_path = Path(
+            f"{self.cache_dir}/{file_date.year}/{file_date.month}/{file_date.day}/{file_date.hour}/{file_name}.rss"
+        )
+        return full_path
+
+    @func_log
+    def _create_cache_dir_if_not_exists(self):
+        return self._create_dir_if_not_exists(self.cache_dir)
+
+    @func_log
+    def _create_dir_if_not_exists(self, path_name):
+        p = Path(path_name).absolute()
+        os.makedirs(p.parent, exist_ok=True)
+
+    @func_log
+    def fresh_cache_present(self, url):
+        full_path = self._get_full_file_name(url)
+        now = arrow.now()
+        try:
+            mtime = arrow.get(full_path.stat().st_mtime)
+            delta_seconds = (now - mtime).total_seconds()
+            return delta_seconds < self.s.cache_validity_time
+        except FileNotFoundError:
+            logger.debug(f"Cache file not present for {url}")
+            return False
+
+    @func_log
+    def write(self, url, data):
+        # check the settings to determine write path
+        full_path = self._get_full_file_name(url)
+        self._create_dir_if_not_exists(full_path)
+        file_handle = full_path.open(mode="wb")
+        pickle.dump(data, file_handle)
+        file_handle.close()
+
+
+class RetrieverManager:
+    def __init__(self, settings: lib.settings.Settings):
+        """Iterate over tracking list and retrieve data using appropriate retriever."""
+        self.rss = RSSRetriever()
+        self.rss_store = RSSStore(settings)
+        self.s = settings
+
+    def update_all(self):
+        for category in self.s.tracking_list:
+            category_items = self.s.tracking_list[category]
+            for item in category_items:
+                logger.debug(f"Item: {category} / {item}")
+                if (
+                    item["type"] == "rss"
+                ):  # the only known type at the moment, ignore everything else
+                    # check with storage, if we have a fresh item cached for this url
+                    if self.rss_store.fresh_cache_present(item["url"]):
+                        logger.debug(f"Fresh cache present for {item['url']}")
+                    else:
+                        # retrieve from RSS and write to storage
+                        fresh_data = self.rss.get(item["url"])
+                        self.rss_store.write(item["url"], fresh_data)
+
+
+class Retriever(ABC):
+    """
+    The Retriever interface.
+
+    Describes base functionality that should be implemented by all Retrievers.
+    """
+
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def get(self, url: str) -> object:
+        """Retrieve the data and return a raw data object."""
+        pass
+
+
+class RSSRetriever(Retriever):
+    @func_log
+    def _fetch(self, url) -> feedparser.FeedParserDict:
+        agents = []
+        agents.append(
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36"
+        )
+        agents.append(
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36"
+        )
+        agents.append(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+        )
+        feedparser.USER_AGENT = random.choice(agents)
         response = feedparser.parse(url)
-        if self.data_cache:
-            self.data_cache.add(url, response)
         return response
 
     @func_log
-    def get(self, url):
-        # if cache if fresh, use it
-        if self.data_cache:
-            if self.data_cache.is_fresh():
-                if url in self.data_cache:
-                    logger.warning(f"Cache is fresh and our url {url} is in it")
-                    return self.data_cache.get(url)
-                else:
-                    logger.warning(
-                        f"Cache is fresh, but our url {url} is missing from it"
-                    )
-                    return self._fetch(url)
-            else:
-                logger.warning("Cache is cold.")
-                return self._fetch(url)
-        else:
-            logger.warning("No cache is being used.")
-            return self._fetch(url)
-
-        # if cache is cold, do retrieve the data
+    def get(self, url) -> feedparser.FeedParserDict:
+        return self._fetch(url)
 
 
-class Retriever:
+class HttpRetrieverOLD:
+    """This used to be the main retriever, but I think it would be a good idea to just throw it out."""
+
     def __init__(self, settings: lib.settings.Settings, data_cache):
         self.settings = settings
         self.data_cache = data_cache
