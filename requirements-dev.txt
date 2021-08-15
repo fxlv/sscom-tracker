@@ -1,6 +1,7 @@
 appdirs==1.4.4
 astroid==2.4.1
 attrs==21.2.0
+backports.entry-points-selectable==1.1.0
 black==21.6b0
 certifi==2021.5.30
 cfgv==3.3.0
@@ -12,8 +13,9 @@ commonmark==0.9.1
 coverage==5.5
 distlib==0.3.2
 dodgy==0.2.1
+feedparser==6.0.8
 filelock==3.0.12
-flake8==3.9.2
+flake8==3.8.4
 flake8-polyfill==1.0.2
 flake9==3.8.3.post2
 future==0.18.2
@@ -33,13 +35,14 @@ nodeenv==1.6.0
 packaging==20.9
 pathspec==0.8.1
 pep8-naming==0.10.0
+platformdirs==2.2.0
 pluggy==0.13.1
 pre-commit==2.13.0
 prospector==0.12.2
 py==1.10.0
-pycodestyle==2.7.0
+pycodestyle==2.6.0
 pydocstyle==6.1.1
-pyflakes==2.3.1
+pyflakes==2.2.0
 Pygments==2.9.0
 pylint==2.5.3
 pylint-celery==0.3
@@ -59,6 +62,7 @@ requests==2.25.1
 requirements-detector==0.7
 rich==10.4.0
 setoptconf==0.2.0
+sgmllib3k==1.0.0
 six==1.16.0
 snowballstemmer==2.1.0
 tokenize-rt==4.1.0
@@ -66,6 +70,6 @@ toml==0.10.2
 typed-ast==1.4.3
 typing-extensions==3.10.0.0
 urllib3==1.26.5
-virtualenv==20.4.7
+virtualenv==20.7.2
 wrapt==1.12.1
 zipp==3.4.1
