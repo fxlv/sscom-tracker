@@ -56,3 +56,42 @@ docker build -f Dockerfile.sscom-tracker-base -t sscom-tracker-base --no-cache .
 docker build -f Dockerfile.sscom-tracker-testing -t sscom-tracker-testing --no-cache ..
 docker run -ti sscom-tracker-testing ./testing.sh
 ```
+
+
+### Flow chart
+graph TD
+    A[Tracker initiated] -->|Initalise all stuff| B(Initialise)
+    B --> C(Set up logging)
+    B --> D(Load settings)
+
+    D --> E(Load cache)
+
+    E --> E1(Object cache)
+    E --> E2(Data cache)
+
+    D --> H(Initialise Retriever)
+    E2 --> H(Initialise Retriever)
+
+    H --> F(Load filter)
+    D --> F(Load filter)
+    E1 --> F(Load filter)
+
+    F --> K{Is the cache fresh?}
+    K -->|Yes| L1(Get results from filter)
+    K -->|No| L2(Update data cache)
+
+    L1 -->Results
+    Results:::gray -->P1{Print?}
+    P1:::green -->|Yes| PA(Print results)
+    PA(Print results):::orange
+
+    Results:::orange -->P2{Push?}
+    P2:::red-->|Yes| PN(Send push notification)
+
+
+    linkStyle 0 stroke:#aaa,stroke-width:2px,stroke-dasharray: 8 4;
+
+    classDef green fill:#52BE80,stroke:#196F3D;
+    classDef red fill:#E74C3C,stroke:#922B21;
+    classDef orange fill:#E67E22,stroke:#AF601A;
+    classDef gray fill:#D5DBDB,stroke:#85929E,stroke-dasharray: 8 4;
