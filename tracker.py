@@ -28,8 +28,8 @@ def cli():
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 def update(debug):
-    set_up_logging(debug)
     settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
     click.echo("Updating...")
     rm = lib.retriever.RetrieverManager(settings)
     rm.update_all()
@@ -42,8 +42,8 @@ def update(debug):
 @click.option("--push/--no-push", default=False, help="Send push notifications")
 def print(debug, print, push):
 
-    set_up_logging(debug)
     settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
 
     cache = lib.cache.Cache(settings)
     data_cache = lib.cache.DataCache(settings)

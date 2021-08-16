@@ -15,6 +15,9 @@ class Settings:
         self.pushover_api_token: str = None
         self.local_cache: str = None
         self.data_cache: str = None
+        self.log_dir: str = None
+        self.log_file_name = "tracker.log" #default, but can be overriden
+        self.log_rotation: str = None
         self.cache_dir: str = None
         self.cache_validity_time: int = None
         self.tracking_list: dict = None
@@ -46,6 +49,8 @@ class Settings:
 
         self.local_cache = self._get_setting("local_cache")
         self.cache_dir = self._get_setting("cache_dir")
+        self.log_dir = self._get_setting("log_dir")
+        self.log_rotation = self._get_setting("log_rotation")
         self.data_cache = self._get_setting("data_cache")
         try:
             self.cache_validity_time = int(self._get_setting("cache_validity_time"))
@@ -71,3 +76,6 @@ class TestSettings(Settings):
         self.data_cache: str = None
         self.cache_validity_time: int = None
         self.tracking_list: dict = None
+        self.log_dir: str = "test_logs"
+        self.log_file_name = "tracker.log" #default, but can be overriden
+        self.log_rotation: str = "15 KB"

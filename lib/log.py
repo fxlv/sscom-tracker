@@ -2,6 +2,9 @@ import logging
 import sys
 import time
 from loguru import logger
+from pathlib import Path
+
+import lib.settings
 
 
 def func_log(function_name):
@@ -24,10 +27,20 @@ def func_log(function_name):
     return log_it
 
 
-def set_up_logging(debug=False, log_file_name="tracker.log", rotation="10 MB"):
+def set_up_logging(settings: lib.settings.Settings, debug=False):
     logger.remove()  # remove the default logger output
+
+    log_file_name = Path(f"{settings.log_dir}/{settings.log_file_name}").absolute()
+    if not log_file_name.parent.exists():
+        log_file_name.parent.mkdir()
+    if not log_file_name.parent.exists():
+        print(f"Log file parent directory: {log_file_name.parent} does not exist and cannot be created.")
+        sys.exit(1)
+
+
+
     logger.add(
-        log_file_name, rotation=rotation, retention="1 week", compression="zip"
+        log_file_name, rotation=settings.log_rotation, retention="1 week", compression="zip"
     )  # always log to a file
     logger.add(sys.stderr, level="WARNING")
     if debug:

@@ -1,13 +1,16 @@
 from loguru import logger
+import lib.settings
 import pytest
 import lib.log
 import datetime
 import os
+from pathlib import Path
 
 now = datetime.datetime.now()
 
 test_string = f"Test {now}"
 log_file_name = "tests_debug1.log"
+settings = lib.settings.TestSettings()
 
 
 def setup_module():
@@ -18,7 +21,8 @@ def setup_module():
 
 @pytest.fixture
 def set_up_logging():
-    lib.log.set_up_logging(debug=True, log_file_name=log_file_name, rotation="15KB")
+    settings.log_file_name = log_file_name
+    lib.log.set_up_logging(settings, debug=True)
 
 
 def test_before_set_up_logging(caplog):
@@ -40,6 +44,8 @@ def test_after_set_up_logging(caplog, set_up_logging):
 
 def find_string_in_logs(string):
     line_found = False
+    log_file_name = Path(f"{settings.log_dir}/{settings.log_file_name}").absolute()
+
     with open(log_file_name) as logfile:
         for line in logfile:
             if string in line:
@@ -81,6 +87,7 @@ def test_func_log_with_kvargs(set_up_logging):
 
 
 def get_log_size():
+    log_file_name = Path(f"{settings.log_dir}/{settings.log_file_name}").absolute()
     return os.stat(log_file_name).st_size
 
 

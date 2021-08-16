@@ -10,7 +10,8 @@ import lib.datastructures
 import lib.log
 import lib.settings
 
-lib.log.set_up_logging(debug=True, log_file_name="tests_debug.log")
+settings = lib.settings.TestSettings()
+lib.log.set_up_logging(settings, debug=True)
 
 
 @pytest.fixture
