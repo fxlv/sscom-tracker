@@ -5,8 +5,8 @@ import os
 
 class Settings:
     def __init__(self, settings_file_name: str = "settings.json"):
-        self.settings_file_name = settings_file_name
-        if not self._settings_file_exists():
+        self.settings_file_name = self._get_settings_file()
+        if not self.settings_file_name:
             raise RuntimeError("Settings file is missing")
         self._load_settings_from_file()
         # these are the supported settings attributes
@@ -20,6 +20,18 @@ class Settings:
         self.tracking_list: dict = None
 
         self._parse_settings()
+
+    def _get_settings_file(self):
+        """Search for settings file in the know locations."""
+        settings_locations = [
+            "settings.json",
+            "settings.test.json",
+            "/config/settings.json"
+        ]
+        for location in settings_locations:
+            if os.path.exists(location):
+                return location
+        return None
 
     def _get_setting(self, setting_key):
         setting_value = None
@@ -46,9 +58,6 @@ class Settings:
     def _load_settings_from_file(self):
         with open(self.settings_file_name) as settings_file_handle:
             self._settings_dict = json.load(settings_file_handle)
-
-    def _settings_file_exists(self):
-        return os.path.exists(self.settings_file_name)
 
 
 class TestSettings(Settings):

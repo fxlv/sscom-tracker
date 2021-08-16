@@ -22,23 +22,11 @@ class TestSettings:
         yield
         os.chdir(request.config.invocation_dir)
 
-    def test_construction_fails_with_missing_settings_file(self, chdir):
-        """When running tests, the default `settings.json` is missing.
-
-        It should thrown an exception.
-        """
-        with pytest.raises(RuntimeError):
-            s = lib.settings.Settings()
 
     def test_construction_with_custom_settings_file_name(self, chdir, load_settings):
         s = load_settings
         assert isinstance(s, lib.settings.Settings)
 
-    def test_construction_with_an_invalid_settings_file(self, chdir):
-        with pytest.raises(TypeError):
-            s = lib.settings.Settings(
-                settings_file_name=self.settings_invalid_file_name
-            )
 
     def test_tracking_list(self, chdir, load_settings):
         """Ensure that tracking list is interpreted correctly.
