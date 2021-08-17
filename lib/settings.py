@@ -16,9 +16,10 @@ class Settings:
         self.local_cache: str = None
         self.data_cache: str = None
         self.log_dir: str = None
-        self.log_file_name = "tracker.log" #default, but can be overriden
+        self.log_file_name = "tracker.log"  # default, but can be overriden
         self.log_rotation: str = None
         self.cache_dir: str = None
+        self.object_cache_dir: str = None
         self.cache_validity_time: int = None
         self.tracking_list: dict = None
 
@@ -29,7 +30,7 @@ class Settings:
         settings_locations = [
             "settings.json",
             "settings.test.json",
-            "/config/settings.json"
+            "/config/settings.json",
         ]
         for location in settings_locations:
             if os.path.exists(location):
@@ -49,6 +50,7 @@ class Settings:
 
         self.local_cache = self._get_setting("local_cache")
         self.cache_dir = self._get_setting("cache_dir")
+        self.object_cache_dir = self._get_setting("object_cache_dir")
         self.log_dir = self._get_setting("log_dir")
         self.log_rotation = self._get_setting("log_rotation")
         self.data_cache = self._get_setting("data_cache")
@@ -75,7 +77,9 @@ class TestSettings(Settings):
         self.local_cache: str = local_cache
         self.data_cache: str = None
         self.cache_validity_time: int = None
+        self.cache_dir: str = None
+        self.object_cache_dir: str = None
         self.tracking_list: dict = None
         self.log_dir: str = "test_logs"
-        self.log_file_name = "tracker.log" #default, but can be overriden
+        self.log_file_name = "tracker.log"  # default, but can be overriden
         self.log_rotation: str = "15 KB"

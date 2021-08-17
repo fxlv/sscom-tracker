@@ -1,4 +1,5 @@
 import hashlib
+
 from loguru import logger
 
 
@@ -73,6 +74,7 @@ class Animal:
 
 
 class Apartment(Classified):
+
     def __str__(self):
         return "Apartment: {} / Str: {} / rooms: {} / floor: {}".format(
             self.title, self.street, self.rooms, self.floor

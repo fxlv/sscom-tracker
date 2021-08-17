@@ -1,21 +1,24 @@
 import datetime
-import sys
-from loguru import logger
-import requests
-from lxml import html
-import feedparser
-import lib.settings
-import lib.cache
-import os
-from pathlib import Path
 import hashlib
+import logging
+import os
 import pickle
-import arrow
 import random
+import sys
 from abc import ABC, abstractmethod
+from pathlib import Path
 
+import arrow
+import feedparser
+import requests
+import re
+from loguru import logger
+from lxml import html
+
+import lib.settings
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
+from bs4 import BeautifulSoup
 
 
 class Store(ABC):
@@ -25,6 +28,107 @@ class Store(ABC):
     def write(self, data):
         pass
 
+
+class ObjectParser():
+    """Parse the data and return it as one of the supported data structures."""
+    def __int__(self):
+        pass
+
+    def _get_apartment_from_rss(self, rss_entry) -> lib.datastructures.Apartment:
+        summary = rss_entry.summary
+        soup = BeautifulSoup(summary, 'html.parser')
+        soup.a.extract() # remove the first link as we don't use it
+        soup.a.extract() # remove the second link
+        # now, strip all the hmtml and use regex to extract details from the remaining text
+        text = soup.text.strip()
+        street = re.findall("Iela: (.+)Ist.:",text)[0]
+        rooms = re.findall("Ist.: (.+)m2",text)[0]
+        floor = re.findall("vs: (.+)Sērija",text)[0]
+        m2 = re.findall("m2: (.+)St",text)[0]
+        price = re.findall("Cena: (.+) ",text)[0].strip()
+        title = rss_entry.title
+        apartment = lib.datastructures.Apartment(title, street)
+        apartment.floor = floor
+        apartment.rooms = rooms
+        apartment.m2 = m2
+        apartment.price = price
+        apartment.published = arrow.get(rss_entry["published_parsed"])
+        return apartment
+
+    def parse_object(self, rss_object):
+        logger.debug(f"Attempting to parse object {rss_object}")
+        parsed_list = []
+        if not "object_category" in rss_object.keys():
+            logger.warning(f"RSS Object {rss_object} does not contain 'category'")
+            return False
+        if rss_object["object_category"] == "apartment":
+            # each RSS Store object will be a dictionary and will contain bunch of entries,
+            # which are the actual "classifieds"
+
+            entries = rss_object["entries"]
+            for entry in entries:
+                apartment = self._get_apartment_from_rss(entry)
+                apartment.retrieved = rss_object["retrieved_time"]
+                parsed_list.append(apartment)
+        return parsed_list
+
+class ObjectStore(Store):
+    def __init__(self, settings: lib.settings.Settings):
+        self.s = settings
+        self.object_cache_dir = self.s.object_cache_dir
+        self._create_cache_dir_if_not_exists()
+    @func_log
+    def _create_cache_dir_if_not_exists(self):
+        return self._create_dir_if_not_exists(self.object_cache_dir)
+
+    @func_log
+    def _create_dir_if_not_exists(self, path_name):
+        p = Path(path_name).absolute()
+        os.makedirs(p.parent, exist_ok=True)
+
+    @func_log
+    def write(self, classified: lib.datastructures.Classified):
+        # check the settings to determine write path
+        now = datetime.datetime.now()
+        if self._file_exists(classified):
+            # such classified is already knonw, therefore, instead of overwriting it blindly
+            # we will load it from cache, and update the 'last_seen' date and then write it back
+            # this way, we maintain the "first seen" timestamp
+            classified = self.load(classified)
+            classified.last_seen = now
+            logging.debug("Classified is already know, updating the 'last_seen' time only.")
+        else:
+            classified.first_seen = now
+            classified.last_seen = now
+            logging.debug("New classified.")
+        full_path = self._get_full_file_name(classified)
+        self._create_dir_if_not_exists(full_path)
+        file_handle = full_path.open(mode="wb")
+        pickle.dump(classified, file_handle)
+        file_handle.close()
+
+    @func_log
+    def load(self, classified: lib.datastructures.Classified):
+        # check the settings to determine write path
+        if not self._file_exists(classified):
+            return None
+        full_path = self._get_full_file_name(classified)
+        file_handle = full_path.open(mode="rb")
+        logger.debug(f"Opened handle {file_handle} for binary reading")
+        return pickle.load(file_handle)
+
+
+    @func_log
+    def _file_exists(self, classified: lib.datastructures.Classified) -> bool:
+        return self._get_full_file_name(classified).exists()
+
+    @func_log
+    def _get_full_file_name(self, classified) -> Path:
+        file_name = classified.hash
+        full_path = Path(
+            f"{self.object_cache_dir}/{file_name}.classified"
+        )
+        return full_path
 
 class RSSStore(Store):
     def __init__(self, settings: lib.settings.Settings):
@@ -75,6 +179,18 @@ class RSSStore(Store):
         pickle.dump(data, file_handle)
         file_handle.close()
 
+    @func_log
+    def load_all(self):
+        all_files = Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
+        all_files_unpickled = []
+        for file_name in all_files:
+            object = pickle.load(file_name.open(mode="rb"))
+            all_files_unpickled.append(object)
+        file_count = len(all_files_unpickled)
+        logger.debug(f"{file_count} files were read and unpickled")
+        return all_files_unpickled
+
+
 
 class RetrieverManager:
     def __init__(self, settings: lib.settings.Settings):
@@ -84,6 +200,7 @@ class RetrieverManager:
         self.s = settings
 
     def update_all(self):
+        now = datetime.datetime.now()
         for category in self.s.tracking_list:
             category_items = self.s.tracking_list[category]
             for item in category_items:
@@ -97,6 +214,8 @@ class RetrieverManager:
                     else:
                         # retrieve from RSS and write to storage
                         fresh_data = self.rss.get(item["url"])
+                        fresh_data["object_category"] = category
+                        fresh_data["retrieved_time"] = now
                         self.rss_store.write(item["url"], fresh_data)
 
 

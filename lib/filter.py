@@ -1,5 +1,7 @@
-from loguru import logger
 from typing import Tuple, List
+
+from loguru import logger
+
 import lib.settings
 
 

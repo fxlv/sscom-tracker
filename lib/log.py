@@ -1,8 +1,8 @@
-import logging
 import sys
 import time
-from loguru import logger
 from pathlib import Path
+
+from loguru import logger
 
 import lib.settings
 
@@ -34,13 +34,16 @@ def set_up_logging(settings: lib.settings.Settings, debug=False):
     if not log_file_name.parent.exists():
         log_file_name.parent.mkdir()
     if not log_file_name.parent.exists():
-        print(f"Log file parent directory: {log_file_name.parent} does not exist and cannot be created.")
+        print(
+            f"Log file parent directory: {log_file_name.parent} does not exist and cannot be created."
+        )
         sys.exit(1)
 
-
-
     logger.add(
-        log_file_name, rotation=settings.log_rotation, retention="1 week", compression="zip"
+        log_file_name,
+        rotation=settings.log_rotation,
+        retention="1 week",
+        compression="zip",
     )  # always log to a file
     logger.add(sys.stderr, level="WARNING")
     if debug:

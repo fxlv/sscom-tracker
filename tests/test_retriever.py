@@ -6,6 +6,22 @@ import feedparser
 import os
 
 
+class TestRSSStorage:
+
+    def test_load_all(self):
+        settings = lib.settings.Settings()
+        store = lib.retriever.RSSStore(settings)
+        op = lib.retriever.ObjectParser()
+        object_store = lib.retriever.ObjectStore(settings)
+        objects_list = store.load_all()
+        for rss_object in objects_list:
+            parsed_list = op.parse_object(rss_object)
+            for classified in parsed_list:
+                object_store.write(classified)
+
+
+
+
 class TestRetriever:
     @pytest.fixture(scope="class")
     def chdir(self, request):

@@ -34,6 +34,13 @@ def update(debug):
     rm = lib.retriever.RetrieverManager(settings)
     rm.update_all()
 
+@func_log
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+def view(debug):
+    settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
+    pass # to be implemented
 
 @func_log
 @cli.command()

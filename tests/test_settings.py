@@ -22,11 +22,9 @@ class TestSettings:
         yield
         os.chdir(request.config.invocation_dir)
 
-
     def test_construction_with_custom_settings_file_name(self, chdir, load_settings):
         s = load_settings
         assert isinstance(s, lib.settings.Settings)
-
 
     def test_tracking_list(self, chdir, load_settings):
         """Ensure that tracking list is interpreted correctly.

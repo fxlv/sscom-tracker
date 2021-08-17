@@ -4,7 +4,7 @@ import lib.log
 import lib.settings
 
 
-settings  = lib.settings.TestSettings()
+settings = lib.settings.TestSettings()
 lib.log.set_up_logging(settings, debug=True)
 
 

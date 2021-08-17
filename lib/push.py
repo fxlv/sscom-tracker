@@ -1,5 +1,6 @@
-from pushover import Client
 from loguru import logger
+from pushover import Client
+
 from lib.log import func_log
 
 
