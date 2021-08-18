@@ -128,4 +128,5 @@ dmypy.json
 
 settings.json
 cache.db
+.object_cache
 *.db
