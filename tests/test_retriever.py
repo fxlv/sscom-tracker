@@ -18,6 +18,7 @@ class TestRSSStorage:
             parsed_list = op.parse_object(rss_object)
             for classified in parsed_list:
                 object_store.write(classified)
+        object_store.load_all()
 
 
 

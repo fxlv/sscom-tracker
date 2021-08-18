@@ -5,6 +5,7 @@
   "local_cache":"cache.db",
   "data_cache":"data_cache.db",
   "cache_dir": ".cache",
+  "object_cache_dir": ".object_cache",
   "cache_validity_time": 600,
   "tracking_list":{
     "apartment": [
