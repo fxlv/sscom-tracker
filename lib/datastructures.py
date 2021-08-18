@@ -5,6 +5,7 @@ from loguru import logger
 
 class Classified:
     """Base class for all classifieds"""
+    category: str = "uncategorized"
 
     def __init__(self, title, street):
         """Construct a classified object.
@@ -74,6 +75,7 @@ class Animal:
 
 
 class Apartment(Classified):
+    category = "apartment"
 
     def __str__(self):
         return "Apartment: {} / Str: {} / rooms: {} / floor: {}".format(

@@ -34,6 +34,25 @@ def update(debug):
     rm = lib.retriever.RetrieverManager(settings)
     rm.update_all()
 
+
+@func_log
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+def process(debug):
+    """Parse and store the downloaded RSS data."""
+    settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
+
+    store = lib.retriever.RSSStore(settings)
+    op = lib.retriever.ObjectParser()
+    object_store = lib.retriever.ObjectStore(settings)
+    objects_list = store.load_all()
+    for rss_object in objects_list:
+        parsed_list = op.parse_object(rss_object)
+        for classified in parsed_list:
+            object_store.write(classified)
+
+
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")

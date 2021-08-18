@@ -117,6 +117,16 @@ class ObjectStore(Store):
         logger.debug(f"Opened handle {file_handle} for binary reading")
         return pickle.load(file_handle)
 
+    @func_log
+    def load_all(self):
+        all_files = Path(self.s.object_cache_dir).glob("*.classified")
+        all_files_unpickled = []
+        for file_name in all_files:
+            object = pickle.load(file_name.open(mode="rb"))
+            all_files_unpickled.append(object)
+        file_count = len(all_files_unpickled)
+        logger.debug(f"{file_count} files were read and unpickled")
+        return all_files_unpickled
 
     @func_log
     def _file_exists(self, classified: lib.datastructures.Classified) -> bool:
@@ -126,7 +136,7 @@ class ObjectStore(Store):
     def _get_full_file_name(self, classified) -> Path:
         file_name = classified.hash
         full_path = Path(
-            f"{self.object_cache_dir}/{file_name}.classified"
+            f"{self.object_cache_dir}/{classified.category}/{file_name}.classified"
         )
         return full_path
 
