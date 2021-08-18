@@ -59,7 +59,8 @@ def process(debug):
 def view(debug):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
-    pass # to be implemented
+    pass  # to be implemented
+
 
 @func_log
 @cli.command()

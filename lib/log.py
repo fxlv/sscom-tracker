@@ -44,7 +44,7 @@ def set_up_logging(settings: lib.settings.Settings, debug=False):
         rotation=settings.log_rotation,
         retention="1 week",
         compression="zip",
-        level="TRACE"
+        level="TRACE",
     )  # always log to a file
     logger.add(sys.stderr, level="WARNING")
     if debug:

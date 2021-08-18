@@ -29,23 +29,24 @@ class Store(ABC):
         pass
 
 
-class ObjectParser():
+class ObjectParser:
     """Parse the data and return it as one of the supported data structures."""
-    def __int__(self):
-        pass
+
+    def __init__(self):
+        self.supported_categories = ["apartment", "house", "car"]
 
     def _get_apartment_from_rss(self, rss_entry) -> lib.datastructures.Apartment:
         summary = rss_entry.summary
-        soup = BeautifulSoup(summary, 'html.parser')
-        soup.a.extract() # remove the first link as we don't use it
-        soup.a.extract() # remove the second link
+        soup = BeautifulSoup(summary, "html.parser")
+        soup.a.extract()  # remove the first link as we don't use it
+        soup.a.extract()  # remove the second link
         # now, strip all the hmtml and use regex to extract details from the remaining text
         text = soup.text.strip()
-        street = re.findall("Iela: (.+)Ist.:",text)[0]
-        rooms = re.findall("Ist.: (.+)m2",text)[0]
-        floor = re.findall("vs: (.+)Sērija",text)[0]
-        m2 = re.findall("m2: (.+)St",text)[0]
-        price = re.findall("Cena: (.+) ",text)[0].strip()
+        street = re.findall("Iela: (.+)Ist.:", text)[0]
+        rooms = re.findall("Ist.: (.+)m2", text)[0]
+        floor = re.findall("vs: (.+)Sērija", text)[0]
+        m2 = re.findall("m2: (.+)St", text)[0]
+        price = re.findall("Cena: (.+) ", text)[0].strip()
         title = rss_entry.title
         apartment = lib.datastructures.Apartment(title, street)
         apartment.floor = floor
@@ -55,28 +56,79 @@ class ObjectParser():
         apartment.published = arrow.get(rss_entry["published_parsed"])
         return apartment
 
+    def _try_get(self, regex, string, warn=True):
+        """Try to extract value based on regex.
+
+        Returns: either the extracted value or None
+        """
+        try:
+            return re.findall(regex,string)[0]
+        except IndexError:
+            if warn:
+                logger.warning(f"Could not extract value from object.Regex: {regex}, object: {string}")
+            return None
+
+    def _get_house_from_rss(self, rss_entry) -> lib.datastructures.House:
+        summary = rss_entry.summary
+        soup = BeautifulSoup(summary, "html.parser")
+        soup.a.extract()  # remove the first link as we don't use it
+        soup.a.extract()  # remove the second link
+        # now, strip all the hmtml and use regex to extract details from the remaining text
+        text = soup.text.strip()
+        street = self._try_get("Iela: (.+)m2:", text)
+        m2 = self._try_get("m2: (.+)Stāvi:", text)
+        floors = self._try_get("Stāvi: (.+)Ist", text)
+        if not floors:
+            # try a different regex, used for non-Riga houses
+            floors = self._try_get("Stāvi: (.+)Zem", text)
+
+        rooms = self._try_get("Ist.: (.+)Zem", text)
+        land_m2 = self._try_get("Zem. pl.: (.+) m", text, warn=False)
+        land_ha = self._try_get("Zem. pl.: (.+) ha", text, warn=False)
+        price = self._try_get("Cena: (.+)  ", text)
+        title = rss_entry.title
+        house = lib.datastructures.House(title, street)
+        house.floors = floors
+        house.rooms = rooms
+        house.m2 = m2
+        house.land_m2 = land_m2
+        house.price = price
+        house.published = arrow.get(rss_entry["published_parsed"])
+        return house
+
+    def _parser_factory(self, category):
+        if category == "apartment":
+            return self._get_apartment_from_rss
+        elif category == "house":
+            return self._get_house_from_rss
+        elif category == "car":
+            return self._get_car_from_rss
+
     def parse_object(self, rss_object):
         logger.debug(f"Attempting to parse object {rss_object}")
         parsed_list = []
         if not "object_category" in rss_object.keys():
             logger.warning(f"RSS Object {rss_object} does not contain 'category'")
             return False
-        if rss_object["object_category"] == "apartment":
+        if rss_object["object_category"] in self.supported_categories:
             # each RSS Store object will be a dictionary and will contain bunch of entries,
             # which are the actual "classifieds"
 
             entries = rss_object["entries"]
             for entry in entries:
-                apartment = self._get_apartment_from_rss(entry)
+                parser = self._parser_factory(rss_object["object_category"])
+                apartment = parser(entry)
                 apartment.retrieved = rss_object["retrieved_time"]
                 parsed_list.append(apartment)
         return parsed_list
+
 
 class ObjectStore(Store):
     def __init__(self, settings: lib.settings.Settings):
         self.s = settings
         self.object_cache_dir = self.s.object_cache_dir
         self._create_cache_dir_if_not_exists()
+
     @func_log
     def _create_cache_dir_if_not_exists(self):
         return self._create_dir_if_not_exists(self.object_cache_dir)
@@ -96,7 +148,9 @@ class ObjectStore(Store):
             # this way, we maintain the "first seen" timestamp
             classified = self.load(classified)
             classified.last_seen = now
-            logging.debug("Classified is already know, updating the 'last_seen' time only.")
+            logging.debug(
+                "Classified is already know, updating the 'last_seen' time only."
+            )
         else:
             classified.first_seen = now
             classified.last_seen = now
@@ -139,6 +193,7 @@ class ObjectStore(Store):
             f"{self.object_cache_dir}/{classified.category}/{file_name}.classified"
         )
         return full_path
+
 
 class RSSStore(Store):
     def __init__(self, settings: lib.settings.Settings):
@@ -190,16 +245,21 @@ class RSSStore(Store):
         file_handle.close()
 
     @func_log
+    def _file_is_not_empty(self, file_name: Path):
+        return file_name.stat().st_size > 0
+
+    @func_log
     def load_all(self):
         all_files = Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
         all_files_unpickled = []
         for file_name in all_files:
-            object = pickle.load(file_name.open(mode="rb"))
-            all_files_unpickled.append(object)
+            if self._file_is_not_empty(file_name):
+                logger.debug(f"Opening file {file_name} for binary reading")
+                object = pickle.load(file_name.open(mode="rb"))
+                all_files_unpickled.append(object)
         file_count = len(all_files_unpickled)
         logger.debug(f"{file_count} files were read and unpickled")
         return all_files_unpickled
-
 
 
 class RetrieverManager:

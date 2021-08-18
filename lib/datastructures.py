@@ -5,6 +5,7 @@ from loguru import logger
 
 class Classified:
     """Base class for all classifieds"""
+
     category: str = "uncategorized"
 
     def __init__(self, title, street):
@@ -16,7 +17,10 @@ class Classified:
         self.title = title.strip()
         # sometimes there are newlines in the title, get rid of them
         self.title = self.title.replace("\r\n", "").replace("\n", "")
-        self.street = street.strip()
+        self.street = street
+        if self.street is None:
+            self.street = "undetermined"
+        self.street = self.street.strip()
         self.hash = self.get_hash()
 
     def __str__(self):
@@ -84,6 +88,7 @@ class Apartment(Classified):
 
 
 class House(Classified):
+    category = "house"
     def __str__(self):
         return f"House: {self.title} / Str: {self.street}"
 
