@@ -19,7 +19,7 @@ import lib.settings
 from lib.datastructures import Apartment, House, Dog
 from lib.log import func_log
 from bs4 import BeautifulSoup
-
+from lib.helpers import strip_sscom, hash, shorthash
 
 class Store(ABC):
     """Abstract class that defines the interface for storage."""
@@ -65,7 +65,7 @@ class ObjectParser:
             return re.findall(regex,string)[0]
         except IndexError:
             if warn:
-                logger.warning(f"Could not extract value from object.Regex: {lib.log.normalize(regex)}, object: {lib.log.normalize(string)}")
+                logger.trace(f"Could not extract value from object.Regex: {lib.log.normalize(regex)}, object: {lib.log.normalize(string)}")
             return None
 
     def _get_house_from_rss(self, rss_entry) -> lib.datastructures.House:
@@ -152,12 +152,12 @@ class ObjectStore(Store):
             classified = self.load(classified)
             classified.last_seen = now
             logger.debug(
-                "Classified is already know, updating the 'last_seen' time only."
+                f"[{classified.short_hash}] classified is known, updating the 'last_seen' time"
             )
         else:
             classified.first_seen = now
             classified.last_seen = now
-            logging.debug("New classified.")
+            logger.debug(f"[{classified.short_hash}] new classified")
         full_path = self._get_full_file_name(classified)
         self._create_dir_if_not_exists(full_path)
         file_handle = full_path.open(mode="wb")
@@ -235,7 +235,7 @@ class RSSStore(Store):
             delta_seconds = (now - mtime).total_seconds()
             return delta_seconds < self.s.cache_validity_time
         except FileNotFoundError:
-            logger.debug(f"Cache file not present for {url}")
+            logger.debug(f"[{shorthash(url)}] Cache file not present for {url}")
             return False
 
     @func_log
@@ -271,23 +271,27 @@ class RetrieverManager:
         self.rss = RSSRetriever()
         self.rss_store = RSSStore(settings)
         self.s = settings
+        self.hashfunc = self.rss_store._hash
 
     def update_all(self):
         now = datetime.datetime.now()
         for category in self.s.tracking_list:
             category_items = self.s.tracking_list[category]
             for item in category_items:
-                logger.debug(f"Item: {category} / {item}")
+                item_hash = lib.helpers.shorthash(item["url"])
+                item_url = item["url"]
+                logger.debug(f"[{item_hash}] Updating {category} -> ({strip_sscom(item_url)})")
                 if (
                     item["type"] == "rss"
                 ):  # the only known type at the moment, ignore everything else
                     # check with storage, if we have a fresh item cached for this url
-                    if self.rss_store.fresh_cache_present(item["url"]):
-                        logger.debug(f"Fresh cache present for {item['url']}")
+                    if self.rss_store.fresh_cache_present(item_url):
+                        logger.debug(f"[{item_hash}] Fresh cache present for {strip_sscom(item_url)}")
                     else:
                         # retrieve from RSS and write to storage
-                        fresh_data = self.rss.get(item["url"])
-                        fresh_data["url_hash"] = self.rss_store._hash(item["url"])
+                        logger.debug(f"[{item_hash}] No cache available for {strip_sscom(item_url)}")
+                        fresh_data = self.rss.get(item_url)
+                        fresh_data["url_hash"] = self.rss_store._hash(item_url)
                         fresh_data["object_category"] = category
                         fresh_data["retrieved_time"] = now
 
@@ -325,7 +329,7 @@ class RSSRetriever(Retriever):
         )
         feedparser.USER_AGENT = random.choice(agents)
         response = feedparser.parse(url)
-        logger.debug(f"Got response {response.status} with {len(response.entries)} entries from {response.href}")
+        logger.debug(f"[{lib.helpers.shorthash(url)}] Got response {response.status} with {len(response.entries)} entries from {response.href}")
         return response
 
     @func_log
@@ -368,7 +372,7 @@ class HttpRetrieverOLD:
         return r.content
 
     def get_ss_data_from_cache(self, url: str) -> object:
-        logger.debug(f"Retrieving data from cache for URL: {url}")
+        logger.debug(f"[{lib.helpers.shorthash(url)}] Retrieving data from cache for URL: {url}")
         data = self.data_cache.get(url)
         tree = html.fromstring(data)
         return tree.xpath('//*[@id="filter_frm"]/table[2]')[0]

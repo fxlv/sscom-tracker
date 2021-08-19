@@ -23,6 +23,7 @@ class Classified:
             self.street = "undetermined"
         self.street = self.street.strip()
         self.hash = self.get_hash()
+        self.short_hash = self.hash[:10] #useful in logs
 
     def __str__(self):
         return self.__repr__()
@@ -35,7 +36,7 @@ class Classified:
         return repr
 
     def __hash__(self):
-        logger.debug("Calling built in hash method")
+        logger.trace("Calling built in hash method")
         return hash((self.title, self.street))
 
     def __eq__(self, other):
