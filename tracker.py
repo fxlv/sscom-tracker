@@ -17,6 +17,7 @@ from lib.filter import Filter
 import lib.settings
 from lib.log import func_log, set_up_logging
 from lib.push import send_push
+from loguru import logger
 
 
 @click.group()
@@ -30,9 +31,10 @@ def cli():
 def update(debug):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
-    click.echo("Updating...")
+    logger.info("Updating...")
     rm = lib.retriever.RetrieverManager(settings)
     rm.update_all()
+    logger.info("Updating run complete")
 
 
 @func_log
@@ -42,7 +44,7 @@ def process(debug):
     """Parse and store the downloaded RSS data."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
-
+    logger.info("Starting processing run...")
     store = lib.retriever.RSSStore(settings)
     op = lib.retriever.ObjectParser()
     object_store = lib.retriever.ObjectStore(settings)
@@ -51,6 +53,7 @@ def process(debug):
         parsed_list = op.parse_object(rss_object)
         for classified in parsed_list:
             object_store.write(classified)
+    logger.info("Processing run complete")
 
 
 @func_log

@@ -105,7 +105,9 @@ class ObjectParser:
             return self._get_car_from_rss
 
     def parse_object(self, rss_object):
-        logger.debug(f"Attempting to parse object {rss_object}")
+        retrieval_date = rss_object.retrieved_time.strftime("%d.%m.%y")
+        retrieval_time = rss_object.retrieved_time.strftime("%H:%M:%S")
+        logger.debug(f"Parsing RSS object ({rss_object.object_category} / {rss_object.url_hash[:10]}), retrieved on {retrieval_date} at {retrieval_time} with {len(rss_object.entries)} entries")
         parsed_list = []
         if not "object_category" in rss_object.keys():
             logger.warning(f"RSS Object {rss_object} does not contain 'category'")
@@ -117,9 +119,10 @@ class ObjectParser:
             entries = rss_object["entries"]
             for entry in entries:
                 parser = self._parser_factory(rss_object["object_category"])
-                apartment = parser(entry)
-                apartment.retrieved = rss_object["retrieved_time"]
-                parsed_list.append(apartment)
+                classified_item = parser(entry)
+                classified_item.retrieved = rss_object["retrieved_time"]
+                classified_item.url_hash = rss_object["url_hash"]
+                parsed_list.append(classified_item)
         return parsed_list
 
 
@@ -148,7 +151,7 @@ class ObjectStore(Store):
             # this way, we maintain the "first seen" timestamp
             classified = self.load(classified)
             classified.last_seen = now
-            logging.debug(
+            logger.debug(
                 "Classified is already know, updating the 'last_seen' time only."
             )
         else:
@@ -284,8 +287,10 @@ class RetrieverManager:
                     else:
                         # retrieve from RSS and write to storage
                         fresh_data = self.rss.get(item["url"])
+                        fresh_data["url_hash"] = self.rss_store._hash(item["url"])
                         fresh_data["object_category"] = category
                         fresh_data["retrieved_time"] = now
+
                         self.rss_store.write(item["url"], fresh_data)
 
 
