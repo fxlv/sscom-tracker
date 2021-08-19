@@ -48,12 +48,14 @@ class ObjectParser:
         m2 = re.findall("m2: (.+)St", text)[0]
         price = re.findall("Cena: (.+) ", text)[0].strip()
         title = rss_entry.title
-        apartment = lib.datastructures.Apartment(title, street)
+        apartment = lib.datastructures.Apartment(title)
+        apartment.street = street
         apartment.floor = floor
         apartment.rooms = rooms
         apartment.m2 = m2
         apartment.price = price
         apartment.published = arrow.get(rss_entry["published_parsed"])
+        apartment.done()
         return apartment
 
     def _try_get(self, regex, string, warn=True):
@@ -68,6 +70,26 @@ class ObjectParser:
                 logger.trace(f"Could not extract value from object.Regex: {lib.log.normalize(regex)}, object: {lib.log.normalize(string)}")
             return None
 
+    def _get_car_from_rss(self, rss_entry) -> lib.datastructures.House:
+        summary = rss_entry.summary
+        soup = BeautifulSoup(summary, "html.parser")
+        soup.a.extract()  # remove the first link as we don't use it
+        soup.a.extract()  # remove the second link
+        # now, strip all the hmtml and use regex to extract details from the remaining text
+        text = soup.text.strip()
+        model = self._try_get("Modelis: (.+)Gads:", text)
+        mileage = self._try_get("Nobrauk.: (.+)tūkst.", text)
+        price = self._try_get("Cena: (.+)  ", text)
+        year = self._try_get("Gads: (.+)Tilp", text)
+        title = rss_entry.title
+        car = lib.datastructures.Car(title)
+        car.mileage = mileage
+        car.year = year
+        car.price = price
+        car.mode = model
+        car.published = arrow.get(rss_entry["published_parsed"])
+        car.done()
+        return car
     def _get_house_from_rss(self, rss_entry) -> lib.datastructures.House:
         summary = rss_entry.summary
         soup = BeautifulSoup(summary, "html.parser")
@@ -87,13 +109,15 @@ class ObjectParser:
         land_ha = self._try_get("Zem. pl.: (.+) ha", text, warn=False)
         price = self._try_get("Cena: (.+)  ", text)
         title = rss_entry.title
-        house = lib.datastructures.House(title, street)
+        house = lib.datastructures.House(title)
+        house.street = street
         house.floors = floors
         house.rooms = rooms
         house.m2 = m2
         house.land_m2 = land_m2
         house.price = price
         house.published = arrow.get(rss_entry["published_parsed"])
+        house.done()
         return house
 
     def _parser_factory(self, category):
@@ -296,6 +320,8 @@ class RetrieverManager:
                         fresh_data["retrieved_time"] = now
 
                         self.rss_store.write(item["url"], fresh_data)
+                else:
+                    logger.debug(f"[{item_hash}] unsupported retrieval method")
 
 
 class Retriever(ABC):

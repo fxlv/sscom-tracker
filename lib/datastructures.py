@@ -9,7 +9,7 @@ class Classified:
 
     category: str = "uncategorized"
 
-    def __init__(self, title, street):
+    def __init__(self, title):
         """Construct a classified object.
 
         Title and street are mandatory.
@@ -18,12 +18,14 @@ class Classified:
         self.title = title.strip()
         # sometimes there are newlines in the title, get rid of them
         self.title = self.title.replace("\r\n", "").replace("\n", "")
-        self.street = street
-        if self.street is None:
-            self.street = "undetermined"
-        self.street = self.street.strip()
+
+    def done(self):
+        self._prepare() # this method can and should be overriden by child classes
         self.hash = self.get_hash()
         self.short_hash = self.hash[:10] #useful in logs
+
+    def _prepare(self):
+        self.hash_string = self.title
 
     def __str__(self):
         return self.__repr__()
@@ -45,8 +47,16 @@ class Classified:
 
     def get_hash(self) -> str:
         """Return hash based on title and street."""
-        return hashlib.sha256(str(self.title + self.street).encode("utf-8")).hexdigest()
+        return hashlib.sha256(str(self.hash_string).encode("utf-8")).hexdigest()
 
+class Dwelling(Classified):
+    """Base class for all living places."""
+    category: str = "dwelling"
+    def _prepare(self):
+        if self.street is None:
+            self.street = "undetermined"
+        self.street = self.street.strip()
+        self.hash_string = self.title + self.street
 
 class Animal:
     """Base class for all animals"""
@@ -82,8 +92,15 @@ class Animal:
         """Return hash based on title and street."""
         return hashlib.sha256(str(self.title + self.age).encode("utf-8")).hexdigest()
 
+class Car(Classified):
+    category = "car"
+    def _prepare(self):
+        self.hash_string = self.title + self.price
+    def __str__(self):
+        return f"Car: {self.model} / price: {self.price}"
 
-class Apartment(Classified):
+
+class Apartment(Dwelling):
     category = "apartment"
 
     def __str__(self):
@@ -92,10 +109,10 @@ class Apartment(Classified):
         )
 
 
-class House(Classified):
+class House(Dwelling):
     category = "house"
     def __str__(self):
-        return f"House: {self.title} / Str: {self.street}"
+        return f"house: {self.title} / str: {self.street}"
 
 
 class Dog(Animal):
