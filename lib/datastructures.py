@@ -1,6 +1,7 @@
 import hashlib
 
 from loguru import logger
+from lib.log import normalize
 
 
 class Classified:
@@ -24,10 +25,13 @@ class Classified:
         self.hash = self.get_hash()
 
     def __str__(self):
-        return f"Classified: {self.title} / Str: {self.street}"
+        return self.__repr__()
 
     def __repr__(self):
-        repr = f'Classified("{self.title}","{self.street}")'
+        # normalize title, by trying to remove any Unicode and strip to first 10 characters
+        title = normalize(self.title)
+        title = title[:10]
+        repr = f'Classified("{title}"")'
         return repr
 
     def __hash__(self):

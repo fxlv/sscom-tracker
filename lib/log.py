@@ -5,7 +5,12 @@ from pathlib import Path
 from loguru import logger
 
 import lib.settings
+import unicodedata
 
+
+def normalize(string):
+    """Strip unicode characters"""
+    return unicodedata.normalize("NFKD", string).encode("ascii", "ignore")
 
 def func_log(function_name):
     """Decorator for logging and timing function execution."""

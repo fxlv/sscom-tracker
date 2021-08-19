@@ -65,7 +65,7 @@ class ObjectParser:
             return re.findall(regex,string)[0]
         except IndexError:
             if warn:
-                logger.warning(f"Could not extract value from object.Regex: {regex}, object: {string}")
+                logger.warning(f"Could not extract value from object.Regex: {lib.log.normalize(regex)}, object: {lib.log.normalize(string)}")
             return None
 
     def _get_house_from_rss(self, rss_entry) -> lib.datastructures.House:
@@ -320,6 +320,7 @@ class RSSRetriever(Retriever):
         )
         feedparser.USER_AGENT = random.choice(agents)
         response = feedparser.parse(url)
+        logger.debug(f"Got response {response.status} with {len(response.entries)} entries from {response.href}")
         return response
 
     @func_log
