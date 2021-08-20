@@ -7,6 +7,8 @@
 # kaspars@fx.lv
 #
 import json
+import sys
+
 import click
 import lib.cache
 import lib.datastructures
@@ -62,10 +64,17 @@ def process(debug):
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-def view(debug):
+@click.option("--category", default="*", help="Category of classifieds to view")
+def view(debug, category):
+    if not category in ["house", "car", "dog", "apartment","*"]:
+        click.echo("Unsupported category")
+        sys.exit(1)
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
-    pass  # to be implemented
+    with logger.contextualize(task="View"):
+        object_store = lib.retriever.ObjectStore(settings)
+        print_results_to_console(object_store.load_all(category), category)
+
 
 
 @func_log

@@ -86,7 +86,7 @@ class ObjectParser:
         car.mileage = mileage
         car.year = year
         car.price = price
-        car.mode = model
+        car.model = model
         car.published = arrow.get(rss_entry["published_parsed"])
         car.done()
         return car
@@ -200,8 +200,8 @@ class ObjectStore(Store):
         return pickle.load(file_handle)
 
     @func_log
-    def load_all(self):
-        all_files = Path(self.s.object_cache_dir).glob("*.classified")
+    def load_all(self, category="*"):
+        all_files = Path(self.s.object_cache_dir).glob(f"{category}/*.classified")
         all_files_unpickled = []
         for file_name in all_files:
             object = pickle.load(file_name.open(mode="rb"))
