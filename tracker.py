@@ -31,10 +31,11 @@ def cli():
 def update(debug):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
-    logger.info("Updating...")
-    rm = lib.retriever.RetrieverManager(settings)
-    rm.update_all()
-    logger.info("Updating run complete")
+    with logger.contextualize(task="Update"):
+        logger.info("Updating...")
+        rm = lib.retriever.RetrieverManager(settings)
+        rm.update_all()
+        logger.info("Updating run complete")
 
 
 @func_log
@@ -44,16 +45,18 @@ def process(debug):
     """Parse and store the downloaded RSS data."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
-    logger.info("Starting processing run...")
-    store = lib.retriever.RSSStore(settings)
-    op = lib.retriever.ObjectParser()
-    object_store = lib.retriever.ObjectStore(settings)
-    objects_list = store.load_all()
-    for rss_object in objects_list:
-        parsed_list = op.parse_object(rss_object)
-        for classified in parsed_list:
-            object_store.write(classified)
-    logger.info("Processing run complete")
+    with logger.contextualize(task="Process"):
+        logger.info("Starting processing run...")
+        store = lib.retriever.RSSStore(settings)
+        op = lib.retriever.ObjectParser()
+        object_store = lib.retriever.ObjectStore(settings)
+        objects_list = store.load_all()
+        for rss_object in objects_list:
+            parsed_list = op.parse_object(rss_object)
+            logger.debug(f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds")
+            for classified in parsed_list:
+                object_store.write(classified)
+        logger.info("Processing run complete")
 
 
 @func_log

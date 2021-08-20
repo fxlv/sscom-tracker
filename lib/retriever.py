@@ -131,7 +131,7 @@ class ObjectParser:
     def parse_object(self, rss_object):
         retrieval_date = rss_object.retrieved_time.strftime("%d.%m.%y")
         retrieval_time = rss_object.retrieved_time.strftime("%H:%M:%S")
-        logger.debug(f"Parsing RSS object ({rss_object.object_category} / {rss_object.url_hash[:10]}), retrieved on {retrieval_date} at {retrieval_time} with {len(rss_object.entries)} entries")
+        logger.debug(f"[{rss_object.url_hash[:10]}] Parsing RSS object ({rss_object.object_category}), retrieved on {retrieval_date} at {retrieval_time} with {len(rss_object.entries)} entries")
         parsed_list = []
         if not "object_category" in rss_object.keys():
             logger.warning(f"RSS Object {rss_object} does not contain 'category'")
@@ -195,7 +195,8 @@ class ObjectStore(Store):
             return None
         full_path = self._get_full_file_name(classified)
         file_handle = full_path.open(mode="rb")
-        logger.debug(f"Opened handle {file_handle} for binary reading")
+        logger.trace(f"[{classified.short_hash}] Opened handle {file_handle} for binary reading")
+        logger.debug(f"[{classified.short_hash}] Loaded from disk")
         return pickle.load(file_handle)
 
     @func_log
@@ -285,7 +286,7 @@ class RSSStore(Store):
                 object = pickle.load(file_name.open(mode="rb"))
                 all_files_unpickled.append(object)
         file_count = len(all_files_unpickled)
-        logger.debug(f"{file_count} files were read and unpickled")
+        logger.debug(f"{file_count} RSS files loaded")
         return all_files_unpickled
 
 

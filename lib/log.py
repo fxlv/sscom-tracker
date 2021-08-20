@@ -10,7 +10,7 @@ import unicodedata
 
 def normalize(string):
     """Strip unicode characters"""
-    return unicodedata.normalize("NFKD", string).encode("ascii", "ignore")
+    return unicodedata.normalize("NFKD", string).encode("ascii", "ignore").decode()
 
 def func_log(function_name):
     """Decorator for logging and timing function execution."""
@@ -26,7 +26,7 @@ def func_log(function_name):
         if kwargs:
             msg += f" with kwargs {args}"
         msg += f" executed in: {t_end:5.5f} sec"
-        logger.trace(msg)
+        logger.trace(normalize(msg))
         return result
 
     return log_it
@@ -50,8 +50,10 @@ def set_up_logging(settings: lib.settings.Settings, debug=False):
         retention="1 week",
         compression="zip",
         level="TRACE",
+        format="{time} {level} :: {extra[task]} ::: {message}"
     )  # always log to a file
     logger.add(sys.stderr, level="WARNING")
+    logger.bind(task="setup")
     if debug:
         logger.add(sys.stderr, level="DEBUG")
         logger.debug("DEBUG Logging started.")
