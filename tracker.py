@@ -30,13 +30,17 @@ def cli():
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-def update(debug):
+@click.option("--category", default="*", help="Category of classifieds to update")
+def update(debug, category):
+    if not category in ["house", "car", "dog", "apartment","*"]:
+        click.echo("Unsupported category")
+        sys.exit(1)
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Update"):
-        logger.info("Updating...")
+        logger.info(f"Updating '{category}'...")
         rm = lib.retriever.RetrieverManager(settings)
-        rm.update_all()
+        rm.update_all(category)
         logger.info("Updating run complete")
 
 

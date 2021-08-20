@@ -7,6 +7,7 @@ from loguru import logger
 import lib.settings
 import unicodedata
 
+from lib.helpers import strip_sscom
 
 def normalize(string):
     """Strip unicode characters"""
@@ -21,10 +22,19 @@ def func_log(function_name):
         result = function_name(*args, **kwargs)
         t_end = time.time() - t_start
         msg = f"Function call: {function_name.__name__}"
+        if isinstance(args, tuple):
+            shortargs = []
+            for l in args:
+                l = str(l)  # for logging, we only care about the string representation
+                l = strip_sscom(l)
+                if len(l)>35:
+                    l = f"{l[:30]}..."
+                shortargs.append(l)
+            args = shortargs
         if args:
             msg += f" with args: {args}"
         if kwargs:
-            msg += f" with kwargs {args}"
+            msg += f" with kwargs {kwargs}"
         msg += f" executed in: {t_end:5.5f} sec"
         logger.trace(normalize(msg))
         return result

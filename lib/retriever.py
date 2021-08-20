@@ -298,9 +298,12 @@ class RetrieverManager:
         self.s = settings
         self.hashfunc = self.rss_store._hash
 
-    def update_all(self):
+    def update_all(self, update_category):
         now = datetime.datetime.now()
         for category in self.s.tracking_list:
+            if not update_category == "*" and not update_category == category:
+                logger.debug(f"Skipping update for category {category}, update category filter is set to {update_category}")
+                continue
             category_items = self.s.tracking_list[category]
             for item in category_items:
                 item_hash = lib.helpers.shorthash(item["url"])
