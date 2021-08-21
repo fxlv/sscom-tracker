@@ -34,6 +34,7 @@ class ObjectParser:
         apartment.m2 = m2
         apartment.price = price
         apartment.published = arrow.get(rss_entry["published_parsed"])
+        apartment.link = rss_entry["link"]
         apartment.done()
         return apartment
 
@@ -67,6 +68,7 @@ class ObjectParser:
         car.price = price
         car.model = model
         car.published = arrow.get(rss_entry["published_parsed"])
+        car.link = rss_entry["link"]
         car.done()
         return car
     def _get_house_from_rss(self, rss_entry) -> lib.datastructures.House:
@@ -96,6 +98,7 @@ class ObjectParser:
         house.land_m2 = land_m2
         house.price = price
         house.published = arrow.get(rss_entry["published_parsed"])
+        house.link = rss_entry["link"]
         house.done()
         return house
 

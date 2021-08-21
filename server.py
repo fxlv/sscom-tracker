@@ -24,7 +24,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    with logger.contextualize(task="Web"):
+    with logger.contextualize(task="Web->Index"):
         logger.debug("Returning index")
         settings = lib.settings.Settings()
         set_up_logging(settings)
@@ -35,7 +35,7 @@ def index():
 
 @app.route("/category/<category>")
 def category(category=None):
-    with logger.contextualize(task="Web"):
+    with logger.contextualize(task="Web->Category"):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
         set_up_logging(settings)
@@ -44,3 +44,11 @@ def category(category=None):
         stats = lib.stats.TrackerStats(settings, object_store, rss_store)
         return render_template("category.html", stats=stats, category=category, classifieds = object_store.load_all(category))
 
+@app.route("/category/<category>/<hash>")
+def classified(category=None, hash=None):
+    with logger.contextualize(task="Web->Classified"):
+        logger.debug(f"Viewing classified {hash} from category {category}")
+        settings = lib.settings.Settings()
+        set_up_logging(settings)
+        object_store = lib.objectstore.ObjectStore(settings)
+        return render_template("classified.html", category=category, classified = object_store.get_object_by_hash(category, hash))

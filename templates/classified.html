@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Classified view: Category: {{category}}{% endblock %}
+{% block content %}
+
+        {% if category == "apartment"%}
+<p><b>Title</b>{{classified.title}}</p>
+<p><b>Street</b> {{classified.street}} </p>
+<p><b>Rooms</b> {{classified.rooms}}</p>
+
+<p><b>Floor</b> {{classified.floor}} </p>
+<p><b>M2</b> {{classified.m2}}</p>
+<p><b> Price </b>{{classified.price}}</p>
+<p><b> Published: </b>{{classified.published}}</p>
+<p><b> Retrieved: </b>{{classified.retrieved}}</p>
+<p><b> Last seen: </b>{{classified.last_seen}}</p>
+<p><a href="{{classified.link}}" rel="noreferrer" >Link to SS.com ad</a></p>
+        {% else %}
+<p><b>Title</b>{{classified.title}}</p>
+ <p><b>       Price
+{{classified.price}}
+        {% endif %}
+
+
+
+
+{% endblock %}

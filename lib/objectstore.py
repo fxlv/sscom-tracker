@@ -78,6 +78,11 @@ class ObjectStore(Store):
         return all_files_unpickled
 
     @func_log
+    def get_object_by_hash(self, category: str, hash_string: str) -> lib.datastructures.Classified:
+        file_path = Path(self.s.object_cache_dir).glob(f"{category}/{hash_string}*.classified")
+        return pickle.load(next(file_path).open(mode="rb"))
+
+    @func_log
     def _file_exists(self, classified: lib.datastructures.Classified) -> bool:
         return self._get_full_file_name(classified).exists()
 

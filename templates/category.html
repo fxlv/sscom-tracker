@@ -22,7 +22,7 @@
 {% for classified in classifieds %}
     <tr>
         {% if category == "apartment"%}
-        <td>{{classified.title}}</td>
+        <td><a href="/category/{{category}}/{{classified.short_hash}}">{{classified.title}}</a></td>
         <td>{{classified.street}}</td>
         <td>{{classified.rooms}}</td>
         <td>{{classified.floor}}</td>
