@@ -12,8 +12,11 @@ import sys
 import click
 import lib.cache
 import lib.datastructures
+import lib.objectparser
+import lib.objectstore
 import lib.push
 import lib.retriever
+import lib.rssstore
 from lib.display import print_results_to_console
 from lib.filter import Filter
 import lib.settings
@@ -53,9 +56,9 @@ def process(debug):
     set_up_logging(settings, debug)
     with logger.contextualize(task="Process"):
         logger.info("Starting processing run...")
-        store = lib.retriever.RSSStore(settings)
-        op = lib.retriever.ObjectParser()
-        object_store = lib.retriever.ObjectStore(settings)
+        store = lib.rssstore.RSSStore(settings)
+        op = lib.objectparser.ObjectParser()
+        object_store = lib.objectstore.ObjectStore(settings)
         objects_list = store.load_all()
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
@@ -76,7 +79,7 @@ def view(debug, category):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="View"):
-        object_store = lib.retriever.ObjectStore(settings)
+        object_store = lib.objectstore.ObjectStore(settings)
         print_results_to_console(object_store.load_all(category), category)
 
 if __name__ == "__main__":
