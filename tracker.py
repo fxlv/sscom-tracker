@@ -79,34 +79,5 @@ def view(debug, category):
         object_store = lib.retriever.ObjectStore(settings)
         print_results_to_console(object_store.load_all(category), category)
 
-
-
-@func_log
-@cli.command()
-@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-@click.option("--print/--no-print", default=True, help="Print results to console")
-@click.option("--push/--no-push", default=False, help="Send push notifications")
-def print(debug, print, push):
-
-    settings = lib.settings.Settings()
-    set_up_logging(settings, debug)
-
-    cache = lib.cache.Cache(settings)
-    data_cache = lib.cache.DataCache(settings)
-
-    retriever = lib.retriever.Retriever(settings, data_cache)
-    classified_filter = Filter(retriever, cache, settings)
-
-    if not data_cache.is_fresh():
-        retriever.update_data_cache()
-    results = classified_filter.filter_tracking_list()
-
-    if print:
-        print_results_to_console(results)
-
-    if push:
-        send_push(settings, results)
-
-
 if __name__ == "__main__":
     cli()

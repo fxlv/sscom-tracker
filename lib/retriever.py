@@ -199,9 +199,15 @@ class ObjectStore(Store):
         logger.debug(f"[{classified.short_hash}] Loaded from disk")
         return pickle.load(file_handle)
 
+
+    @func_log
+    def get_all_files(self, category):
+        all_files = Path(self.s.object_cache_dir).glob(f"{category}/*.classified")
+        return all_files
+
     @func_log
     def load_all(self, category="*"):
-        all_files = Path(self.s.object_cache_dir).glob(f"{category}/*.classified")
+        all_files = self.get_all_files(category)
         all_files_unpickled = []
         for file_name in all_files:
             object = pickle.load(file_name.open(mode="rb"))
@@ -221,6 +227,12 @@ class ObjectStore(Store):
             f"{self.object_cache_dir}/{classified.category}/{file_name}.classified"
         )
         return full_path
+
+    @func_log
+    def get_files_count(self, category="*")  -> int:
+        return sum( 1 for i in self.get_all_files(category))
+
+
 
 
 class RSSStore(Store):
@@ -277,8 +289,16 @@ class RSSStore(Store):
         return file_name.stat().st_size > 0
 
     @func_log
+    def get_all_files(self):
+       return Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
+
+    @func_log
+    def get_files_count(self)  -> int:
+        return sum( 1 for i in self.get_all_files())
+
+    @func_log
     def load_all(self):
-        all_files = Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
+        all_files = self.get_all_files()
         all_files_unpickled = []
         for file_name in all_files:
             if self._file_is_not_empty(file_name):
@@ -366,6 +386,16 @@ class RSSRetriever(Retriever):
     def get(self, url) -> feedparser.FeedParserDict:
         return self._fetch(url)
 
+class TrackerStats:
+    def __init__(self, settings: lib.settings.Settings, object_store: ObjectStore, rss_store: RSSStore):
+        self.categories = settings.tracking_list.keys()
+        self.objects_count = object_store.get_files_count()
+        self.rss_files_count = rss_store.get_files_count()
+        self.object_store = object_store
+        self.rss_store = rss_store
+
+    def get_object_count(self, category):
+        return self.object_store.get_files_count(category)
 
 class HttpRetrieverOLD:
     """This used to be the main retriever, but I think it would be a good idea to just throw it out."""

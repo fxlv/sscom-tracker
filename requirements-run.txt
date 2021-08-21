@@ -3,6 +3,7 @@ beautifulsoup4
 astroid==2.4.1
 attrs==21.2.0
 arrow
+Flask
 backports.entry-points-selectable==1.1.0
 certifi==2021.5.30
 cfgv==3.3.0

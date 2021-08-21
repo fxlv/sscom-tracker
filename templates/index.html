@@ -1,0 +1,12 @@
+<!doctype html>
+<title>PyTracker</title>
+<h1>Stats</h1>
+<p>There are {{ stats.objects_count}} objects stored in the local object cache</p>
+<p>There are {{ stats.rss_files_count}} RSS files in the local cache</p>
+<P>The following categories are tracked:</P>
+<ul>
+{% for category in stats.categories %}
+<li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.get_object_count(category)}} )</li>
+{% endfor %}
+</ul>
+
