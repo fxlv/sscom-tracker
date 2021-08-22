@@ -4,12 +4,14 @@
 {% block content %}
 
 <h1>Stats</h1>
-<p>There are {{ stats.objects_count}} objects stored in the local object cache</p>
-<p>There are {{ stats.rss_files_count}} RSS files in the local cache</p>
+<p>There are {{ stats.data.objects_files_count['total']}} objects stored in the local object cache</p>
+<p>There are {{ stats.data.rss_files_count}} RSS files in the local cache</p>
+<p>Last RSS update was {{ stats.data.last_rss_update.humanize() }} </p>
+<p>Last Objects update was {{ stats.data.last_objects_update.humanize() }} </p>
 <P>The following categories are tracked:</P>
 <ul>
-    {% for category in stats.categories %}
-    <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.get_object_count(category)}} )</li>
+    {% for category in stats.data.categories %}
+    <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.data.objects_files_count[category]}} )</li>
     {% endfor %}
 </ul>
 

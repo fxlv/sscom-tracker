@@ -11,6 +11,7 @@ import lib.settings
 from lib.helpers import shorthash
 from lib.log import func_log
 from lib.store import Store
+from lib.stats import TrackerStats
 
 
 class RSSStore(Store):
@@ -18,6 +19,8 @@ class RSSStore(Store):
         self.s = settings
         self.cache_dir = self.s.cache_dir
         self._create_cache_dir_if_not_exists()
+        self.stats = TrackerStats(self.s)
+        self.l = logger.bind(task="RSSStore")
 
     @func_log
     def _hash(self, string: str):
@@ -50,7 +53,7 @@ class RSSStore(Store):
             delta_seconds = (now - mtime).total_seconds()
             return delta_seconds < self.s.cache_validity_time
         except FileNotFoundError:
-            logger.debug(f"[{shorthash(url)}] Cache file not present for {url}")
+            self.l.debug(f"[{shorthash(url)}] Cache file not present for {url}")
             return False
 
     @func_log
@@ -61,20 +64,22 @@ class RSSStore(Store):
         file_handle = full_path.open(mode="wb")
         pickle.dump(data, file_handle)
         file_handle.close()
+        self.stats.set_last_rss_update(arrow.now())
 
-    @func_log
+    def __del__(self):
+        self.l.trace("RSS destructor triggering RSS files count update")
+        self.stats.set_rss_files_count(self.get_files_count())
+
     def _file_is_not_empty(self, file_name: Path):
         return file_name.stat().st_size > 0
 
-    @func_log
     def get_all_files(self):
+       self.l.trace("Get all files")
        return Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
 
-    @func_log
     def get_files_count(self)  -> int:
         return sum( 1 for i in self.get_all_files())
 
-    @func_log
     def load_all(self):
         all_files = self.get_all_files()
         all_files_unpickled = []
@@ -84,5 +89,5 @@ class RSSStore(Store):
                 object = pickle.load(file_name.open(mode="rb"))
                 all_files_unpickled.append(object)
         file_count = len(all_files_unpickled)
-        logger.debug(f"{file_count} RSS files loaded")
+        self.l.debug(f"{file_count} RSS files loaded")
         return all_files_unpickled

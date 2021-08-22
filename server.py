@@ -30,7 +30,7 @@ def index():
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStore(settings)
         rss_store = lib.rssstore.RSSStore(settings)
-        stats = lib.stats.TrackerStats(settings, object_store, rss_store)
+        stats = lib.stats.TrackerStats(settings)
         return render_template("index.html", stats=stats, classifieds = object_store.load_all())
 
 @app.route("/category/<category>")
@@ -40,8 +40,7 @@ def category(category=None):
         settings = lib.settings.Settings()
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStore(settings)
-        rss_store = lib.rssstore.RSSStore(settings)
-        stats = lib.stats.TrackerStats(settings, object_store, rss_store)
+        stats = lib.stats.TrackerStats(settings)
         return render_template("category.html", stats=stats, category=category, classifieds = object_store.load_all(category))
 
 @app.route("/category/<category>/<hash>")
