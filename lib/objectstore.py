@@ -75,6 +75,8 @@ class ObjectStore(Store):
             all_files_unpickled.append(object)
         file_count = len(all_files_unpickled)
         logger.debug(f"{file_count} files were read and unpickled")
+        # sort by date published, desc
+        all_files_unpickled.sort(key = lambda x: x.published, reverse=True)
         return all_files_unpickled
 
     @func_log

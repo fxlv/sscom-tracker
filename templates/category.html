@@ -11,6 +11,21 @@
         <td>Rooms</td>
         <td>Floor</td>
         <td>M2</td>
+        <td>Published</td>
+        <td>Price</td>
+        {% elif category == "house" %}
+        <td>Title</td>
+        <td>Floors</td>
+        <td>Rooms</td>
+        <td>M2</td>
+        <td>Land M2</td>
+        <td>Published</td>
+        <td>Price</td>
+        {% elif category == "car" %}
+        <td>Title</td>
+        <td>Model</td>
+        <td>Mileage</td>
+        <td>Published</td>
         <td>Price</td>
         {% else %}
         <td>Title</td>
@@ -27,6 +42,21 @@
         <td>{{classified.rooms}}</td>
         <td>{{classified.floor}}</td>
         <td>{{classified.m2}}</td>
+        <td>{{classified.published.humanize()}}</td>
+        <td>{{classified.price}}</td>
+        {% elif category == "house"%}
+        <td><a href="/category/{{category}}/{{classified.short_hash}}">{{classified.title}}</a></td>
+        <td>{{classified.floors}}</td>
+        <td>{{classified.rooms}}</td>
+        <td>{{classified.m2}}</td>
+        <td>{{classified.land_m2}}</td>
+        <td>{{classified.published.humanize()}}</td>
+        <td>{{classified.price}}</td>
+        {% elif category == "car"%}
+        <td><a href="/category/{{category}}/{{classified.short_hash}}">{{classified.title}}</a></td>
+        <td>{{classified.model}}</td>
+        <td>{{classified.mileage}}</td>
+        <td>{{classified.published.humanize()}}</td>
         <td>{{classified.price}}</td>
         {% else %}
         <td>{{classified.title}}</td>
