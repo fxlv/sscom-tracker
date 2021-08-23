@@ -19,8 +19,12 @@ class Enricher:
 
         content = car.http_response_data.response_content #this is where the plain text data is
         content = content.split("Atgriezties uz sludinājumu sarakstu")[1].strip()
-        # now, find where the description ends
-        end_of_desc = re.findall("(Marka.+Izlaiduma gads:.+Motors)", content)[0]
+        try:
+            # now, find where the description ends
+            end_of_desc = re.findall("(Marka.+Izlaiduma gads:.+Motors)", content)[0]
+        except IndexError:
+            logger.debug(f"The classified is missing car details. Possibly this is not a sales classified. Skipping it.")
+            return car
         description = content.split(end_of_desc)[0]
         details = content.split(description)
         details = "".join(details).strip() # merge list into a string, it could be that there are some junk whitespaces, so this join approch will ensure we only have one object to worry about.
@@ -41,7 +45,11 @@ class Enricher:
 
 
 
-        color = re.findall("Krāsa:(.+)Virsbūves tips:", details)[0].strip()
+        try:
+            color = re.findall("Krāsa:(.+)Virsbūves tips:", details)[0].strip()
+        except:
+            logger.warning(f"[{car.short_hash}] Could not identify color.")
+            color = "unknown"
 
 
         try:
