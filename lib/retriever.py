@@ -8,8 +8,9 @@ import requests
 from loguru import logger
 from lxml import html
 
+from bs4 import BeautifulSoup
 import lib.settings
-from lib.datastructures import Apartment, House, Dog
+from lib.datastructures import Apartment, House, Dog, HttpResponse
 from lib.log import func_log
 from lib.helpers import strip_sscom
 from lib.rssstore import RSSStore
@@ -92,12 +93,44 @@ class RSSRetriever(Retriever):
         return self._fetch(url)
 
 
+class HttpRetriever:
+
+    def __init__(self):
+        self.l = logger
+
+    def get_content(self, soup):
+        return soup.table.table.text
+
+    def retrieve_ss_data(self, url: str) -> HttpResponse:
+        """Retrieve SS.COM data.
+
+        Retrieve the data using the URL provided.
+        """
+
+        # TODO: add randomization of user agent here
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
+        }
+        self.l.trace(f"Making a request to retrieve {url}")
+        r = requests.get(url, headers=headers)
+        response_code = r.status_code
+        response_raw = r.content
+        response_soup = BeautifulSoup(response_raw, "html.parser")
+        response_content = self.get_content(response_soup)
+        response_size = sys.getsizeof(response_raw)
+        self.l.trace(f"Got response code: {response_code}, size: {response_size}")
+        # return a parsed and raw content version, for storage
+        # soup objects cannot be pickled
+        return HttpResponse(response_code, response_content, response_raw)
+
+
 class HttpRetrieverOLD:
     """This used to be the main retriever, but I think it would be a good idea to just throw it out."""
 
     def __init__(self, settings: lib.settings.Settings, data_cache):
         self.settings = settings
         self.data_cache = data_cache
+
 
     @func_log
     def update_data_cache(self):

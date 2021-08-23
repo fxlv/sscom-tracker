@@ -16,7 +16,7 @@ from lib.log import func_log, set_up_logging
 from lib.push import send_push
 from loguru import logger
 from flask import render_template
-from flask import Flask
+from flask import Flask, request
 
 
 
@@ -51,3 +51,11 @@ def classified(category=None, hash=None):
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStore(settings)
         return render_template("classified.html", category=category, classified = object_store.get_object_by_hash(category, hash))
+
+@app.route('/retrieve', methods=['POST'])
+def retrieve():
+    data = request.form
+    print(data["url"])
+    settings = lib.settings.Settings()
+    return "Your request has been added to the queue."
+

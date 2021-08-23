@@ -3,6 +3,14 @@ import hashlib
 from loguru import logger
 from lib.log import normalize
 
+from bs4 import BeautifulSoup
+
+
+class HttpResponse:
+    def __init__(self, response_code: int, response_content: str, response_raw: str):
+        self.response_code = response_code
+        self.response_content = response_content
+        self.response_raw = response_raw
 
 class Classified:
     """Base class for all classifieds"""

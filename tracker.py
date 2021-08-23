@@ -8,7 +8,7 @@
 #
 import json
 import sys
-
+import time
 import click
 import lib.cache
 import lib.datastructures
@@ -20,10 +20,10 @@ import lib.rssstore
 from lib.display import print_results_to_console
 from lib.filter import Filter
 import lib.settings
-from lib.log import func_log, set_up_logging
+from lib.log import func_log, set_up_logging, normalize
 from lib.push import send_push
 from loguru import logger
-
+import random
 
 @click.group()
 def cli():
@@ -81,6 +81,41 @@ def view(debug, category):
     with logger.contextualize(task="View"):
         object_store = lib.objectstore.ObjectStore(settings)
         print_results_to_console(object_store.load_all(category), category)
+
+
+def randomsleep():
+    sleep_time = random.choice(range(1, 5))
+    logger.trace(f"Sleeping for {sleep_time} seconds")
+    time.sleep(sleep_time)
+
+
+@func_log
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+def retr(debug):
+    settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
+    with logger.contextualize(task="URL retriever"):
+        logger.debug("Running retriever...")
+        object_store = lib.objectstore.ObjectStore(settings)
+        hr = lib.retriever.HttpRetriever()
+        # iterate over all objects
+        # for each of them, check if http_response_date is present,
+        # if it is not, call HttpRetriever and save the response into the object
+        for classified in object_store.load_all("*"):
+            if hasattr(classified, "http_response_data"):
+                logger.trace(f"Object {classified.short_hash} already has http_response_data")
+                if classified.http_response_data != None:
+                    logger.trace(f"Object {classified.short_hash} already has http response data, skipping")
+                else:
+                    classified.http_response_data = hr.retrieve_ss_data(classified.link)
+                    object_store.update(classified)
+                    randomsleep()
+            else:
+                logger.trace(f"Object {classified.short_hash} does not have http_response_data, initiating retrieval")
+                classified.http_response_data = hr.retrieve_ss_data(classified.link)
+                object_store.update(classified)
+                randomsleep()
 
 if __name__ == "__main__":
     cli()
