@@ -26,6 +26,7 @@ class Classified:
         self.title = title.strip()
         # sometimes there are newlines in the title, get rid of them
         self.title = self.title.replace("\r\n", "").replace("\n", "")
+        self.enriched = False
 
     def done(self):
         self._prepare() # this method can and should be overriden by child classes

@@ -3,17 +3,64 @@
 {% block nav %}{% endblock %}
 {% block content %}
 
-<h1>Stats</h1>
-<p>There are {{ stats.data.objects_files_count['total']}} objects stored in the local object cache</p>
-<p>There are {{ stats.data.rss_files_count}} RSS files in the local cache</p>
-<p>Last RSS update was {{ stats.data.last_rss_update.humanize() }} </p>
-<p>Last Objects update was {{ stats.data.last_objects_update.humanize() }} </p>
-<P>The following categories are tracked:</P>
-<ul>
-    {% for category in stats.data.categories %}
-    <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.data.objects_files_count[category]}} )</li>
-    {% endfor %}
-</ul>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>Stats</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p>Objects count: {{ stats.data.objects_files_count['total']}}</p>
+        </div>
+        <div class="col">
+            <p>RSS files count: {{ stats.data.rss_files_count}}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+
+            <p> Enrichment: {{stats.data.enrichment_data[1]}} / {{stats.data.enrichment_data[0]}}
+
+            </p>
+        </div>
+        <div class="col">
+            Details retrieved:
+            {{stats.data.http_data[1]}} / {{stats.data.http_data[0]}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+
+            <p>Last RSS update was {{ stats.data.last_rss_update.humanize() }} </p>
+            <p>Last Objects update was {{ stats.data.last_objects_update.humanize() }} </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h1>Data</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+
+
+            <P>The following categories are tracked:</P>
+            <ul>
+                {% for category in stats.data.categories %}
+                <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.data.objects_files_count[category]}} )</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+
+
+
+
+</div>
+
+
 
 {% endblock %}
 

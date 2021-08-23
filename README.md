@@ -25,6 +25,20 @@ You deploy it to a box that is always on and add it to `cron`.
 ```10 10 * * * cd  /where/you/cloned/it/sscom-tracker && python3 tracker.py > sscom.log```
 
 Of course set the candence to a frequency that suits you.
+## Flow
+
+* Download RSS data
+* Process and create objects
+* Retrieve per classified data
+* Enrich classifieds with the data from the descriptions
+
+## Kubernetes
+
+Create a configmap using the settings file, like so:
+
+```
+kubectl create configmap pytrackersettings --from-file=settings.json
+```
 
 ### Known issues
 

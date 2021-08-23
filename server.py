@@ -31,6 +31,7 @@ def index():
         object_store = lib.objectstore.ObjectStore(settings)
         rss_store = lib.rssstore.RSSStore(settings)
         stats = lib.stats.TrackerStats(settings)
+        print(stats.data.enrichment_data)
         return render_template("index.html", stats=stats, classifieds = object_store.load_all())
 
 @app.route("/category/<category>")

@@ -11,7 +11,11 @@ class StatsData:
         self.rss_files_count = None
         self.last_rss_update = None
         self.last_objects_update = None
+        self.last_retrieval_run = None
+        self.last_enricher_run = None
         self.categories = []
+        self.http_data = None, None
+        self.enrichment_data = None, None
 
 
 class TrackerStats:
@@ -35,6 +39,14 @@ class TrackerStats:
 
     def set_objects_files_count(self, category:str, count: int):
         self.data.objects_files_count[category] = count
+        self.save()
+
+    def set_http_data_stats(self, total_files, files_with_http_data):
+        self.data.http_data = total_files, files_with_http_data
+        self.save()
+
+    def set_enrichment_stats(self, total_files, files_enriched):
+        self.data.enrichment_data = total_files, files_enriched
         self.save()
 
     def set_last_objects_update(self, timestamp: datetime.datetime):

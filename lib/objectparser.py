@@ -7,6 +7,74 @@ from loguru import logger
 import lib.datastructures
 import lib.log
 
+class Enricher:
+
+    def __init__(self):
+        pass
+
+    def _enrich_car(self, car: lib.datastructures.Car):
+
+        # first task is to find the description
+        # to do that, let' s strip the junk from the beginning
+
+        content = car.http_response_data.response_content #this is where the plain text data is
+        content = content.split("Atgriezties uz sludinājumu sarakstu")[1].strip()
+        # now, find where the description ends
+        end_of_desc = re.findall("(Marka.+Izlaiduma gads:.+Motors)", content)[0]
+        description = content.split(end_of_desc)[0]
+        details = content.split(description)
+        details = "".join(details).strip() # merge list into a string, it could be that there are some junk whitespaces, so this join approch will ensure we only have one object to worry about.
+
+
+        # now search for conrete details, like engine, make, model etc in the 'details'
+        engine = re.findall("Motors:(.+)Ātr.kārba", details)[0]
+
+        try:
+            # sometimes, mileage is not specified, which makes the regex for gearbox have two options
+            gearbox = re.findall("Ātr.kārba:(.+)Nobraukums", details)
+            if len(gearbox) == 1:
+                gearbox = gearbox[0]
+            else:
+                gearbox = re.findall("Ātr.kārba:(.+)Krāsa:", details)[0]
+        except:
+            logger.warning(f"[{{car.short_hash }}] could not identify gearbox")
+
+
+
+        color = re.findall("Krāsa:(.+)Virsbūves tips:", details)[0].strip()
+
+
+        try:
+            inspection =  re.findall("Tehniskā apskate:(.+)VIN kods", details)
+            if len(inspection) ==1:
+                inspection = inspection[0]
+            else:
+                inspection = re.findall("Tehniskā apskate:(.+)Valsts", details)[0]
+        except:
+            logger.warning(f"[{{car.short_hash}}] Could not determine inspection")
+
+
+        car.engine = engine
+
+        # ensure all timestamps are using Arrow
+        car.first_seen = arrow.get(car.first_seen)
+        car.last_seen = arrow.get(car.last_seen)
+        car.enriched_time = arrow.now()
+
+        car.gearbox = gearbox
+        car.color = color
+        car.inspection = inspection
+        car.description = description
+        car.enriched = True
+        return car
+
+
+    def enrich(self, classified: lib.datastructures.Classified):
+        if classified.category == "car":
+            classified = self._enrich_car(classified)
+        else:
+            logger.debug(f"[{classified.short_hash}] not supported for enrichment")
+        return classified
 
 class ObjectParser:
     """Parse the data and return it as one of the supported data structures."""

@@ -17,6 +17,7 @@ import lib.objectstore
 import lib.push
 import lib.retriever
 import lib.rssstore
+from lib.stats import TrackerStats
 from lib.display import print_results_to_console
 from lib.filter import Filter
 import lib.settings
@@ -87,6 +88,67 @@ def randomsleep():
     sleep_time = random.choice(range(1, 5))
     logger.trace(f"Sleeping for {sleep_time} seconds")
     time.sleep(sleep_time)
+
+
+@func_log
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+@click.option("--force", is_flag=True, default=False, help="Force Enrichment, even if it has already been done before")
+def enrich(debug, force):
+    settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
+    with logger.contextualize(task="Enricher"):
+        logger.debug("Running enricher...")
+        object_store = lib.objectstore.ObjectStore(settings)
+        enricher = lib.objectparser.Enricher()
+        # iterate over all saved classifieds, depending on classified type, update attributes with
+        # data retrieved by the http retriever
+        for classified in object_store.load_all("*"):
+            if hasattr(classified, "enriched"):
+                if classified.enriched:
+                    if force:
+                        logger.debug(f"[{classified.short_hash}] Begin forced enrichment...")
+                        classified = enricher.enrich(classified)
+                        object_store.update(classified)
+                        logger.debug(f"[{classified.short_hash}] Forced enrichment complete")
+                    else:
+                        logger.trace(f"Object {classified.short_hash} has been enriched")
+            else:
+                if hasattr(classified, "http_response_data"):
+                    logger.debug(f"[{classified.short_hash}] Begin enrichment...")
+                    classified = enricher.enrich(classified)
+                    logger.debug(f"[{classified.short_hash}] Enrichment complete")
+                    object_store.update(classified)
+                else:
+                    logger.debug(f"[{classified.short_hash}] missing http response data, cannot enrich")
+
+@func_log
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+def stats(debug):
+    settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
+    with logger.contextualize(task="Statistics"):
+        logger.debug("Running statistics generator...")
+        object_store = lib.objectstore.ObjectStore(settings)
+        # lets generate some statistics
+        count_all = 0
+        enriched_count = 0
+        count_has_http_response_data = 0
+        for classified in object_store.load_all("*"):
+            count_all+=1
+            if hasattr(classified, "http_response_data"):
+                count_has_http_response_data+=1
+            if hasattr(classified, "enriched"):
+                if classified.enriched:
+                    enriched_count+=1
+        # now we need to force the closing of the object store, as it also manipulates stats
+        del(object_store)
+        stats = TrackerStats(settings)
+        stats.set_http_data_stats(count_all, count_has_http_response_data)
+        stats.set_enrichment_stats(count_all, enriched_count)
+        print(stats.data.enrichment_data)
+        logger.debug(f"Stats. Classifieds: {count_all} With HTTP data: {count_has_http_response_data} Enriched: {enriched_count}")
 
 
 @func_log
