@@ -133,7 +133,7 @@ class ObjectParser:
             soup.a.extract()  # remove the first link as we don't use it
             soup.a.extract()  # remove the second link
         except Exception as e:
-            logger.warn(f"Exception encountered: {e}") 
+            logger.warning(f"Exception encountered: {e}") 
             return None
         # now, strip all the hmtml and use regex to extract details from the remaining text
         text = soup.text.strip()
@@ -207,7 +207,7 @@ class ObjectParser:
                 parser = self._parser_factory(rss_object["object_category"])
                 classified_item = parser(entry)
                 if classified_item is None:
-                    logger.warn("Could not parse item, skipping.")
+                    logger.warning("Could not parse item, skipping.")
                     continue
                 classified_item.retrieved = rss_object["retrieved_time"]
                 classified_item.url_hash = rss_object["url_hash"]
