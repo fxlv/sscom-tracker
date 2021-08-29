@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Category: {{category}}{% endblock %}
+
+{% if category == "car" %}
+    {% if model %}
+        {% block nav %}
+            <div id="nav"><a href="/category/car">Back to All Cars</a></div>
+        {% endblock %}
+    {% endif %}
+{% endif %}
+
+
 {% block content %}
 
 <h2>Classifieds in category - {{category}}</h2>
@@ -33,6 +43,11 @@
         {% endif %}
     </tr>
 
+    {% if category == "car" %}
+        {% if model %}
+        <h3>Filtering by model: {{model}}</h3>
+        {% endif %}
+    {% endif %}
 
 {% for classified in classifieds %}
     <tr>
@@ -54,7 +69,7 @@
         <td>{{classified.price}}</td>
         {% elif category == "car"%}
         <td><a href="/category/{{category}}/{{classified.short_hash}}">{{classified.title}}</a></td>
-        <td>{{classified.model}}</td>
+        <td><a href="/category/car/filter/{{classified.model|replace(' ','_') }}">{{classified.model}}</a></td>
         <td>{{classified.mileage}}</td>
         <td>{{classified.published.humanize()}}</td>
         <td>{{classified.price}}</td>

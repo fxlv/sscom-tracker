@@ -44,6 +44,19 @@ def category(category=None):
         stats = lib.stats.TrackerStats(settings)
         return render_template("category.html", stats=stats, category=category, classifieds = object_store.load_all(category))
 
+@app.route("/category/car/filter/<model>")
+def categoryfilter(model=None):
+    with logger.contextualize(task="Web->Category"):
+        category="car"
+        model = model.replace("_"," ")
+        logger.debug(f"Returning filtered category view for {category} and model {model}")
+        settings = lib.settings.Settings()
+        set_up_logging(settings)
+        object_store = lib.objectstore.ObjectStore(settings)
+        stats = lib.stats.TrackerStats(settings)
+        classifieds = object_store.load_all(category)
+        classifieds = [c  for c in classifieds if c.model.lower() == model.lower() ]
+        return render_template("category.html", stats=stats, category=category, model=model, classifieds = classifieds)
 @app.route("/category/<category>/<hash>")
 def classified(category=None, hash=None):
     with logger.contextualize(task="Web->Classified"):
