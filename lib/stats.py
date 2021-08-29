@@ -91,6 +91,10 @@ class TrackerStats:
             metrics.append(self.zabbix.get_zabbix_metric("objects_house_count",self.data.objects_files_count["house"]))
             metrics.append(self.zabbix.get_zabbix_metric("objects_car_count",self.data.objects_files_count["car"]))
             metrics.append(self.zabbix.get_zabbix_metric("objects_dog_count",self.data.objects_files_count["dog"]))
+
+            metrics.append(self.zabbix.get_zabbix_metric("objects_count_total",self.data.objects_files_count["total"]))
+            metrics.append(self.zabbix.get_zabbix_metric("objects_with_http_data_count",self.data.http_data[1] ))
+            metrics.append(self.zabbix.get_zabbix_metric("objects_enriched",self.data.enrichment_data[1]))
             result = self.zabbix.send_zabbix_metrics(metrics)
             logger.debug(f"Zabbix result: {result}")
             print(result)
