@@ -81,7 +81,7 @@ class Enricher:
         if classified.category == "car":
             classified = self._enrich_car(classified)
         else:
-            logger.debug(f"[{classified.short_hash}] not supported for enrichment")
+            logger.debug(f"[{classified.short_hash}] Category: {classified.category} not supported for enrichment")
         return classified
 
 class ObjectParser:

@@ -113,6 +113,8 @@ def enrich(debug, force):
                         logger.debug(f"[{classified.short_hash}] Forced enrichment complete")
                     else:
                         logger.trace(f"Object {classified.short_hash} has been enriched")
+                else:
+                    logger.debug(f"[{classified.short_hash}] Attribute present but is not True")
             else:
                 if hasattr(classified, "http_response_data"):
                     logger.debug(f"[{classified.short_hash}] Begin enrichment...")
