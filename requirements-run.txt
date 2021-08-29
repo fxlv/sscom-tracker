@@ -1,5 +1,6 @@
 appdirs==1.4.4
 beautifulsoup4
+py-zabbix
 astroid==2.4.1
 attrs==21.2.0
 arrow
