@@ -2,11 +2,13 @@
 {% block title %}Category: {{category}}{% endblock %}
 
 {% if category == "car" %}
-    {% if model %}
         {% block nav %}
-            <div id="nav"><a href="/category/car">Back to All Cars</a></div>
+            {% if model %}
+                <div id="nav"><a href="/category/car">Back to All Cars</a></div>
+{%else %}
+<div id="nav"><a href="/">Back to Index</a></div>
+            {% endif %}
         {% endblock %}
-    {% endif %}
 {% endif %}
 
 

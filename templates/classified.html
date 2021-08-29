@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Classified view: Category: {{category}}{% endblock %}
 
-{% if category == "car" %}
 {% block nav %}
+{% if category == "car" %}
 <div id="nav"><a href="/category/car">Back to All Cars</a></div>
-{% endblock %}
+{% elif category =="apartment"  %}
+<div id="nav"><a href="/category/apartment">Back to All Apartments</a></div>
+{% elif category =="house"  %}
+<div id="nav"><a href="/category/house">Back to All Houses</a></div>
+{% else %}
+<div id="nav"><a href="/">Back to Index</a></div>
 {% endif %}
+{% endblock %}
 
 
 {% block content %}
