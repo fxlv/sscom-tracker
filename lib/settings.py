@@ -15,6 +15,9 @@ class Settings:
         self.pushover_api_token: str = None
         self.local_cache: str = None
         self.data_cache: str = None
+        self.zabbix_server: str = None
+        self.zabbix_trap_host: str = None
+        self.zabbix_port: int = None
         self.log_dir: str = None
         self.log_file_name = "tracker.log"  # default, but can be overriden
         self.log_rotation: str = None
@@ -50,6 +53,9 @@ class Settings:
 
         self.local_cache = self._get_setting("local_cache")
         self.cache_dir = self._get_setting("cache_dir")
+        self.zabbix_server = self._get_setting("zabbix_server")
+        self.zabbix_trap_host = self._get_setting("zabbix_trap_host")
+        self.zabbix_port = int(self._get_setting("zabbix_port"))
         self.object_cache_dir = self._get_setting("object_cache_dir")
         self.log_dir = self._get_setting("log_dir")
         self.log_rotation = self._get_setting("log_rotation")

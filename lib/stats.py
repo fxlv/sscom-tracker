@@ -3,6 +3,10 @@ from pathlib  import Path
 from loguru import logger
 import pickle
 import datetime
+import lib.zabbix
+import arrow
+
+
 
 
 class StatsData:
@@ -23,6 +27,7 @@ class TrackerStats:
         self.settings = settings
         self.data: StatsData = self.load()
         self.data.categories = list(self.settings.tracking_list.keys())
+        self.zabbix = lib.zabbix.Zabbix(settings)
 
     #def __del__(self):
      #   with logger.contextualize(task="Stats->Destructor"):
@@ -50,8 +55,12 @@ class TrackerStats:
         self.save()
 
     def set_last_objects_update(self, timestamp: datetime.datetime):
-        self.data.last_objects_update = timestamp
-        self.save()
+        now = arrow.now()
+        if (timestamp - self.data.last_objects_update).total_seconds() > 1:
+            # avoid saving the file too often,
+            # hardcoding a 3 second delta here
+            self.data.last_objects_update = timestamp
+            self.save()
 
     def gen_stats(self, object_store, rss_store) :
         with logger.contextualize(task="Stats->Gen stats"):
@@ -74,6 +83,17 @@ class TrackerStats:
             pickle.dump(self.data, fh)
             logger.trace("Saved stats to pickle file")
             fh.close()
+
+            logger.trace("Now updating zabbix")
+            metrics = []
+            metrics.append(self.zabbix.get_zabbix_metric("rss_files_count",self.data.rss_files_count))
+            metrics.append(self.zabbix.get_zabbix_metric("objects_apartment_count",self.data.objects_files_count["apartment"]))
+            metrics.append(self.zabbix.get_zabbix_metric("objects_house_count",self.data.objects_files_count["house"]))
+            metrics.append(self.zabbix.get_zabbix_metric("objects_car_count",self.data.objects_files_count["car"]))
+            metrics.append(self.zabbix.get_zabbix_metric("objects_dog_count",self.data.objects_files_count["dog"]))
+            result = self.zabbix.send_zabbix_metrics(metrics)
+            logger.debug(f"Zabbix result: {result}")
+            print(result)
 
     def load(self):
         with logger.contextualize(task="Stats->Load"):
