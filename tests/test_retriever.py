@@ -1,26 +1,26 @@
 import pytest
 import lib.cache
+import lib.objectparser
+import lib.objectstore
 import lib.retriever
+import lib.rssstore
 import lib.settings
 import feedparser
 import os
 
 
 class TestRSSStorage:
-
     def test_load_all(self):
         settings = lib.settings.Settings()
-        store = lib.retriever.RSSStore(settings)
-        op = lib.retriever.ObjectParser()
-        object_store = lib.retriever.ObjectStore(settings)
+        store = lib.rssstore.RSSStore(settings)
+        op = lib.objectparser.ObjectParser()
+        object_store = lib.objectstore.ObjectStore(settings)
         objects_list = store.load_all()
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
             for classified in parsed_list:
                 object_store.write(classified)
         object_store.load_all()
-
-
 
 
 class TestRetriever:
