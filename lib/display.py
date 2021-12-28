@@ -44,8 +44,6 @@ def print_results_to_console(results, category):
         if classified.category == "dog":
             dogs.append(classified)
 
-
-
     # display the results
     for apartment in apartments:
         apartment_table.add_row(
@@ -53,14 +51,20 @@ def print_results_to_console(results, category):
             apartment.street,
             apartment.rooms,
             apartment.floor,
-            apartment.price
+            apartment.price,
         )
 
     for house in houses:
         house_table.add_row(f"[bold red] {house.title}[/bold red]", house.street)
 
     for car in cars:
-        car_table.add_row(f"[bold red] {car.title}[/bold red]", car.model,car.mileage, car.year, car.price)
+        car_table.add_row(
+            f"[bold red] {car.title}[/bold red]",
+            car.model,
+            car.mileage,
+            car.year,
+            car.price,
+        )
 
     for dog in dogs:
         dog_table.add_row(f"[bold red] {dog.title}[/bold red]", dog.age, dog.price)

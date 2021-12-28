@@ -1,12 +1,10 @@
 import lib.settings
-from pathlib  import Path
+from pathlib import Path
 from loguru import logger
 import pickle
 import datetime
 import lib.zabbix
 import arrow
-
-
 
 
 class StatsData:
@@ -29,10 +27,10 @@ class TrackerStats:
         self.data.categories = list(self.settings.tracking_list.keys())
         self.zabbix = lib.zabbix.Zabbix(settings)
 
-    #def __del__(self):
-     #   with logger.contextualize(task="Stats->Destructor"):
-      #      logger.trace("Stats destructing, saving...")
-            #self.save()
+    # def __del__(self):
+    #   with logger.contextualize(task="Stats->Destructor"):
+    #      logger.trace("Stats destructing, saving...")
+    # self.save()
 
     def set_last_rss_update(self, timestamp: datetime.datetime):
         self.data.last_rss_update = timestamp
@@ -42,7 +40,7 @@ class TrackerStats:
         self.data.rss_files_count = count
         self.save()
 
-    def set_objects_files_count(self, category:str, count: int):
+    def set_objects_files_count(self, category: str, count: int):
         self.data.objects_files_count[category] = count
         self.save()
 
@@ -62,7 +60,7 @@ class TrackerStats:
             self.data.last_objects_update = timestamp
             self.save()
 
-    def gen_stats(self, object_store, rss_store) :
+    def gen_stats(self, object_store, rss_store):
         with logger.contextualize(task="Stats->Gen stats"):
             logger.trace("Generating stats")
             self.object_store = object_store
@@ -79,22 +77,46 @@ class TrackerStats:
     def save(self):
         with logger.contextualize(task="Stats->Save"):
             logger.trace("Saving stats to pickle file")
-            fh = open(self._get_stats_file(),"wb")
+            fh = open(self._get_stats_file(), "wb")
             pickle.dump(self.data, fh)
             logger.trace("Saved stats to pickle file")
             fh.close()
 
             logger.trace("Now updating zabbix")
             metrics = []
-            metrics.append(self.zabbix.get_zabbix_metric("rss_files_count",self.data.rss_files_count))
-            metrics.append(self.zabbix.get_zabbix_metric("objects_apartment_count",self.data.objects_files_count["apartment"]))
-            metrics.append(self.zabbix.get_zabbix_metric("objects_house_count",self.data.objects_files_count["house"]))
-            metrics.append(self.zabbix.get_zabbix_metric("objects_car_count",self.data.objects_files_count["car"]))
-            metrics.append(self.zabbix.get_zabbix_metric("objects_dog_count",self.data.objects_files_count["dog"]))
+            metrics.append(
+                self.zabbix.get_zabbix_metric(
+                    "rss_files_count", self.data.rss_files_count
+                )
+            )
 
-            metrics.append(self.zabbix.get_zabbix_metric("objects_count_total",self.data.objects_files_count["total"]))
-            metrics.append(self.zabbix.get_zabbix_metric("objects_with_http_data_count",self.data.http_data[1] ))
-            metrics.append(self.zabbix.get_zabbix_metric("objects_enriched",self.data.enrichment_data[1]))
+            stuff_to_update = ["house", "car", "dog", "apartment"]
+            for type_of_stuff in stuff_to_update:
+                if type_of_stuff in self.data.objects_files_count.keys():
+                    metrics.append(
+                        self.zabbix.get_zabbix_metric(
+                            f"objects_{type_of_stuff}_count",
+                            self.data.objects_files_count[type_of_stuff],
+                        )
+                    )
+
+            if "total" in self.data.objects_files_count.keys():
+                metrics.append(
+                    self.zabbix.get_zabbix_metric(
+                        "objects_count_total", self.data.objects_files_count["total"]
+                    )
+                )
+
+            metrics.append(
+                self.zabbix.get_zabbix_metric(
+                    "objects_with_http_data_count", self.data.http_data[1]
+                )
+            )
+            metrics.append(
+                self.zabbix.get_zabbix_metric(
+                    "objects_enriched", self.data.enrichment_data[1]
+                )
+            )
             result = self.zabbix.send_zabbix_metrics(metrics)
             logger.debug(f"Zabbix result: {result}")
             print(result)
@@ -105,11 +127,12 @@ class TrackerStats:
             stats_file = self._get_stats_file()
             if not stats_file.exists():
                 logger.warning("Stats file did not exist, using empty stats")
-                return StatsData() # return a fresh instance in case nothing exists on disk
+                return (
+                    StatsData()
+                )  # return a fresh instance in case nothing exists on disk
             else:
-                fh = open(stats_file,"rb")
+                fh = open(stats_file, "rb")
                 return pickle.load(fh)
-
 
     def get_object_count(self, category):
         return self.object_store.get_files_count(category)

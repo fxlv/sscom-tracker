@@ -2,34 +2,35 @@ import lib.datastructures
 
 
 def test_classified_get_hash():
-    c = lib.datastructures.Classified("Something", "Some street")
+    c = lib.datastructures.Classified("Something")
     c.id = 1
+    c.done()
     assert (
         c.get_hash()
-        == "95e2b9327793f1781bfb212047301a992e8e7b0b9b4c38ede46a8044a96c6d25"
+        == "edcd3ea8b13071e3d13924cba9cc879c9101372a90706549b4d94e5337c2cbec"
     )
 
 
 def test_classified_str():
-    c = lib.datastructures.Classified("Something", "Some street")
+    c = lib.datastructures.Classified("Something")
     c.id = 1
-    assert str(c) == "Classified: Something / Str: Some street"
+    assert str(c) == "Classified: Something"
 
 
 def test_classified_repr():
-    c = lib.datastructures.Classified("Something", "Some street")
+    c = lib.datastructures.Classified("Something")
     c.id = 1
-    assert repr(c) == 'Classified("Something","Some street")'
+    assert repr(c) == "Classified: Something"
 
 
 def test_classified_hash():
-    c = lib.datastructures.Classified("Something", "Some street")
-    assert c.__hash__() == hash((c.title, c.street))
+    c = lib.datastructures.Classified("Something")
+    assert c.__hash__() == hash(c.title)
 
 
 def test_classified_eq():
-    c = lib.datastructures.Classified("Something", "Some street")
-    c2 = lib.datastructures.Classified("Something", "Some street")
+    c = lib.datastructures.Classified("Something").done()
+    c2 = lib.datastructures.Classified("Something").done()
     assert c == c2
 
 

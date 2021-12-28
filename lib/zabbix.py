@@ -3,13 +3,11 @@ import lib.settings
 
 
 class Zabbix:
-
     def __init__(self, settings: lib.settings.Settings):
         self.settings = settings
 
-    def get_zabbix_metric(self,key, value):
+    def get_zabbix_metric(self, key, value):
         return ZabbixMetric(self.settings.zabbix_trap_host, key, value)
-
 
     def send_zabbix_metrics(self, metrics: list):
         zs = ZabbixSender(self.settings.zabbix_server, self.settings.zabbix_port)

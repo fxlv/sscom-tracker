@@ -26,6 +26,7 @@ from lib.push import send_push
 from loguru import logger
 import random
 
+
 @click.group()
 def cli():
     pass
@@ -36,7 +37,7 @@ def cli():
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 @click.option("--category", default="*", help="Category of classifieds to update")
 def update(debug, category):
-    if not category in ["house", "car", "dog", "apartment","*"]:
+    if not category in ["house", "car", "dog", "apartment", "*"]:
         click.echo("Unsupported category")
         sys.exit(1)
     settings = lib.settings.Settings()
@@ -63,7 +64,9 @@ def process(debug):
         objects_list = store.load_all()
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
-            logger.debug(f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds")
+            logger.debug(
+                f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
+            )
             for classified in parsed_list:
                 object_store.write(classified)
         logger.info("Processing run complete")
@@ -74,7 +77,7 @@ def process(debug):
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 @click.option("--category", default="*", help="Category of classifieds to view")
 def view(debug, category):
-    if not category in ["house", "car", "dog", "apartment","*"]:
+    if not category in ["house", "car", "dog", "apartment", "*"]:
         click.echo("Unsupported category")
         sys.exit(1)
     settings = lib.settings.Settings()
@@ -93,7 +96,12 @@ def randomsleep():
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-@click.option("--force", is_flag=True, default=False, help="Force Enrichment, even if it has already been done before")
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Force Enrichment, even if it has already been done before",
+)
 def enrich(debug, force):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
@@ -107,14 +115,22 @@ def enrich(debug, force):
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     if force:
-                        logger.debug(f"[{classified.short_hash}] Begin forced enrichment...")
+                        logger.debug(
+                            f"[{classified.short_hash}] Begin forced enrichment..."
+                        )
                         classified = enricher.enrich(classified)
                         object_store.update(classified)
-                        logger.debug(f"[{classified.short_hash}] Forced enrichment complete")
+                        logger.debug(
+                            f"[{classified.short_hash}] Forced enrichment complete"
+                        )
                     else:
-                        logger.trace(f"Object {classified.short_hash} has been enriched")
+                        logger.trace(
+                            f"Object {classified.short_hash} has been enriched"
+                        )
                 else:
-                    logger.debug(f"[{classified.short_hash}] Attribute present but is not True")
+                    logger.debug(
+                        f"[{classified.short_hash}] Attribute present but is not True"
+                    )
                     logger.debug(f"[{classified.short_hash}] Begin enrichment...")
                     classified = enricher.enrich(classified)
                     logger.debug(f"[{classified.short_hash}] Enrichment complete")
@@ -126,7 +142,10 @@ def enrich(debug, force):
                     logger.debug(f"[{classified.short_hash}] Enrichment complete")
                     object_store.update(classified)
                 else:
-                    logger.debug(f"[{classified.short_hash}] missing http response data, cannot enrich")
+                    logger.debug(
+                        f"[{classified.short_hash}] missing http response data, cannot enrich"
+                    )
+
 
 @func_log
 @cli.command()
@@ -142,19 +161,21 @@ def stats(debug):
         enriched_count = 0
         count_has_http_response_data = 0
         for classified in object_store.load_all("*"):
-            count_all+=1
+            count_all += 1
             if hasattr(classified, "http_response_data"):
-                count_has_http_response_data+=1
+                count_has_http_response_data += 1
             if hasattr(classified, "enriched"):
                 if classified.enriched:
-                    enriched_count+=1
+                    enriched_count += 1
         # now we need to force the closing of the object store, as it also manipulates stats
-        del(object_store)
+        del object_store
         stats = TrackerStats(settings)
         stats.set_http_data_stats(count_all, count_has_http_response_data)
         stats.set_enrichment_stats(count_all, enriched_count)
         print(stats.data.enrichment_data)
-        logger.debug(f"Stats. Classifieds: {count_all} With HTTP data: {count_has_http_response_data} Enriched: {enriched_count}")
+        logger.debug(
+            f"Stats. Classifieds: {count_all} With HTTP data: {count_has_http_response_data} Enriched: {enriched_count}"
+        )
 
 
 @func_log
@@ -172,18 +193,25 @@ def retr(debug):
         # if it is not, call HttpRetriever and save the response into the object
         for classified in object_store.load_all("*"):
             if hasattr(classified, "http_response_data"):
-                logger.trace(f"Object {classified.short_hash} already has http_response_data")
+                logger.trace(
+                    f"Object {classified.short_hash} already has http_response_data"
+                )
                 if classified.http_response_data != None:
-                    logger.trace(f"Object {classified.short_hash} already has http response data, skipping")
+                    logger.trace(
+                        f"Object {classified.short_hash} already has http response data, skipping"
+                    )
                 else:
                     classified.http_response_data = hr.retrieve_ss_data(classified.link)
                     object_store.update(classified)
                     randomsleep()
             else:
-                logger.trace(f"Object {classified.short_hash} does not have http_response_data, initiating retrieval")
+                logger.trace(
+                    f"Object {classified.short_hash} does not have http_response_data, initiating retrieval"
+                )
                 classified.http_response_data = hr.retrieve_ss_data(classified.link)
                 object_store.update(classified)
                 randomsleep()
+
 
 if __name__ == "__main__":
     cli()

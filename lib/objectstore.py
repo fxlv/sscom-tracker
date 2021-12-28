@@ -9,7 +9,7 @@ import lib.datastructures
 import lib.settings
 from lib.log import func_log
 from lib.store import Store
-from lib.stats import  TrackerStats
+from lib.stats import TrackerStats
 
 
 class ObjectStore(Store):
@@ -43,7 +43,9 @@ class ObjectStore(Store):
             else:
                 logger.warning(f"File {full_path} is empty!")
         else:
-            logger.warning(f"[{classified.short_hash}] classified does not exist, cannot update it.")
+            logger.warning(
+                f"[{classified.short_hash}] classified does not exist, cannot update it."
+            )
 
     def write(self, classified: lib.datastructures.Classified):
         # check the settings to determine write path
@@ -74,7 +76,9 @@ class ObjectStore(Store):
             return None
         full_path = self._get_full_file_name(classified)
         file_handle = full_path.open(mode="rb")
-        logger.trace(f"[{classified.short_hash}] Opened handle {file_handle} for binary reading")
+        logger.trace(
+            f"[{classified.short_hash}] Opened handle {file_handle} for binary reading"
+        )
         if self._file_is_not_empty(full_path):
             loaded_file = pickle.load(file_handle)
         else:
@@ -82,7 +86,6 @@ class ObjectStore(Store):
             return None
         logger.debug(f"[{classified.short_hash}] Loaded from disk")
         return loaded_file
-
 
     def get_all_files(self, category):
         all_files = Path(self.s.object_cache_dir).glob(f"{category}/*.classified")
@@ -101,11 +104,15 @@ class ObjectStore(Store):
         file_count = len(all_files_unpickled)
         logger.debug(f"{file_count} files were read and unpickled")
         # sort by date published, desc
-        all_files_unpickled.sort(key = lambda x: x.published, reverse=True)
+        all_files_unpickled.sort(key=lambda x: x.published, reverse=True)
         return all_files_unpickled
 
-    def get_object_by_hash(self, category: str, hash_string: str) -> lib.datastructures.Classified:
-        file_path = Path(self.s.object_cache_dir).glob(f"{category}/{hash_string}*.classified")
+    def get_object_by_hash(
+        self, category: str, hash_string: str
+    ) -> lib.datastructures.Classified:
+        file_path = Path(self.s.object_cache_dir).glob(
+            f"{category}/{hash_string}*.classified"
+        )
         return pickle.load(next(file_path).open(mode="rb"))
 
     def _file_exists(self, classified: lib.datastructures.Classified) -> bool:
@@ -118,8 +125,8 @@ class ObjectStore(Store):
         )
         return full_path
 
-    def get_files_count(self, category="*")  -> int:
-        return sum( 1 for i in self.get_all_files(category))
+    def get_files_count(self, category="*") -> int:
+        return sum(1 for i in self.get_all_files(category))
 
     def __del__(self):
         total = 0

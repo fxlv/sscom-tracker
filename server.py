@@ -19,8 +19,8 @@ from flask import render_template
 from flask import Flask, request
 
 
-
 app = Flask(__name__)
+
 
 @app.route("/")
 def index():
@@ -32,7 +32,10 @@ def index():
         rss_store = lib.rssstore.RSSStore(settings)
         stats = lib.stats.TrackerStats(settings)
         print(stats.data.enrichment_data)
-        return render_template("index.html", stats=stats, classifieds = object_store.load_all())
+        return render_template(
+            "index.html", stats=stats, classifieds=object_store.load_all()
+        )
+
 
 @app.route("/category/<category>")
 def category(category=None):
@@ -42,21 +45,37 @@ def category(category=None):
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStore(settings)
         stats = lib.stats.TrackerStats(settings)
-        return render_template("category.html", stats=stats, category=category, classifieds = object_store.load_all(category))
+        return render_template(
+            "category.html",
+            stats=stats,
+            category=category,
+            classifieds=object_store.load_all(category),
+        )
+
 
 @app.route("/category/car/filter/<model>")
 def categoryfilter(model=None):
     with logger.contextualize(task="Web->Category"):
-        category="car"
-        model = model.replace("_"," ")
-        logger.debug(f"Returning filtered category view for {category} and model {model}")
+        category = "car"
+        model = model.replace("_", " ")
+        logger.debug(
+            f"Returning filtered category view for {category} and model {model}"
+        )
         settings = lib.settings.Settings()
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStore(settings)
         stats = lib.stats.TrackerStats(settings)
         classifieds = object_store.load_all(category)
-        classifieds = [c  for c in classifieds if c.model.lower() == model.lower() ]
-        return render_template("category.html", stats=stats, category=category, model=model, classifieds = classifieds)
+        classifieds = [c for c in classifieds if c.model.lower() == model.lower()]
+        return render_template(
+            "category.html",
+            stats=stats,
+            category=category,
+            model=model,
+            classifieds=classifieds,
+        )
+
+
 @app.route("/category/<category>/<hash>")
 def classified(category=None, hash=None):
     with logger.contextualize(task="Web->Classified"):
@@ -64,12 +83,16 @@ def classified(category=None, hash=None):
         settings = lib.settings.Settings()
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStore(settings)
-        return render_template("classified.html", category=category, classified = object_store.get_object_by_hash(category, hash))
+        return render_template(
+            "classified.html",
+            category=category,
+            classified=object_store.get_object_by_hash(category, hash),
+        )
 
-@app.route('/retrieve', methods=['POST'])
+
+@app.route("/retrieve", methods=["POST"])
 def retrieve():
     data = request.form
     print(data["url"])
     settings = lib.settings.Settings()
     return "Your request has been added to the queue."
-

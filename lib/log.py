@@ -9,9 +9,11 @@ import unicodedata
 
 from lib.helpers import strip_sscom
 
+
 def normalize(string):
     """Strip unicode characters"""
     return unicodedata.normalize("NFKD", string).encode("ascii", "ignore").decode()
+
 
 def func_log(function_name):
     """Decorator for logging and timing function execution."""
@@ -27,7 +29,7 @@ def func_log(function_name):
             for l in args:
                 l = str(l)  # for logging, we only care about the string representation
                 l = strip_sscom(l)
-                if len(l)>35:
+                if len(l) > 35:
                     l = f"{l[:30]}..."
                 shortargs.append(l)
             args = shortargs
@@ -60,10 +62,11 @@ def set_up_logging(settings: lib.settings.Settings, debug=False):
         retention="1 week",
         compression="zip",
         level="TRACE",
-        format="{time} {level} :: {extra[task]} ::: {message}"
+        format="{time} {level} :: {extra[task]} ::: {message}",
     )  # always log to a file
     logger.add(sys.stderr, level="WARNING")
     logger.bind(task="setup")
     if debug:
-        logger.add(sys.stderr, level="DEBUG")
-        logger.debug("DEBUG Logging started.")
+        with logger.contextualize(task="Logging setup"):
+            logger.add(sys.stderr, level="DEBUG")
+            logger.debug("DEBUG Logging started.")

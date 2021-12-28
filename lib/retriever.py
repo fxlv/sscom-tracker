@@ -28,22 +28,30 @@ class RetrieverManager:
         now = datetime.datetime.now()
         for category in self.s.tracking_list:
             if not update_category == "*" and not update_category == category:
-                logger.debug(f"Skipping update for category {category}, update category filter is set to {update_category}")
+                logger.debug(
+                    f"Skipping update for category {category}, update category filter is set to {update_category}"
+                )
                 continue
             category_items = self.s.tracking_list[category]
             for item in category_items:
                 item_hash = lib.helpers.shorthash(item["url"])
                 item_url = item["url"]
-                logger.debug(f"[{item_hash}] Updating {category} -> ({strip_sscom(item_url)})")
+                logger.debug(
+                    f"[{item_hash}] Updating {category} -> ({strip_sscom(item_url)})"
+                )
                 if (
                     item["type"] == "rss"
                 ):  # the only known type at the moment, ignore everything else
                     # check with storage, if we have a fresh item cached for this url
                     if self.rss_store.fresh_cache_present(item_url):
-                        logger.debug(f"[{item_hash}] Fresh cache present for {strip_sscom(item_url)}")
+                        logger.debug(
+                            f"[{item_hash}] Fresh cache present for {strip_sscom(item_url)}"
+                        )
                     else:
                         # retrieve from RSS and write to storage
-                        logger.debug(f"[{item_hash}] No cache available for {strip_sscom(item_url)}")
+                        logger.debug(
+                            f"[{item_hash}] No cache available for {strip_sscom(item_url)}"
+                        )
                         fresh_data = self.rss.get(item_url)
                         fresh_data["url_hash"] = self.rss_store._hash(item_url)
                         fresh_data["object_category"] = category
@@ -85,7 +93,9 @@ class RSSRetriever(Retriever):
         )
         feedparser.USER_AGENT = random.choice(agents)
         response = feedparser.parse(url)
-        logger.debug(f"[{lib.helpers.shorthash(url)}] Got response {response.status} with {len(response.entries)} entries from {response.href}")
+        logger.debug(
+            f"[{lib.helpers.shorthash(url)}] Got response {response.status} with {len(response.entries)} entries from {response.href}"
+        )
         return response
 
     @func_log
@@ -94,7 +104,6 @@ class RSSRetriever(Retriever):
 
 
 class HttpRetriever:
-
     def __init__(self):
         self.l = logger
 
@@ -131,7 +140,6 @@ class HttpRetrieverOLD:
         self.settings = settings
         self.data_cache = data_cache
 
-
     @func_log
     def update_data_cache(self):
         tracking_list = self.settings.tracking_list
@@ -160,7 +168,9 @@ class HttpRetrieverOLD:
         return r.content
 
     def get_ss_data_from_cache(self, url: str) -> object:
-        logger.debug(f"[{lib.helpers.shorthash(url)}] Retrieving data from cache for URL: {url}")
+        logger.debug(
+            f"[{lib.helpers.shorthash(url)}] Retrieving data from cache for URL: {url}"
+        )
         data = self.data_cache.get(url)
         tree = html.fromstring(data)
         return tree.xpath('//*[@id="filter_frm"]/table[2]')[0]

@@ -74,11 +74,11 @@ class RSSStore(Store):
         return file_name.stat().st_size > 0
 
     def get_all_files(self):
-       self.l.trace("Get all files")
-       return Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
+        self.l.trace("Get all files")
+        return Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
 
-    def get_files_count(self)  -> int:
-        return sum( 1 for i in self.get_all_files())
+    def get_files_count(self) -> int:
+        return sum(1 for i in self.get_all_files())
 
     def load_all(self):
         all_files = self.get_all_files()

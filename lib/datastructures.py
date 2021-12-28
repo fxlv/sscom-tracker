@@ -12,6 +12,7 @@ class HttpResponse:
         self.response_content = response_content
         self.response_raw = response_raw
 
+
 class Classified:
     """Base class for all classifieds"""
 
@@ -29,9 +30,9 @@ class Classified:
         self.enriched = False
 
     def done(self):
-        self._prepare() # this method can and should be overriden by child classes
+        self._prepare()  # this method can and should be overriden by child classes
         self.hash = self.get_hash()
-        self.short_hash = self.hash[:10] #useful in logs
+        self.short_hash = self.hash[:10]  # useful in logs
 
     def _prepare(self):
         self.hash_string = self.title
@@ -43,29 +44,37 @@ class Classified:
         # normalize title, by trying to remove any Unicode and strip to first 10 characters
         title = normalize(self.title)
         title = title[:10]
-        repr = f'Classified("{title}"")'
+        repr = f"Classified: {title}"
         return repr
 
     def __hash__(self):
         logger.trace("Calling built in hash method")
-        return hash((self.title, self.street))
+        return hash(self.title)
 
     def __eq__(self, other):
         logger.trace("Calling built in __eq__ method")
-        return self.hash == other.hash
+        return self.__hash__() == other.hash
 
     def get_hash(self) -> str:
         """Return hash based on title and street."""
         return hashlib.sha256(str(self.hash_string).encode("utf-8")).hexdigest()
 
+
 class Dwelling(Classified):
     """Base class for all living places."""
+
     category: str = "dwelling"
+
+    def __init__(self, title, street):
+        super().__init__(title)
+        self.street = street
+
     def _prepare(self):
         if self.street is None:
             self.street = "undetermined"
         self.street = self.street.strip()
         self.hash_string = self.title + self.street
+
 
 class Animal:
     """Base class for all animals"""
@@ -101,10 +110,13 @@ class Animal:
         """Return hash based on title and street."""
         return hashlib.sha256(str(self.title + self.age).encode("utf-8")).hexdigest()
 
+
 class Car(Classified):
     category = "car"
+
     def _prepare(self):
         self.hash_string = self.title + self.price
+
     def __str__(self):
         return f"Car: {self.model} / price: {self.price}"
 
@@ -120,8 +132,9 @@ class Apartment(Dwelling):
 
 class House(Dwelling):
     category = "house"
+
     def __str__(self):
-        return f"house: {self.title} / str: {self.street}"
+        return f"House: {self.title} / Str: {self.street}"
 
 
 class Dog(Animal):
