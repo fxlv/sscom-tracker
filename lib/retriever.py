@@ -23,6 +23,8 @@ class RetrieverManager:
         self.rss_store = RSSStore(settings)
         self.s = settings
         self.hashfunc = self.rss_store._hash
+        lib.log.set_up_logging(settings, debug=True)
+        self.logger = logger.bind(task="RetrieverManager")
 
     def update_all(self, update_category):
         now = datetime.datetime.now()

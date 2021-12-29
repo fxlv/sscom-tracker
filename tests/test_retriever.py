@@ -47,5 +47,5 @@ class TestRetrieverManager:
     def test_retrieve_many(self):
         settings = lib.settings.Settings("settings.test.json")
         rm = lib.retriever.RetrieverManager(settings)
-        rm.update_all()
+        rm.update_all("*")
         # TODO: come up with a test scenario

@@ -38,7 +38,8 @@ def func_log(function_name):
         if kwargs:
             msg += f" with kwargs {kwargs}"
         msg += f" executed in: {t_end:5.5f} sec"
-        logger.trace(normalize(msg))
+        with logger.contextualize(task="Func log"):
+            logger.trace(normalize(msg))
         return result
 
     return log_it

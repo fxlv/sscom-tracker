@@ -5,6 +5,9 @@ import pickle
 from loguru import logger
 
 import lib.settings
+from lib.log import func_log, set_up_logging, normalize
+
+
 
 
 class Cache:
@@ -13,42 +16,46 @@ class Cache:
     def __init__(self, settings: lib.settings.Settings, local_cache=None) -> None:
         """Construct the cache object."""
 
+        lib.log.set_up_logging(settings, debug=True)
+        self.logger = logger.bind(task="Cache")
+
         if local_cache is None:
             # use the cache as specified in settings
             self.local_cache = settings.local_cache
-            logger.debug("Using cache file specified in settings")
+            self.logger.debug("Using cache file specified in settings")
         else:
             # use the cache specified in constructor arguments
             self.local_cache = local_cache
-            logger.debug("Using cache file from constructor arguments")
+            self.logger.debug("Using cache file from constructor arguments")
         self.settings = settings
 
         self.cache = None
         if not self.load_cache_from_disk():
             self.create_new_cache()
 
+
     def load_cache_from_disk(self) -> bool:
         """Load cache from pickle file."""
         if not os.path.exists(self.local_cache):
             return False
-        logger.debug("Loading cache file from disk")
+        self.logger.debug("Loading cache file from disk")
         cache_file = open(self.local_cache, "rb")
         self.cache = pickle.load(cache_file)
         return True
 
     def create_new_cache(self):
         """Initialize new cache object."""
-        logger.debug("Creating a new cache object")
+        self.logger.debug("Creating a new cache object")
         self.cache = []
 
     def __del__(self) -> None:
         """Save cache upon destruction."""
-        logger.debug(f"Destructor called for Cache object {self}")
+        self.logger.debug(f"Destructor called for Cache object {self}")
         self.save()
 
     def add(self, item: object) -> bool:
         """Add an item to the cache."""
-        logger.debug(f"Adding item {str(item)[:20]} to cache")
+        self.logger.debug(f"Adding item {str(item)[:20]} to cache")
         return self.cache.append(item)
 
     def is_known(self, item: object) -> bool:
@@ -59,11 +66,11 @@ class Cache:
         """Save cache to pickle file."""
         with open(self.local_cache, "wb") as cache_file:
             pickle.dump(self.cache, cache_file)
-            logger.debug(f"Cache saved to file: {self.local_cache}")
+            self.logger.debug(f"Cache saved to file: {self.local_cache}")
 
     def cache_file_exists(self) -> bool:
         if not os.path.exists(self.local_cache):
-            logger.debug(f"Local cache {self.local_cache} does not exist")
+            self.logger.debug(f"Local cache {self.local_cache} does not exist")
             return False
         return True
 

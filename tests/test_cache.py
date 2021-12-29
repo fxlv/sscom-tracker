@@ -10,8 +10,13 @@ import lib.datastructures
 import lib.log
 import lib.settings
 
+from loguru import logger
+
+
 settings = lib.settings.TestSettings()
+
 lib.log.set_up_logging(settings, debug=True)
+context_logger = logger.bind(task="Test cache")
 
 
 @pytest.fixture
@@ -32,14 +37,13 @@ def test_initialize_cache(local_cache):
     assert isinstance(cache, lib.cache.Cache)
 
 
-def test_initialize_cache_with_overriden_cache_file():
-    settings = {"local_cache": "test.cache.db"}
+def test_initialize_cache_with_overriden_cache_file(test_settings):
     test_cache_name = "test_cache_overriden.db"
     if os.path.exists(test_cache_name):
-        logging.debug(f"Previous cache file {test_cache_name} exists. Deleting it.")
+        context_logger.debug(f"Previous cache file {test_cache_name} exists. Deleting it.")
         os.unlink(test_cache_name)
     assert os.path.exists(test_cache_name) is False
-    cache = lib.cache.Cache(settings, test_cache_name)
+    cache = lib.cache.Cache(test_settings, test_cache_name)
     cache.save()
     assert os.path.exists(test_cache_name)
     assert isinstance(cache, lib.cache.Cache)

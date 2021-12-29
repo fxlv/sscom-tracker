@@ -106,7 +106,7 @@ class ObjectParser:
         m2 = re.findall("m2: (.+)St", text)[0]
         price = re.findall("Cena: (.+) ", text)[0].strip()
         title = rss_entry.title
-        apartment = lib.datastructures.Apartment(title)
+        apartment = lib.datastructures.Apartment(title, street)
         apartment.street = street
         apartment.floor = floor
         apartment.rooms = rooms
@@ -176,8 +176,7 @@ class ObjectParser:
         land_ha = self._try_get("Zem. pl.: (.+) ha", text, warn=False)
         price = self._try_get("Cena: (.+)  ", text)
         title = rss_entry.title
-        house = lib.datastructures.House(title)
-        house.street = street
+        house = lib.datastructures.House(title, street)
         house.floors = floors
         house.rooms = rooms
         house.m2 = m2

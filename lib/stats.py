@@ -54,7 +54,11 @@ class TrackerStats:
 
     def set_last_objects_update(self, timestamp: datetime.datetime):
         now = arrow.now()
-        if (timestamp - self.data.last_objects_update).total_seconds() > 1:
+        if self.data.last_objects_update is None:
+            # it is a new stats database that has not been updated before
+            self.data.last_objects_update = timestamp
+            self.save()
+        elif (timestamp - self.data.last_objects_update).total_seconds() > 1:
             # avoid saving the file too often,
             # hardcoding a 3 second delta here
             self.data.last_objects_update = timestamp

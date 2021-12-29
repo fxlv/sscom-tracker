@@ -11,6 +11,7 @@ now = datetime.datetime.now()
 test_string = f"Test {now}"
 log_file_name = "tests_debug1.log"
 settings = lib.settings.TestSettings()
+context_logger = None
 
 
 def setup_module():
@@ -23,9 +24,11 @@ def setup_module():
 def set_up_logging():
     settings.log_file_name = log_file_name
     lib.log.set_up_logging(settings, debug=True)
+    context_logger = logger.bind(task="Test log")
+    return context_logger
 
 
-def test_before_set_up_logging(caplog):
+def test_before_set_up_logging(caplog ):
     """By default all logs should be written to stderr."""
     logger.debug(test_string)
     assert test_string in caplog.text
@@ -37,7 +40,7 @@ def test_after_set_up_logging(caplog, set_up_logging):
     Everything should be logged to file,
     Warnings and above should be also logged to stderr.
     """
-    logger.debug(test_string)
+    set_up_logging.debug(test_string)
     # now, anything less than warning should go to file and not to stderr
     assert test_string not in caplog.text
 
@@ -78,12 +81,12 @@ def test_func_log_without_args(set_up_logging):
 
 def test_func_log_with_args(set_up_logging):
     dummy_function("val1")
-    assert find_string_in_logs("dummy_function with args: ('val1',) executed in")
+    assert find_string_in_logs("dummy_function with args: ['val1'] executed in")
 
 
 def test_func_log_with_kvargs(set_up_logging):
     dummy_function(argument="val1")
-    assert find_string_in_logs("dummy_function with kwargs () executed in:")
+    assert find_string_in_logs("dummy_function with kwargs {'argument': 'val1'} executed in:")
 
 
 def get_log_size():
@@ -98,11 +101,11 @@ def test_log_rotation_works_as_expected(set_up_logging):
     # write more logs and expect it gets rotated
     # rotation should happen at 15 KB, so write until 14,5
     while get_log_size() < 14500:
-        logger.debug("Filling up logs")
+        set_up_logging.debug("Filling up logs")
     print(f"Log size now is: {get_log_size()}")
     assert get_log_size() >= 14500
     for i in range(1, 10):
-        logger.debug("Filling up logs some more")
+        set_up_logging.debug("Filling up logs some more")
     # at this point rotation should have happened
     print(f"Log size now is: {get_log_size()}")
     assert get_log_size() < 1000

@@ -86,6 +86,6 @@ class TestSettings(Settings):
         self.cache_dir: str = None
         self.object_cache_dir: str = None
         self.tracking_list: dict = None
-        self.log_dir: str = "test_logs"
+        self.log_dir: str = "test_log"
         self.log_file_name = "tracker.log"  # default, but can be overriden
         self.log_rotation: str = "15 KB"
