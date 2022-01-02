@@ -129,6 +129,7 @@ class ObjectStore(Store):
         return sum(1 for i in self.get_all_files(category))
 
     def __del__(self):
+        logger.trace("Destroying objectstore")
         total = 0
         for category in self.stats.data.categories:
             count = self.get_files_count(category)

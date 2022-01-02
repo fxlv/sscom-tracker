@@ -37,6 +37,7 @@ def cli():
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 @click.option("--category", default="*", help="Category of classifieds to update")
 def update(debug, category):
+    """Update data from RSS feeds."""
     if not category in ["house", "car", "dog", "apartment", "*"]:
         click.echo("Unsupported category")
         sys.exit(1)
@@ -70,6 +71,7 @@ def process(debug):
             for classified in parsed_list:
                 object_store.write(classified)
         logger.info("Processing run complete")
+        del object_store # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
 
 
 @func_log
@@ -103,6 +105,7 @@ def randomsleep():
     help="Force Enrichment, even if it has already been done before",
 )
 def enrich(debug, force):
+    """Enrich classfieds using data that was retrieved over HTTP."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Enricher"):
@@ -145,12 +148,14 @@ def enrich(debug, force):
                     logger.debug(
                         f"[{classified.short_hash}] missing http response data, cannot enrich"
                     )
+        del object_store
 
 
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 def stats(debug):
+    """Update statistics."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Statistics"):
@@ -182,6 +187,7 @@ def stats(debug):
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
 def retr(debug):
+    """Retrieve the per-classified details using HTTP."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="URL retriever"):
@@ -198,7 +204,7 @@ def retr(debug):
                 )
                 if classified.http_response_data != None:
                     logger.trace(
-                        f"Object {classified.short_hash} already has http response data, skipping"
+                        f"Object {classified.short_hash} already contains http response data, skipping"
                     )
                 else:
                     classified.http_response_data = hr.retrieve_ss_data(classified.link)
@@ -211,6 +217,7 @@ def retr(debug):
                 classified.http_response_data = hr.retrieve_ss_data(classified.link)
                 object_store.update(classified)
                 randomsleep()
+        del object_store
 
 
 if __name__ == "__main__":
