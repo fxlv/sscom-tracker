@@ -32,8 +32,7 @@ def index():
         rss_store = lib.rssstore.RSSStore(settings)
         stats = lib.stats.TrackerStats(settings)
         print(stats.data.enrichment_data)
-        return render_template(
-            "index.html", stats=stats      )
+        return render_template("index.html", stats=stats)
 
 
 @app.route("/category/<category>")
@@ -67,7 +66,11 @@ def categoryfilter(model=None):
         classifieds = object_store.load_all(category)
         # check that model is not None and then filter by comparing lowercase
         # versions of models in storage and the model user supplied
-        classifieds = [c for c in classifieds if c.model is not None and c.model.lower() == model.lower()]
+        classifieds = [
+            c
+            for c in classifieds
+            if c.model is not None and c.model.lower() == model.lower()
+        ]
         return render_template(
             "category.html",
             stats=stats,

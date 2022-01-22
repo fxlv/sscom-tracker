@@ -40,7 +40,9 @@ def test_initialize_cache(local_cache):
 def test_initialize_cache_with_overriden_cache_file(test_settings):
     test_cache_name = "test_cache_overriden.db"
     if os.path.exists(test_cache_name):
-        context_logger.debug(f"Previous cache file {test_cache_name} exists. Deleting it.")
+        context_logger.debug(
+            f"Previous cache file {test_cache_name} exists. Deleting it."
+        )
         os.unlink(test_cache_name)
     assert os.path.exists(test_cache_name) is False
     cache = lib.cache.Cache(test_settings, test_cache_name)

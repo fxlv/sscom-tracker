@@ -11,7 +11,7 @@ import os
 
 class TestRSSStorage:
     def test_load_all(self):
-        settings = lib.settings.Settings()
+        settings = lib.settings.Settings("settings.test.json")
         store = lib.rssstore.RSSStore(settings)
         op = lib.objectparser.ObjectParser()
         object_store = lib.objectstore.ObjectStore(settings)

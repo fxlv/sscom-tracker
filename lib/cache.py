@@ -8,8 +8,6 @@ import lib.settings
 from lib.log import func_log, set_up_logging, normalize
 
 
-
-
 class Cache:
     """Generic cache class."""
 
@@ -32,7 +30,6 @@ class Cache:
         self.cache = None
         if not self.load_cache_from_disk():
             self.create_new_cache()
-
 
     def load_cache_from_disk(self) -> bool:
         """Load cache from pickle file."""

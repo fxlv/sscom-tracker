@@ -28,7 +28,7 @@ def set_up_logging():
     return context_logger
 
 
-def test_before_set_up_logging(caplog ):
+def test_before_set_up_logging(caplog):
     """By default all logs should be written to stderr."""
     logger.debug(test_string)
     assert test_string in caplog.text
@@ -86,7 +86,9 @@ def test_func_log_with_args(set_up_logging):
 
 def test_func_log_with_kvargs(set_up_logging):
     dummy_function(argument="val1")
-    assert find_string_in_logs("dummy_function with kwargs {'argument': 'val1'} executed in:")
+    assert find_string_in_logs(
+        "dummy_function with kwargs {'argument': 'val1'} executed in:"
+    )
 
 
 def get_log_size():

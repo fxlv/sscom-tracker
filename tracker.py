@@ -71,7 +71,7 @@ def process(debug):
             for classified in parsed_list:
                 object_store.write(classified)
         logger.info("Processing run complete")
-        del object_store # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
+        del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
 
 
 @func_log
