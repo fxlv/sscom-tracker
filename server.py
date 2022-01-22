@@ -28,7 +28,7 @@ def index():
         logger.debug("Returning index")
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStore(settings)
+        object_store = lib.objectstore.ObjectStoreFiles(settings)
         rss_store = lib.rssstore.RSSStore(settings)
         stats = lib.stats.TrackerStats(settings)
         print(stats.data.enrichment_data)
@@ -41,7 +41,7 @@ def category(category=None):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStore(settings)
+        object_store = lib.objectstore.ObjectStoreFiles(settings)
         stats = lib.stats.TrackerStats(settings)
         return render_template(
             "category.html",
@@ -61,7 +61,7 @@ def categoryfilter(model=None):
         )
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStore(settings)
+        object_store = lib.objectstore.ObjectStoreFiles(settings)
         stats = lib.stats.TrackerStats(settings)
         classifieds = object_store.load_all(category)
         # check that model is not None and then filter by comparing lowercase
@@ -86,7 +86,7 @@ def classified(category=None, hash=None):
         logger.debug(f"Viewing classified {hash} from category {category}")
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStore(settings)
+        object_store = lib.objectstore.ObjectStoreFiles(settings)
         return render_template(
             "classified.html",
             category=category,

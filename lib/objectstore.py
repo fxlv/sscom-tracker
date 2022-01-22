@@ -12,7 +12,7 @@ from lib.store import Store
 from lib.stats import TrackerStats
 
 
-class ObjectStore(Store):
+class ObjectStoreFiles(Store):
     def __init__(self, settings: lib.settings.Settings):
         self.s = settings
         self.object_cache_dir = self.s.object_cache_dir

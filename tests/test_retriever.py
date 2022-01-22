@@ -14,7 +14,7 @@ class TestRSSStorage:
         settings = lib.settings.Settings("settings.test.json")
         store = lib.rssstore.RSSStore(settings)
         op = lib.objectparser.ObjectParser()
-        object_store = lib.objectstore.ObjectStore(settings)
+        object_store = lib.objectstore.ObjectStoreFiles(settings)
         objects_list = store.load_all()
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
