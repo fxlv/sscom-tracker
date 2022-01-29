@@ -47,7 +47,7 @@ def category(category=None):
             "category.html",
             stats=stats,
             category=category,
-            classifieds=object_store.load_all(category),
+            classifieds=object_store.get_all_classifieds(category),
         )
 
 
@@ -63,7 +63,7 @@ def categoryfilter(model=None):
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreFiles(settings)
         stats = lib.stats.TrackerStats(settings)
-        classifieds = object_store.load_all(category)
+        classifieds = object_store.get_all_classifieds(category)
         # check that model is not None and then filter by comparing lowercase
         # versions of models in storage and the model user supplied
         classifieds = [
@@ -90,7 +90,7 @@ def classified(category=None, hash=None):
         return render_template(
             "classified.html",
             category=category,
-            classified=object_store.get_object_by_hash(category, hash),
+            classified=object_store.get_classified_by_hash(category, hash),
         )
 
 

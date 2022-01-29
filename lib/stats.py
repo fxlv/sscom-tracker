@@ -69,8 +69,8 @@ class TrackerStats:
             logger.trace("Generating stats")
             self.object_store = object_store
             self.rss_store = rss_store
-            self.data.objects_count = object_store.get_files_count()
-            self.data.rss_files_count = rss_store.get_files_count()
+            self.data.objects_count = object_store.get_classified_count()
+            self.data.rss_files_count = rss_store.get_classified_count()
 
     def _get_stats_file(self):
         with logger.contextualize(task="Stats"):
@@ -139,4 +139,4 @@ class TrackerStats:
                 return pickle.load(fh)
 
     def get_object_count(self, category):
-        return self.object_store.get_files_count(category)
+        return self.object_store.get_classified_count(category)

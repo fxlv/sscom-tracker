@@ -86,7 +86,7 @@ def view(debug, category):
     set_up_logging(settings, debug)
     with logger.contextualize(task="View"):
         object_store = lib.objectstore.ObjectStoreFiles(settings)
-        print_results_to_console(object_store.load_all(category), category)
+        print_results_to_console(object_store.get_all_classifieds(category), category)
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
 
 
@@ -115,7 +115,7 @@ def enrich(debug, force):
         enricher = lib.objectparser.Enricher()
         # iterate over all saved classifieds, depending on classified type, update attributes with
         # data retrieved by the http retriever
-        for classified in object_store.load_all("*"):
+        for classified in object_store.get_all_classifieds("*"):
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     if force:
@@ -166,7 +166,7 @@ def stats(debug):
         count_all = 0
         enriched_count = 0
         count_has_http_response_data = 0
-        for classified in object_store.load_all("*"):
+        for classified in object_store.get_all_classifieds("*"):
             count_all += 1
             if hasattr(classified, "http_response_data"):
                 count_has_http_response_data += 1
@@ -198,7 +198,7 @@ def retr(debug):
         # iterate over all objects
         # for each of them, check if http_response_date is present,
         # if it is not, call HttpRetriever and save the response into the object
-        for classified in object_store.load_all("*"):
+        for classified in object_store.get_all_classifieds("*"):
             if hasattr(classified, "http_response_data"):
                 logger.trace(
                     f"Object {classified.short_hash} already has http_response_data"

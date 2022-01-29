@@ -54,7 +54,7 @@ class ObjectStoreFiles(Store):
             # such classified is already knonw, therefore, instead of overwriting it blindly
             # we will load it from cache, and update the 'last_seen' date and then write it back
             # this way, we maintain the "first seen" timestamp
-            classified = self.load_classified(classified)
+            classified = self.get_classified(classified)
             classified.last_seen = now
             logger.debug(
                 f"[{classified.short_hash}] classified is known, updating the 'last_seen' time"
@@ -71,7 +71,7 @@ class ObjectStoreFiles(Store):
         self.stats.set_last_objects_update(arrow.now())
         return True
 
-    def load_classified(
+    def get_classified(
         self, classified: lib.datastructures.Classified
     ) -> lib.datastructures.Classified:
         # check the settings to determine write path
@@ -90,12 +90,13 @@ class ObjectStoreFiles(Store):
         logger.debug(f"[{classified.short_hash}] Loaded from disk")
         return loaded_file
 
-    def get_all_files(self, category):
+    def _get_all_files(self, category):
         all_files = Path(self.s.object_cache_dir).glob(f"{category}/*.classified")
         return all_files
 
-    def load_all(self, category="*") -> list:
-        all_files = self.get_all_files(category)
+    def get_all_classifieds(self, category="*") -> list:
+        """Returns a list of all classifieds."""
+        all_files = self._get_all_files(category)
         all_files_unpickled = []
         for file_name in all_files:
             logger.trace(f"Loading file {file_name}...")
@@ -110,7 +111,7 @@ class ObjectStoreFiles(Store):
         all_files_unpickled.sort(key=lambda x: x.published, reverse=True)
         return all_files_unpickled
 
-    def get_object_by_hash(
+    def get_classified_by_hash(
         self, category: str, hash_string: str
     ) -> lib.datastructures.Classified:
         file_path = Path(self.s.object_cache_dir).glob(
@@ -128,14 +129,14 @@ class ObjectStoreFiles(Store):
         )
         return full_path
 
-    def get_files_count(self, category="*") -> int:
-        return sum(1 for i in self.get_all_files(category))
+    def get_classified_count(self, category="*") -> int:
+        return sum(1 for i in self._get_all_files(category))
 
     def __del__(self):
         logger.trace("Destroying objectstore")
         total = 0
         for category in self.stats.data.categories:
-            count = self.get_files_count(category)
+            count = self.get_classified_count(category)
             total += count
             self.stats.set_objects_files_count(category, count)
         self.stats.set_objects_files_count("total", total)
