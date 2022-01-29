@@ -92,7 +92,7 @@ class ObjectStoreFiles(Store):
         all_files = Path(self.s.object_cache_dir).glob(f"{category}/*.classified")
         return all_files
 
-    def load_all(self, category="*"):
+    def load_all(self, category="*") -> list:
         all_files = self.get_all_files(category)
         all_files_unpickled = []
         for file_name in all_files:
