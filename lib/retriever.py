@@ -59,7 +59,7 @@ class RetrieverManager:
                         fresh_data["object_category"] = category
                         fresh_data["retrieved_time"] = now
 
-                        self.rss_store.write(item["url"], fresh_data)
+                        self.rss_store.write_classified(item["url"], fresh_data)
                 else:
                     logger.debug(f"[{item_hash}] unsupported retrieval method")
 

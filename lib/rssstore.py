@@ -57,7 +57,7 @@ class RSSStore(Store):
             return False
 
     @func_log
-    def write(self, url, data):
+    def write_classified(self, url, data):
         # check the settings to determine write path
         full_path = self._get_full_file_name(url)
         self._create_dir_if_not_exists(full_path)
