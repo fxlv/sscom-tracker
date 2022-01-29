@@ -30,7 +30,7 @@ class ObjectStoreFiles(Store):
         p = Path(path_name).absolute()
         os.makedirs(p.parent, exist_ok=True)
 
-    def update(self, classified: lib.datastructures.Classified) -> object:
+    def update_classified(self, classified: lib.datastructures.Classified) -> object:
         # check the settings to determine write path
         now = datetime.datetime.now()
         if self._file_exists(classified):

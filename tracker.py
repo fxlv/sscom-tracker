@@ -123,7 +123,7 @@ def enrich(debug, force):
                             f"[{classified.short_hash}] Begin forced enrichment..."
                         )
                         classified = enricher.enrich(classified)
-                        object_store.update(classified)
+                        object_store.update_classified(classified)
                         logger.debug(
                             f"[{classified.short_hash}] Forced enrichment complete"
                         )
@@ -138,13 +138,13 @@ def enrich(debug, force):
                     logger.debug(f"[{classified.short_hash}] Begin enrichment...")
                     classified = enricher.enrich(classified)
                     logger.debug(f"[{classified.short_hash}] Enrichment complete")
-                    object_store.update(classified)
+                    object_store.update_classified(classified)
             else:
                 if hasattr(classified, "http_response_data"):
                     logger.debug(f"[{classified.short_hash}] Begin enrichment...")
                     classified = enricher.enrich(classified)
                     logger.debug(f"[{classified.short_hash}] Enrichment complete")
-                    object_store.update(classified)
+                    object_store.update_classified(classified)
                 else:
                     logger.debug(
                         f"[{classified.short_hash}] missing http response data, cannot enrich"
@@ -209,14 +209,14 @@ def retr(debug):
                     )
                 else:
                     classified.http_response_data = hr.retrieve_ss_data(classified.link)
-                    object_store.update(classified)
+                    object_store.update_classified(classified)
                     randomsleep()
             else:
                 logger.trace(
                     f"Object {classified.short_hash} does not have http_response_data, initiating retrieval"
                 )
                 classified.http_response_data = hr.retrieve_ss_data(classified.link)
-                object_store.update(classified)
+                object_store.update_classified(classified)
                 randomsleep()
         del object_store
 

@@ -99,7 +99,7 @@ def get_log_size():
 def test_log_rotation_works_as_expected(set_up_logging):
     print(f"Log size now is: {get_log_size()}")
     # at this point the log should be below 300 bytes
-    assert get_log_size() < 3000
+    assert get_log_size() < 14500
     # write more logs and expect it gets rotated
     # rotation should happen at 15 KB, so write until 14,5
     while get_log_size() < 14500:
