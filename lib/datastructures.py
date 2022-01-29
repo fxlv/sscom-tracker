@@ -70,6 +70,8 @@ class Dwelling(Classified):
     def __init__(self, title, street):
         super().__init__(title)
         self.street = street
+        self.rooms = None
+        self.floor = None
 
     def _prepare(self):
         if self.street is None:

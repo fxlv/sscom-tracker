@@ -87,6 +87,7 @@ def view(debug, category):
     with logger.contextualize(task="View"):
         object_store = lib.objectstore.ObjectStoreFiles(settings)
         print_results_to_console(object_store.load_all(category), category)
+        del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
 
 
 def randomsleep():
