@@ -47,14 +47,14 @@ class ObjectStoreFiles(Store):
                 f"[{classified.short_hash}] classified does not exist, cannot update it."
             )
 
-    def write(self, classified: lib.datastructures.Classified):
+    def write_classified(self, classified: lib.datastructures.Classified):
         # check the settings to determine write path
         now = datetime.datetime.now()
         if self._file_exists(classified):
             # such classified is already knonw, therefore, instead of overwriting it blindly
             # we will load it from cache, and update the 'last_seen' date and then write it back
             # this way, we maintain the "first seen" timestamp
-            classified = self.load(classified)
+            classified = self.load_classified(classified)
             classified.last_seen = now
             logger.debug(
                 f"[{classified.short_hash}] classified is known, updating the 'last_seen' time"
@@ -69,8 +69,9 @@ class ObjectStoreFiles(Store):
         pickle.dump(classified, file_handle)
         file_handle.close()
         self.stats.set_last_objects_update(arrow.now())
+        return True
 
-    def load(self, classified: lib.datastructures.Classified):
+    def load_classified(self, classified: lib.datastructures.Classified) -> lib.datastructures.Classified:
         # check the settings to determine write path
         if not self._file_exists(classified):
             return None
