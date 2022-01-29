@@ -9,9 +9,11 @@ def strip_sscom(string: str) -> str:
     else:
         return string  # return unmodified string
 
+
 def get_random_short_hash():
     n = datetime.datetime.now().timestamp()
     return shorthash(str(n))
+
 
 def hash(string: str) -> str:
     return hashlib.sha256(string.encode("utf-8")).hexdigest()

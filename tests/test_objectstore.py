@@ -7,6 +7,7 @@ import lib.settings
 import lib.helpers
 import lib.datastructures
 
+
 @pytest.fixture
 def test_settings():
     settings = lib.settings.Settings("settings.test.json")
@@ -45,7 +46,7 @@ class TestObjectstore:
         # save the classified and then read it back from storage
         assert obj_store.write_classified(classified) is True
         loaded_classified = obj_store.load_classified(classified)
-        assert(isinstance(loaded_classified, lib.datastructures.Classified))
+        assert isinstance(loaded_classified, lib.datastructures.Classified)
 
     def test_load_all_classifieds_returns_a_list_of_classifieds(self, test_settings):
         obj_store = lib.objectstore.ObjectStoreFiles(test_settings)
@@ -53,6 +54,3 @@ class TestObjectstore:
         assert isinstance(all_classifieds, list)
         one_classified = all_classifieds[0]
         assert isinstance(one_classified, lib.datastructures.Classified)
-
-
-

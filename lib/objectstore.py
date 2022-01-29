@@ -71,7 +71,9 @@ class ObjectStoreFiles(Store):
         self.stats.set_last_objects_update(arrow.now())
         return True
 
-    def load_classified(self, classified: lib.datastructures.Classified) -> lib.datastructures.Classified:
+    def load_classified(
+        self, classified: lib.datastructures.Classified
+    ) -> lib.datastructures.Classified:
         # check the settings to determine write path
         if not self._file_exists(classified):
             return None
