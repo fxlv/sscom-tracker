@@ -7,12 +7,25 @@ from loguru import logger
 import arrow
 import lib.datastructures
 import lib.settings
-from lib.log import func_log
-from lib.store import Store
+from lib.store import ObjectStore
 from lib.stats import TrackerStats
 
 
-class ObjectStoreFiles(Store):
+class ObjectStoreSqlite(ObjectStore):
+    def get_classified(self, data):
+        pass
+
+    def update_classified(self, data):
+        pass
+
+    def get_all_classifieds(self, data):
+        pass
+
+    def write_classified(self, data):
+        pass
+
+
+class ObjectStoreFiles(ObjectStore):
     def __init__(self, settings: lib.settings.Settings):
         self.s = settings
         self.object_cache_dir = self.s.object_cache_dir
@@ -30,7 +43,7 @@ class ObjectStoreFiles(Store):
         p = Path(path_name).absolute()
         os.makedirs(p.parent, exist_ok=True)
 
-    def update_classified(self, classified: lib.datastructures.Classified) -> object:
+    def update_classified(self, classified: lib.datastructures.Classified):
         # check the settings to determine write path
         now = datetime.datetime.now()
         if self._file_exists(classified):
@@ -111,7 +124,7 @@ class ObjectStoreFiles(Store):
         all_files_unpickled.sort(key=lambda x: x.published, reverse=True)
         return all_files_unpickled
 
-    def get_classified_by_hash(
+    def get_classified_by_category_hash(
         self, category: str, hash_string: str
     ) -> lib.datastructures.Classified:
         file_path = Path(self.s.object_cache_dir).glob(

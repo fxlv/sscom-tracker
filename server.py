@@ -90,7 +90,7 @@ def classified(category=None, hash=None):
         return render_template(
             "classified.html",
             category=category,
-            classified=object_store.get_classified_by_hash(category, hash),
+            classified=object_store.get_classified_by_category_hash(category, hash),
         )
 
 

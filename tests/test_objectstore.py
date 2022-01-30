@@ -76,6 +76,6 @@ class TestObjectstore:
     def test_get_classified_by_hash(self, object_store):
         classified = create_random_apartment_classified()
         object_store.write_classified(classified)
-        loaded_classified = object_store.get_classified_by_hash(classified.category, classified.hash)
+        loaded_classified = object_store.get_classified_by_category_hash(classified.category, classified.hash)
         assert classified.hash == loaded_classified.hash
 
