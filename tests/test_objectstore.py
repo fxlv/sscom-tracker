@@ -13,6 +13,11 @@ def test_settings():
     settings = lib.settings.Settings("settings.test.json")
     return settings
 
+@pytest.fixture
+def object_store(test_settings):
+    obj_store = lib.objectstore.ObjectStoreFiles(test_settings)
+    return obj_store
+
 
 def create_random_apartment_classified():
     random_short_hash = lib.helpers.get_random_short_hash()
@@ -67,3 +72,10 @@ class TestObjectstore:
         obj_store.update_classified(classified)
         loaded_classified = obj_store.get_classified(classified)
         assert loaded_classified.title == classified.title
+
+    def test_get_classified_by_hash(self, object_store):
+        classified = create_random_apartment_classified()
+        object_store.write_classified(classified)
+        loaded_classified = object_store.get_classified_by_hash(classified.category, classified.hash)
+        assert classified.hash == loaded_classified.hash
+
