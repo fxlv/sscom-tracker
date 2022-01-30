@@ -25,6 +25,8 @@ class Settings:
         self.object_cache_dir: str = None
         self.cache_validity_time: int = None
         self.tracking_list: dict = None
+        self.sqlite_db: str = None
+        self.storage_type: str = "files"
 
         self._parse_settings()
 
@@ -67,6 +69,8 @@ class Settings:
                 "Cache validity time in settings is either missing or invalid."
             )
         self.tracking_list = self._get_setting("tracking_list")
+        self.sqlite_db = self._get_setting("sqlite_db")
+        self.storage_type = self._get_setting("storage_type")
 
     def _load_settings_from_file(self):
         with open(self.settings_file_name) as settings_file_handle:
@@ -89,3 +93,4 @@ class TestSettings(Settings):
         self.log_dir: str = "test_log"
         self.log_file_name = "tracker.log"  # default, but can be overriden
         self.log_rotation: str = "15 KB"
+        self.storage_type: str = "files"

@@ -7,21 +7,77 @@ from loguru import logger
 import arrow
 import lib.datastructures
 import lib.settings
+from lib.datastructures import Classified
 from lib.store import ObjectStore
 from lib.stats import TrackerStats
 
+import sqlite3
+
+
+def get_object_store(storage_type: str):
+    if storage_type == "files":
+        return ObjectStoreFiles
+    elif storage_type == "sqlite":
+        return ObjectStoreSqlite
+    else:
+        raise ValueError("Unsupported storage type")
+
 
 class ObjectStoreSqlite(ObjectStore):
-    def get_classified(self, data):
+
+    def __init__(self, settings: lib.settings.Settings):
+        self.s = settings
+        self.con = sqlite3.connect(self.s.sqlite_db)
+        self.cur = self.con.cursor()
+        logger.trace("ObjectStoreSqlite ready")
+
+    def get_classified_count(self, category) -> int:
         pass
+
+    def _get_classified_apartment(self, hash_string: str) -> lib.datastructures.Apartment:
+        self.cur.execute("select * from apartments where hash = '%s'" % hash_string)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return None
+        elif len(results) == 1:
+            result = results[0]
+            apartment = lib.datastructures.Apartment(title=result[2], street=result[6])
+            apartment.hash = result[0]
+            apartment.short_hash = result[1]
+            apartment.rooms = result[3]
+            apartment.floor = result[4]
+            apartment.enriched = result[7]
+            apartment.published = arrow.get(result[8])
+            return apartment
+        else:
+            raise Exception("Unexpected number of database results returned")
+
+
+    def get_classified(self, classified: lib.datastructures.Classified) -> Classified:
+        if classified.category == "apartment":
+            return self._get_classified_apartment(classified.hash)
+        else:
+            raise ValueError("Unsupported classified category")
+
+    def get_classified_by_category_hash(self, category, hash_string) -> Classified:
+        pass
+
+    def get_all_classifieds(self, data) -> list:
+        pass
+
+    def _write_classified_apartment(self, apartment: lib.datastructures.Apartment):
+        sql = f"insert into apartments values('{apartment.hash}', '{apartment.short_hash}', '{apartment.title}', '{apartment.rooms}', '{apartment.floor}', '{apartment.price}', '{apartment.street}', '{apartment.enriched}', '{apartment.published}')"
+        self.cur.execute(sql)
+        self.con.commit()
+
+    def write_classified(self, classified: lib.datastructures.Classified):
+        if classified.category == "apartment":
+            self._write_classified_apartment(classified)
+            return True
+        else:
+            raise ValueError("Unsupported classified category")
 
     def update_classified(self, data):
-        pass
-
-    def get_all_classifieds(self, data):
-        pass
-
-    def write_classified(self, data):
         pass
 
 
@@ -85,7 +141,7 @@ class ObjectStoreFiles(ObjectStore):
         return True
 
     def get_classified(
-        self, classified: lib.datastructures.Classified
+            self, classified: lib.datastructures.Classified
     ) -> lib.datastructures.Classified:
         # check the settings to determine write path
         if not self._file_exists(classified):
@@ -125,7 +181,7 @@ class ObjectStoreFiles(ObjectStore):
         return all_files_unpickled
 
     def get_classified_by_category_hash(
-        self, category: str, hash_string: str
+            self, category: str, hash_string: str
     ) -> lib.datastructures.Classified:
         file_path = Path(self.s.object_cache_dir).glob(
             f"{category}/{hash_string}*.classified"
@@ -146,7 +202,6 @@ class ObjectStoreFiles(ObjectStore):
         return sum(1 for i in self._get_all_files(category))
 
     def __del__(self):
-        logger.trace("Destroying objectstore")
         total = 0
         for category in self.stats.data.categories:
             count = self.get_classified_count(category)
