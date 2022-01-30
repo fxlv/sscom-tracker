@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from lib.datastructures import Classified
 
+
 class Store(ABC):
     """Abstract class that defines the interface for storage."""
 
@@ -10,7 +11,6 @@ class Store(ABC):
 
 
 class ObjectStore(Store):
-
     @abstractmethod
     def get_classified_count(self, category) -> int:
         pass

@@ -24,7 +24,6 @@ def get_object_store(storage_type: str):
 
 
 class ObjectStoreSqlite(ObjectStore):
-
     def __init__(self, settings: lib.settings.Settings):
         self.s = settings
         self.con = sqlite3.connect(self.s.sqlite_db)
@@ -34,7 +33,9 @@ class ObjectStoreSqlite(ObjectStore):
     def get_classified_count(self, category) -> int:
         pass
 
-    def _get_classified_apartment(self, hash_string: str) -> lib.datastructures.Apartment:
+    def _get_classified_apartment(
+        self, hash_string: str
+    ) -> lib.datastructures.Apartment:
         self.cur.execute("select * from apartments where hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
@@ -51,7 +52,6 @@ class ObjectStoreSqlite(ObjectStore):
             return apartment
         else:
             raise Exception("Unexpected number of database results returned")
-
 
     def get_classified(self, classified: lib.datastructures.Classified) -> Classified:
         if classified.category == "apartment":
@@ -141,7 +141,7 @@ class ObjectStoreFiles(ObjectStore):
         return True
 
     def get_classified(
-            self, classified: lib.datastructures.Classified
+        self, classified: lib.datastructures.Classified
     ) -> lib.datastructures.Classified:
         # check the settings to determine write path
         if not self._file_exists(classified):
@@ -181,7 +181,7 @@ class ObjectStoreFiles(ObjectStore):
         return all_files_unpickled
 
     def get_classified_by_category_hash(
-            self, category: str, hash_string: str
+        self, category: str, hash_string: str
     ) -> lib.datastructures.Classified:
         file_path = Path(self.s.object_cache_dir).glob(
             f"{category}/{hash_string}*.classified"
