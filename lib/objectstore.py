@@ -24,6 +24,9 @@ def get_object_store(storage_type: str):
 
 
 class ObjectStoreSqlite(ObjectStore):
+    # create tables with:
+    # create table apartments (hash text, short_hash text, title text, rooms int, floor int, price int, street text, enriched bool, published timestamp );
+    #
     def __init__(self, settings: lib.settings.Settings):
         self.s = settings
         self.con = sqlite3.connect(self.s.sqlite_db)
