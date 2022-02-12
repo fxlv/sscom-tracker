@@ -8,6 +8,8 @@ import lib.helpers
 import lib.datastructures
 from loguru import logger
 
+from lib.store import ObjectStore
+
 
 @pytest.fixture
 def test_settings():
@@ -37,7 +39,7 @@ class TestObjectstore:
             obj_store = lib.objectstore.ObjectStoreFiles()
 
     def test_init(self, object_store):
-        assert isinstance(object_store, lib.objectstore.ObjectStoreFiles)
+        assert isinstance(object_store, lib.objectstore.ObjectStoreSqlite)
 
     def test_load_non_existant_classified(self, object_store):
         classified = create_random_apartment_classified()
@@ -45,7 +47,7 @@ class TestObjectstore:
         # such classified does not exist yet, therefore we expect None
         assert loaded_classified is None
 
-    def test_write_and_load(self, object_store):
+    def test_write_and_load(self, object_store: ObjectStore):
         classified = create_random_apartment_classified()
         loaded_classified = object_store.get_classified(classified)
         # such classified does not exist yet, therefore we expect None
@@ -55,8 +57,9 @@ class TestObjectstore:
         loaded_classified = object_store.get_classified(classified)
         assert isinstance(loaded_classified, lib.datastructures.Classified)
 
-    def test_load_all_classifieds_returns_a_list_of_classifieds(self, object_store):
-        all_classifieds = object_store.get_all_classifieds()
+    def test_load_all_classifieds_returns_a_list_of_classifieds(self, object_store: ObjectStore):
+        all_classifieds = object_store.get_all_classifieds("apartment")
+        #pytest.set_trace()
         assert isinstance(all_classifieds, list)
         one_classified = all_classifieds[0]
         assert isinstance(one_classified, lib.datastructures.Classified)
@@ -68,6 +71,7 @@ class TestObjectstore:
         classified.title = "New title"
         object_store.update_classified(classified)
         loaded_classified = object_store.get_classified(classified)
+        pytest.set_trace()
         assert loaded_classified.title == classified.title
 
     def test_get_classified_by_hash(self, object_store):

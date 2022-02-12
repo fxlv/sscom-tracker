@@ -7,7 +7,7 @@ from loguru import logger
 import arrow
 import lib.datastructures
 import lib.settings
-from lib.datastructures import Classified
+from lib.datastructures import Apartment, Classified
 from lib.store import ObjectStore
 from lib.stats import TrackerStats
 
@@ -65,11 +65,41 @@ class ObjectStoreSqlite(ObjectStore):
     def get_classified_by_category_hash(self, category, hash_string) -> Classified:
         pass
 
-    def get_all_classifieds(self, data) -> list:
-        pass
+    def _is_valid_category(self, category_string) -> bool:
+        valid_categories = ["apartment", "car", "house", "dog", "*"]
+        return category_string in valid_categories
+   
+    def _create_apartment_from_db_result(self, result) -> Apartment:
+        """Takes a tuple and returns an instance of Apartment"""
+        a = Apartment(result[2], result[6])
+        a.hash = result[0]
+        a.short_hash = result[1]
+        a.published = result[8]
+        a.floor = result[4]
+        a.rooms = result[3]
+        return a
+
+    def _get_all_apartments(self) -> list[Apartment]:
+        self.cur.execute("select * from apartments")
+        results = self.cur.fetchall()
+        apartments_list = []
+        for r in results:
+            apartments_list.append(self._create_apartment_from_db_result(r))
+        return apartments_list
+
+    def get_all_classifieds(self, category="*") -> list:
+        """Returns a list of all classifieds."""
+        if not self._is_valid_category(category):
+            raise ValueError("Invalid category specified")
+        if category == "apartment":
+            return self._get_all_apartments()
+        else:
+            raise NotImplementedError()
+
+
 
     def _write_classified_apartment(self, apartment: lib.datastructures.Apartment):
-        sql = f"insert into apartments values('{apartment.hash}', '{apartment.short_hash}', '{apartment.title}', '{apartment.rooms}', '{apartment.floor}', '{apartment.price}', '{apartment.street}', '{apartment.enriched}', '{apartment.published}')"
+        sql = f"insert or replace into apartments values('{apartment.hash}', '{apartment.short_hash}', '{apartment.title}', '{apartment.rooms}', '{apartment.floor}', '{apartment.price}', '{apartment.street}', '{apartment.enriched}', '{apartment.published}')"
         self.cur.execute(sql)
         self.con.commit()
 
@@ -79,9 +109,20 @@ class ObjectStoreSqlite(ObjectStore):
             return True
         else:
             raise ValueError("Unsupported classified category")
+    
 
-    def update_classified(self, data):
-        pass
+    def _update_classified_apartment(self, apartment: Apartment) -> bool:
+        return self._write_classified_apartment(apartment)
+
+
+
+
+
+    def update_classified(self, classified: Classified):
+        if classified.category == "apartment":
+            return self._update_classified_apartment(classified)
+        else:
+            raise NotImplementedError()
 
 
 class ObjectStoreFiles(ObjectStore):
@@ -102,7 +143,7 @@ class ObjectStoreFiles(ObjectStore):
         p = Path(path_name).absolute()
         os.makedirs(p.parent, exist_ok=True)
 
-    def update_classified(self, classified: lib.datastructures.Classified):
+    def update_classified(self, classified: Classified):
         # check the settings to determine write path
         now = datetime.datetime.now()
         if self._file_exists(classified):
