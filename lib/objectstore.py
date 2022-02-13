@@ -36,6 +36,26 @@ class ObjectStoreSqlite(ObjectStore):
     def get_classified_count(self, category) -> int:
         pass
 
+    def _get_classified_house(
+        self, hash_string: str
+    ) -> lib.datastructures.Apartment:
+        self.cur.execute("select * from houses where hash = '%s'" % hash_string)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return None
+        elif len(results) == 1:
+            result = results[0]
+            house = lib.datastructures.House(title=result[2], street=result[6])
+            house.hash = result[0]
+            house.short_hash = result[1]
+            house.rooms = result[3]
+            house.floor = result[4]
+            house.enriched = result[7]
+            house.published = arrow.get(result[8])
+            return house
+        else:
+            raise Exception("Unexpected number of database results returned")
+
     def _get_classified_apartment(
         self, hash_string: str
     ) -> lib.datastructures.Apartment:
@@ -62,6 +82,8 @@ class ObjectStoreSqlite(ObjectStore):
     def get_classified_by_category_hash(self, category, hash_string) -> Classified:
         if category == "apartment":
             return self._get_classified_apartment(hash_string)
+        elif category == "house":
+            return self._get_classified_house(hash_string)
         else:
             raise ValueError("Unsupported classified category")
 
@@ -103,9 +125,17 @@ class ObjectStoreSqlite(ObjectStore):
         self.cur.execute(sql)
         self.con.commit()
 
+    def _write_classified_house(self, house: lib.datastructures.House):
+        sql = f"insert or replace into houses values('{house.hash}', '{house.short_hash}', '{house.title}', '{house.rooms}', '{house.floor}', '{house.price}', '{house.street}', '{house.enriched}', '{house.published}')"
+        self.cur.execute(sql)
+        self.con.commit()
+
     def write_classified(self, classified: lib.datastructures.Classified):
         if classified.category == "apartment":
             self._write_classified_apartment(classified)
+            return True
+        elif classified.category == "house":
+            self._write_classified_house(classified)
             return True
         else:
             raise ValueError("Unsupported classified category")
