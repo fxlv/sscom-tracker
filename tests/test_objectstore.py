@@ -71,7 +71,6 @@ class TestObjectstore:
         classified.title = "New title"
         object_store.update_classified(classified)
         loaded_classified = object_store.get_classified(classified)
-        pytest.set_trace()
         assert loaded_classified.title == classified.title
 
     def test_get_classified_by_hash(self, object_store):

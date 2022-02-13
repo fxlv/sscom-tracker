@@ -112,8 +112,9 @@ class ObjectStoreSqlite(ObjectStore):
     
 
     def _update_classified_apartment(self, apartment: Apartment) -> bool:
-        return self._write_classified_apartment(apartment)
-
+        sql = f"update apartments set title = '{apartment.title}', rooms = '{apartment.rooms}', floor = '{apartment.floor}', price = '{apartment.price}', street = '{apartment.street}', enriched = '{apartment.enriched}', published = '{apartment.published}' where hash = '{apartment.hash}'"
+        self.cur.execute(sql)
+        self.con.commit()
 
 
 
