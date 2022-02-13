@@ -142,6 +142,22 @@ class ObjectStoreSqlite(ObjectStore):
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
+    
+    def _write_classified_car(self, car: lib.datastructures.Car):
+        sql = """insert into cars 
+                (hash, short_hash, title, model, price, 
+                year, mileage, engine, first_seen, last_seen, enriched_time,
+                gearbox, color, inspection, description,
+                enriched, published) 
+                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+        sql_data = (car.hash,car.short_hash,car.title,car.model,car.price, car.year,
+                    car.mileage, car.engine, car.first_seen.datetime, 
+                    car.last_seen.datetime, car.enriched_time.datetime,
+                    car.gearbox, car.color, car.inspection, car.description,
+                    car.enriched, car.published.datetime)
+
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
 
     def write_classified(self, classified: lib.datastructures.Classified):
         if classified.category == "apartment":
@@ -149,6 +165,9 @@ class ObjectStoreSqlite(ObjectStore):
             return True
         elif classified.category == "house":
             self._write_classified_house(classified)
+            return True
+        elif classified.category == "car":
+            self._write_classified_car(classified)
             return True
         else:
             raise ValueError("Unsupported classified category")

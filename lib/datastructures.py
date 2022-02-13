@@ -117,6 +117,17 @@ class Animal:
 
 class Car(Classified):
     category = "car"
+    
+    def __init__(self, title):
+        super().__init__(title)
+        self.color = None
+        self.gearbox = None
+        self.description = None
+        self.inspection = None
+        self.engine = None
+        self.first_seen = arrow.now()
+        self.last_seen = arrow.now()
+        self.enriched_time = arrow.now()
 
     def _prepare(self):
         self.hash_string = self.title + self.price
