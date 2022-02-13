@@ -43,6 +43,16 @@ def create_random_house_classified():
     classified.done()
     return classified
 
+def create_random_car_classified():
+    random_short_hash = lib.helpers.get_random_short_hash()
+    random_title = f"Some car_{random_short_hash}"
+    classified = lib.datastructures.Car(random_title)
+    classified.published = arrow.now()
+    classified.price = "1000"
+    classified.model = "test car"
+    classified.color = "black"
+    classified.done()
+    return classified
 
 class TestObjectstore:
     def test_init_fails_if_no_settings_provided(self):
@@ -58,7 +68,7 @@ class TestObjectstore:
         assert loaded_classified is None
 
     @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
-    @pytest.mark.parametrize('random_classified', [create_random_apartment_classified(), create_random_house_classified()], ids=["Apartment", "House"])
+    @pytest.mark.parametrize('random_classified', [create_random_apartment_classified(), create_random_house_classified(), create_random_car_classified()], ids=["Apartment", "House", "Car"])
     def test_write_and_load(self, object_store: ObjectStore, random_classified):
         classified = random_classified
         loaded_classified = object_store.get_classified(classified)

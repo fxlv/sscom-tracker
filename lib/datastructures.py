@@ -122,9 +122,12 @@ class Car(Classified):
         super().__init__(title)
         self.color = None
         self.gearbox = None
+        self.model = None
         self.description = None
         self.inspection = None
         self.engine = None
+        self.year = None
+        self.mileage = None
         self.first_seen = arrow.now()
         self.last_seen = arrow.now()
         self.enriched_time = arrow.now()

@@ -75,6 +75,36 @@ class ObjectStoreSqlite(ObjectStore):
             return apartment
         else:
             raise Exception("Unexpected number of database results returned")
+    
+    def _get_classified_car(
+        self, hash_string: str
+    ) -> lib.datastructures.Car:
+        self.cur.execute("select * from cars where hash = '%s'" % hash_string)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return None
+        elif len(results) == 1:
+            result = results[0]
+            car = lib.datastructures.Car(title=result[2])
+            car.hash = result[0]
+            car.short_hash = result[1]
+            car.model = result[3]
+            car.price = result[4]
+            car.year = result[5]
+            car.mileage = result[6]
+            car.engine = result[7]
+            car.first_seen = arrow.get(result[8])
+            car.last_seen = arrow.get(result[9])
+            car.enriched_time = arrow.get(result[10])
+            car.gearbox = result[11]
+            car.color = result[12]
+            car.inspection = result[13]
+            car.description = result[14]
+            car.enriched = result[15]
+            car.published = arrow.get(result[16])
+            return car
+        else:
+            raise Exception("Unexpected number of database results returned")
 
     def get_classified(self, classified: lib.datastructures.Classified) -> Classified:
         return self.get_classified_by_category_hash(classified.category, classified.hash)
@@ -84,6 +114,8 @@ class ObjectStoreSqlite(ObjectStore):
             return self._get_classified_apartment(hash_string)
         elif category == "house":
             return self._get_classified_house(hash_string)
+        elif category == "car":
+            return self._get_classified_car(hash_string)
         else:
             raise ValueError("Unsupported classified category")
 
@@ -225,7 +257,7 @@ class ObjectStoreFiles(ObjectStore):
 
     def write_classified(self, classified: lib.datastructures.Classified):
         # check the settings to determine write path
-        now = datetime.datetime.now()
+        now = arrow.now()
         if self._file_exists(classified):
             # such classified is already knonw, therefore, instead of overwriting it blindly
             # we will load it from cache, and update the 'last_seen' date and then write it back
