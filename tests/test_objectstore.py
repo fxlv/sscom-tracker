@@ -11,15 +11,17 @@ from loguru import logger
 from lib.store import ObjectStore
 
 
-@pytest.fixture
 def test_settings():
     settings = lib.settings.Settings("settings.test.json")
     return settings
 
 
-@pytest.fixture
-def object_store(test_settings):
+def object_store_sql(test_settings):
     obj_store = lib.objectstore.get_object_store("sqlite")(test_settings)
+    return obj_store
+
+def object_store_files(test_settings):
+    obj_store = lib.objectstore.get_object_store("files")(test_settings)
     return obj_store
 
 
@@ -38,15 +40,15 @@ class TestObjectstore:
         with pytest.raises(TypeError):
             obj_store = lib.objectstore.ObjectStoreFiles()
 
-    def test_init(self, object_store):
-        assert isinstance(object_store, lib.objectstore.ObjectStoreSqlite)
 
+    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
     def test_load_non_existant_classified(self, object_store):
         classified = create_random_apartment_classified()
         loaded_classified = object_store.get_classified(classified)
         # such classified does not exist yet, therefore we expect None
         assert loaded_classified is None
 
+    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
     def test_write_and_load(self, object_store: ObjectStore):
         classified = create_random_apartment_classified()
         loaded_classified = object_store.get_classified(classified)
@@ -57,6 +59,7 @@ class TestObjectstore:
         loaded_classified = object_store.get_classified(classified)
         assert isinstance(loaded_classified, lib.datastructures.Classified)
 
+    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
     def test_load_all_classifieds_returns_a_list_of_classifieds(self, object_store: ObjectStore):
         all_classifieds = object_store.get_all_classifieds("apartment")
         #pytest.set_trace()
@@ -64,6 +67,7 @@ class TestObjectstore:
         one_classified = all_classifieds[0]
         assert isinstance(one_classified, lib.datastructures.Classified)
 
+    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
     def test_update_classified(self, object_store):
         """Create, save, change, save, load and verify."""
         classified = create_random_apartment_classified()
@@ -73,6 +77,7 @@ class TestObjectstore:
         loaded_classified = object_store.get_classified(classified)
         assert loaded_classified.title == classified.title
 
+    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
     def test_get_classified_by_hash(self, object_store):
         classified = create_random_apartment_classified()
         object_store.write_classified(classified)
