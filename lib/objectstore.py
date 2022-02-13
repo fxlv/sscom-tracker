@@ -57,13 +57,13 @@ class ObjectStoreSqlite(ObjectStore):
             raise Exception("Unexpected number of database results returned")
 
     def get_classified(self, classified: lib.datastructures.Classified) -> Classified:
-        if classified.category == "apartment":
-            return self._get_classified_apartment(classified.hash)
-        else:
-            raise ValueError("Unsupported classified category")
+        return self.get_classified_by_category_hash(classified.category, classified.hash)
 
     def get_classified_by_category_hash(self, category, hash_string) -> Classified:
-        pass
+        if category == "apartment":
+            return self._get_classified_apartment(hash_string)
+        else:
+            raise ValueError("Unsupported classified category")
 
     def _is_valid_category(self, category_string) -> bool:
         valid_categories = ["apartment", "car", "house", "dog", "*"]
