@@ -119,15 +119,28 @@ class ObjectStoreSqlite(ObjectStore):
             raise NotImplementedError()
 
 
-
     def _write_classified_apartment(self, apartment: lib.datastructures.Apartment):
-        sql = f"insert or replace into apartments values('{apartment.hash}', '{apartment.short_hash}', '{apartment.title}', '{apartment.rooms}', '{apartment.floor}', '{apartment.price}', '{apartment.street}', '{apartment.enriched}', '{apartment.published}')"
-        self.cur.execute(sql)
+        sql = """insert into apartments 
+                (hash, short_hash, title, rooms, floor, 
+                price, street, enriched, published) 
+                values (?,?,?,?,?,?,?,?,?)"""
+        sql_data = (apartment.hash,apartment.short_hash,apartment.title,
+                    apartment.rooms,apartment.floor,apartment.price,
+                    apartment.street,apartment.enriched,apartment.published.datetime)
+
+        self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def _write_classified_house(self, house: lib.datastructures.House):
-        sql = f"insert or replace into houses values('{house.hash}', '{house.short_hash}', '{house.title}', '{house.rooms}', '{house.floor}', '{house.price}', '{house.street}', '{house.enriched}', '{house.published}')"
-        self.cur.execute(sql)
+        sql = """insert into houses 
+                (hash, short_hash, title, rooms, floor, 
+                price, street, enriched, published) 
+                values (?,?,?,?,?,?,?,?,?)"""
+        sql_data = (house.hash,house.short_hash,house.title,
+                    house.rooms,house.floor,house.price,
+                    house.street,house.enriched,house.published.datetime)
+
+        self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def write_classified(self, classified: lib.datastructures.Classified):
