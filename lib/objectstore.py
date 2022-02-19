@@ -7,7 +7,7 @@ from loguru import logger
 import arrow
 import lib.datastructures
 import lib.settings
-from lib.datastructures import Apartment, Classified
+from lib.datastructures import Apartment, Classified, House, Car
 from lib.store import ObjectStore
 from lib.stats import TrackerStats
 
@@ -45,14 +45,7 @@ class ObjectStoreSqlite(ObjectStore):
             return None
         elif len(results) == 1:
             result = results[0]
-            house = lib.datastructures.House(title=result[2], street=result[6])
-            house.hash = result[0]
-            house.short_hash = result[1]
-            house.rooms = result[3]
-            house.floor = result[4]
-            house.enriched = result[7]
-            house.published = arrow.get(result[8])
-            return house
+            return self._create_house_from_db_result(result)
         else:
             raise Exception("Unexpected number of database results returned")
 
@@ -65,14 +58,7 @@ class ObjectStoreSqlite(ObjectStore):
             return None
         elif len(results) == 1:
             result = results[0]
-            apartment = lib.datastructures.Apartment(title=result[2], street=result[6])
-            apartment.hash = result[0]
-            apartment.short_hash = result[1]
-            apartment.rooms = result[3]
-            apartment.floor = result[4]
-            apartment.enriched = result[7]
-            apartment.published = arrow.get(result[8])
-            return apartment
+            return self._create_apartment_from_db_result(result)
         else:
             raise Exception("Unexpected number of database results returned")
     
@@ -85,23 +71,6 @@ class ObjectStoreSqlite(ObjectStore):
             return None
         elif len(results) == 1:
             result = results[0]
-            car = lib.datastructures.Car(title=result[2])
-            car.hash = result[0]
-            car.short_hash = result[1]
-            car.model = result[3]
-            car.price = result[4]
-            car.year = result[5]
-            car.mileage = result[6]
-            car.engine = result[7]
-            car.first_seen = arrow.get(result[8])
-            car.last_seen = arrow.get(result[9])
-            car.enriched_time = arrow.get(result[10])
-            car.gearbox = result[11]
-            car.color = result[12]
-            car.inspection = result[13]
-            car.description = result[14]
-            car.enriched = result[15]
-            car.published = arrow.get(result[16])
             return car
         else:
             raise Exception("Unexpected number of database results returned")
@@ -128,10 +97,60 @@ class ObjectStoreSqlite(ObjectStore):
         a = Apartment(result[2], result[6])
         a.hash = result[0]
         a.short_hash = result[1]
-        a.published = result[8]
+        a.published = arrow.get(result[8])
+        a.floor = result[4]
+        a.price = result[5]
+        a.rooms = result[3]
+        a.enriched = result[7]
+        return a
+    
+    def _create_house_from_db_result(self, result) -> House:
+        """Takes a tuple and returns an instance of House"""
+        a = House(result[2], result[6])
+        a.hash = result[0]
+        a.short_hash = result[1]
+        a.published = arrow.get(result[8])
         a.floor = result[4]
         a.rooms = result[3]
+        a.enriched = result[7]
         return a
+
+    def _create_car_from_db_result(self, result) -> Car:
+        """Takes a tuple and returns an instance of Car"""
+        car = Car(title=result[2])
+        car.hash = result[0]
+        car.short_hash = result[1]
+        car.model = result[3]
+        car.price = result[4]
+        car.year = result[5]
+        car.mileage = result[6]
+        car.engine = result[7]
+        car.first_seen = arrow.get(result[8])
+        car.last_seen = arrow.get(result[9])
+        car.enriched_time = arrow.get(result[10])
+        car.gearbox = result[11]
+        car.color = result[12]
+        car.inspection = result[13]
+        car.description = result[14]
+        car.enriched = result[15]
+        car.published = arrow.get(result[16])
+        return car
+
+    def _get_all_cars(self) -> list[Car]:
+        self.cur.execute("select * from cars")
+        results = self.cur.fetchall()
+        cars_list = []
+        for r in results:
+            cars_list.append(self._create_car_from_db_result(r))
+        return cars_list
+    
+    def _get_all_houses(self) -> list[House]:
+        self.cur.execute("select * from houses")
+        results = self.cur.fetchall()
+        houses_list = []
+        for r in results:
+            houses_list.append(self._create_house_from_db_result(r))
+        return houses_list
 
     def _get_all_apartments(self) -> list[Apartment]:
         self.cur.execute("select * from apartments")
@@ -147,6 +166,16 @@ class ObjectStoreSqlite(ObjectStore):
             raise ValueError("Invalid category specified")
         if category == "apartment":
             return self._get_all_apartments()
+        elif category == "house":
+            return self._get_all_houses()
+        elif category == "car":
+            return self._get_all_cars()
+        elif category == "*":
+            all_classifieds = []
+            all_classifieds.extend(self._get_all_apartments())
+            all_classifieds.extend(self._get_all_houses())
+            all_classifieds.extend(self._get_all_cars())
+            return all_classifieds
         else:
             raise NotImplementedError()
 

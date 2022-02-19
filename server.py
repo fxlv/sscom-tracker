@@ -28,7 +28,7 @@ def index():
         logger.debug("Returning index")
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         rss_store = lib.rssstore.RSSStore(settings)
         stats = lib.stats.TrackerStats(settings)
         print(stats.data.enrichment_data)
@@ -41,7 +41,7 @@ def category(category=None):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStats(settings)
         return render_template(
             "category.html",

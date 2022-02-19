@@ -61,7 +61,7 @@ def process(debug):
         logger.info("Starting processing run...")
         store = lib.rssstore.RSSStore(settings)
         op = lib.objectparser.ObjectParser()
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         objects_list = store.load_all()
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
@@ -85,7 +85,7 @@ def view(debug, category):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="View"):
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         print_results_to_console(object_store.get_all_classifieds(category), category)
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
 
@@ -111,7 +111,7 @@ def enrich(debug, force):
     set_up_logging(settings, debug)
     with logger.contextualize(task="Enricher"):
         logger.debug("Running enricher...")
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         enricher = lib.objectparser.Enricher()
         # iterate over all saved classifieds, depending on classified type, update attributes with
         # data retrieved by the http retriever
@@ -161,7 +161,7 @@ def stats(debug):
     set_up_logging(settings, debug)
     with logger.contextualize(task="Statistics"):
         logger.debug("Running statistics generator...")
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         # lets generate some statistics
         count_all = 0
         enriched_count = 0
@@ -193,7 +193,7 @@ def retr(debug):
     set_up_logging(settings, debug)
     with logger.contextualize(task="URL retriever"):
         logger.debug("Running retriever...")
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         hr = lib.retriever.HttpRetriever()
         # iterate over all objects
         # for each of them, check if http_response_date is present,

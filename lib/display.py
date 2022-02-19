@@ -49,8 +49,8 @@ def print_results_to_console(results, category):
         apartment_table.add_row(
             f"[bold red] {apartment.title}[/bold red]",
             apartment.street,
-            apartment.rooms,
-            apartment.floor,
+            str(apartment.rooms),
+            str(apartment.floor),
             apartment.price,
         )
 
@@ -62,8 +62,8 @@ def print_results_to_console(results, category):
             f"[bold red] {car.title}[/bold red]",
             car.model,
             car.mileage,
-            car.year,
-            car.price,
+            str(car.year),
+            str(car.price),
         )
 
     for dog in dogs:
