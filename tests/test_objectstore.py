@@ -78,6 +78,7 @@ class TestObjectstore:
         assert object_store.write_classified(classified) is True
         loaded_classified = object_store.get_classified(classified)
         assert isinstance(loaded_classified, lib.datastructures.Classified)
+        assert object_store.classified_exists(classified)
 
     @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
     def test_load_all_classifieds_returns_a_list_of_classifieds(self, object_store: ObjectStore):
@@ -87,10 +88,11 @@ class TestObjectstore:
         one_classified = all_classifieds[0]
         assert isinstance(one_classified, lib.datastructures.Classified)
 
+    @pytest.mark.parametrize('random_classified', [create_random_apartment_classified(), create_random_house_classified(), create_random_car_classified()], ids=["Apartment", "House", "Car"])
     @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
-    def test_update_classified(self, object_store):
+    def test_update_classified(self, object_store, random_classified):
         """Create, save, change, save, load and verify."""
-        classified = create_random_apartment_classified()
+        classified = random_classified
         object_store.write_classified(classified)
         classified.title = "New title"
         object_store.update_classified(classified)

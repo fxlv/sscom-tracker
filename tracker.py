@@ -69,7 +69,10 @@ def process(debug):
                 f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
             )
             for classified in parsed_list:
-                object_store.write_classified(classified)
+                if object_store.classified_exists(classified):
+                    object_store.update_classified(classified)
+                else:
+                    object_store.write_classified(classified)
         logger.info("Processing run complete")
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
 

@@ -71,7 +71,7 @@ class ObjectStoreSqlite(ObjectStore):
             return None
         elif len(results) == 1:
             result = results[0]
-            return car
+            return self._create_car_from_db_result(result)
         else:
             raise Exception("Unexpected number of database results returned")
 
@@ -137,7 +137,7 @@ class ObjectStoreSqlite(ObjectStore):
         return car
 
     def _get_all_cars(self) -> list[Car]:
-        self.cur.execute("select * from cars")
+        self.cur.execute("select * from cars order by published desc")
         results = self.cur.fetchall()
         cars_list = []
         for r in results:
@@ -145,7 +145,7 @@ class ObjectStoreSqlite(ObjectStore):
         return cars_list
     
     def _get_all_houses(self) -> list[House]:
-        self.cur.execute("select * from houses")
+        self.cur.execute("select * from houses order by published desc")
         results = self.cur.fetchall()
         houses_list = []
         for r in results:
@@ -153,12 +153,79 @@ class ObjectStoreSqlite(ObjectStore):
         return houses_list
 
     def _get_all_apartments(self) -> list[Apartment]:
-        self.cur.execute("select * from apartments")
+        self.cur.execute("select * from apartments order by published desc")
         results = self.cur.fetchall()
         apartments_list = []
         for r in results:
             apartments_list.append(self._create_apartment_from_db_result(r))
         return apartments_list
+    
+    def _classified_house_exists(
+            self, classified: House 
+    ) -> bool:
+        self.cur.execute("select count(*) from houses where hash = '%s'" % classified.hash)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return False
+        elif len(results) == 1:
+            result = results[0]
+            if type(result) == tuple:
+                if result[0] == 0:
+                    return False
+                else:
+                    return True
+            else:
+                raise Exception("Unexpected result type encountered")
+        else:
+            raise Exception("Unexpected number of database results returned")
+
+    def _classified_apartment_exists(
+            self, classified: Apartment 
+    ) -> bool:
+        self.cur.execute("select count(*) from apartments where hash = '%s'" % classified.hash)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return False
+        elif len(results) == 1:
+            result = results[0]
+            if type(result) == tuple:
+                if result[0] == 0:
+                    return False
+                else:
+                    return True
+            else:
+                raise Exception("Unexpected result type encountered")
+        else:
+            raise Exception("Unexpected number of database results returned")
+
+    def _classified_car_exists(
+            self, classified: Car
+    ) -> bool:
+        self.cur.execute("select count(*) from cars where hash = '%s'" % classified.hash)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return False
+        elif len(results) == 1:
+            result = results[0]
+            if type(result) == tuple:
+                if result[0] == 0:
+                    return False
+                else:
+                    return True
+            else:
+                raise Exception("Unexpected result type encountered")
+        else:
+            raise Exception("Unexpected number of database results returned")
+
+    def classified_exists(self, classified: Classified) -> bool:
+        if classified.category == "apartment":
+            return self._classified_apartment_exists(classified)
+        elif classified.category == "house":
+            return self._classified_house_exists(classified)
+        elif classified.category == "car":
+            return self._classified_car_exists(classified)
+        else:
+            raise NotImplementedError()
 
     def get_all_classifieds(self, category="*") -> list:
         """Returns a list of all classifieds."""
@@ -234,17 +301,32 @@ class ObjectStoreSqlite(ObjectStore):
             raise ValueError("Unsupported classified category")
     
 
-    def _update_classified_apartment(self, apartment: Apartment) -> bool:
-        sql = f"update apartments set title = '{apartment.title}', rooms = '{apartment.rooms}', floor = '{apartment.floor}', price = '{apartment.price}', street = '{apartment.street}', enriched = '{apartment.enriched}', published = '{apartment.published}' where hash = '{apartment.hash}'"
-        self.cur.execute(sql)
+    def _update_classified_apartment(self, apartment: Apartment):
+        sql = """update apartments set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ? where hash = ?"""
+        sql_data = (apartment.title, apartment.rooms, apartment.floor ,apartment.price, apartment.street, apartment.enriched, apartment.published.datetime, apartment.hash)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
+
+    def _update_classified_house(self, house: House):
+        sql = """update houses set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ? where hash = ?"""
+        sql_data = (house.title, house.rooms, house.floor ,house.price, house.street, house.enriched, house.published.datetime, house.hash)
+        self.cur.execute(sql, sql_data)
         self.con.commit()
 
 
-
+    def _update_classified_car(self, car: Car):
+        sql = """update cars set title = ?, model = ?, price = ?, year = ?, mileage = ?, engine = ?, first_seen = ?, last_seen = ?, enriched_time = ?, gearbox = ?, color = ?, inspection = ?, description = ?, enriched = ?, published = ? where hash = ?"""
+        sql_data = (car.title,car.model,car.price, car.year,car.mileage,car.engine,car.first_seen.datetime,car.last_seen.datetime, car.enriched_time.datetime,car.gearbox,car.color, car.inspection,car.description,car.enriched,car.published.datetime,car.hash)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
 
     def update_classified(self, classified: Classified):
         if classified.category == "apartment":
             return self._update_classified_apartment(classified)
+        elif classified.category == "house":
+            return self._update_classified_house(classified)
+        elif classified.category == "car":
+            return self._update_classified_car(classified)
         else:
             raise NotImplementedError()
 
@@ -262,6 +344,10 @@ class ObjectStoreFiles(ObjectStore):
 
     def _file_is_not_empty(self, file_name: Path):
         return file_name.stat().st_size > 0
+
+    def classified_exists(self, classified: Classified) -> bool:
+        # not implemented yet
+        return True
 
     def _create_dir_if_not_exists(self, path_name):
         p = Path(path_name).absolute()
