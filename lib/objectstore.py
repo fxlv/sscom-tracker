@@ -36,9 +36,7 @@ class ObjectStoreSqlite(ObjectStore):
     def get_classified_count(self, category) -> int:
         pass
 
-    def _get_classified_house(
-        self, hash_string: str
-    ) -> lib.datastructures.Apartment:
+    def _get_classified_house(self, hash_string: str) -> lib.datastructures.Apartment:
         self.cur.execute("select * from houses where hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
@@ -61,10 +59,8 @@ class ObjectStoreSqlite(ObjectStore):
             return self._create_apartment_from_db_result(result)
         else:
             raise Exception("Unexpected number of database results returned")
-    
-    def _get_classified_car(
-        self, hash_string: str
-    ) -> lib.datastructures.Car:
+
+    def _get_classified_car(self, hash_string: str) -> lib.datastructures.Car:
         self.cur.execute("select * from cars where hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
@@ -76,7 +72,9 @@ class ObjectStoreSqlite(ObjectStore):
             raise Exception("Unexpected number of database results returned")
 
     def get_classified(self, classified: lib.datastructures.Classified) -> Classified:
-        return self.get_classified_by_category_hash(classified.category, classified.hash)
+        return self.get_classified_by_category_hash(
+            classified.category, classified.hash
+        )
 
     def get_classified_by_category_hash(self, category, hash_string) -> Classified:
         if category == "apartment":
@@ -91,7 +89,7 @@ class ObjectStoreSqlite(ObjectStore):
     def _is_valid_category(self, category_string) -> bool:
         valid_categories = ["apartment", "car", "house", "dog", "*"]
         return category_string in valid_categories
-   
+
     def _create_apartment_from_db_result(self, result) -> Apartment:
         """Takes a tuple and returns an instance of Apartment"""
         a = Apartment(result[2], result[6])
@@ -103,7 +101,7 @@ class ObjectStoreSqlite(ObjectStore):
         a.rooms = result[3]
         a.enriched = result[7]
         return a
-    
+
     def _create_house_from_db_result(self, result) -> House:
         """Takes a tuple and returns an instance of House"""
         a = House(result[2], result[6])
@@ -143,7 +141,7 @@ class ObjectStoreSqlite(ObjectStore):
         for r in results:
             cars_list.append(self._create_car_from_db_result(r))
         return cars_list
-    
+
     def _get_all_houses(self) -> list[House]:
         self.cur.execute("select * from houses order by published desc")
         results = self.cur.fetchall()
@@ -159,11 +157,11 @@ class ObjectStoreSqlite(ObjectStore):
         for r in results:
             apartments_list.append(self._create_apartment_from_db_result(r))
         return apartments_list
-    
-    def _classified_house_exists(
-            self, classified: House 
-    ) -> bool:
-        self.cur.execute("select count(*) from houses where hash = '%s'" % classified.hash)
+
+    def _classified_house_exists(self, classified: House) -> bool:
+        self.cur.execute(
+            "select count(*) from houses where hash = '%s'" % classified.hash
+        )
         results = self.cur.fetchall()
         if len(results) == 0:
             return False
@@ -179,10 +177,10 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected number of database results returned")
 
-    def _classified_apartment_exists(
-            self, classified: Apartment 
-    ) -> bool:
-        self.cur.execute("select count(*) from apartments where hash = '%s'" % classified.hash)
+    def _classified_apartment_exists(self, classified: Apartment) -> bool:
+        self.cur.execute(
+            "select count(*) from apartments where hash = '%s'" % classified.hash
+        )
         results = self.cur.fetchall()
         if len(results) == 0:
             return False
@@ -198,10 +196,10 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected number of database results returned")
 
-    def _classified_car_exists(
-            self, classified: Car
-    ) -> bool:
-        self.cur.execute("select count(*) from cars where hash = '%s'" % classified.hash)
+    def _classified_car_exists(self, classified: Car) -> bool:
+        self.cur.execute(
+            "select count(*) from cars where hash = '%s'" % classified.hash
+        )
         results = self.cur.fetchall()
         if len(results) == 0:
             return False
@@ -246,43 +244,72 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise NotImplementedError()
 
-
     def _write_classified_apartment(self, apartment: lib.datastructures.Apartment):
-        sql = """insert into apartments 
-                (hash, short_hash, title, rooms, floor, 
-                price, street, enriched, published) 
+        sql = """insert into apartments
+                (hash, short_hash, title, rooms, floor,
+                price, street, enriched, published)
                 values (?,?,?,?,?,?,?,?,?)"""
-        sql_data = (apartment.hash,apartment.short_hash,apartment.title,
-                    apartment.rooms,apartment.floor,apartment.price,
-                    apartment.street,apartment.enriched,apartment.published.datetime)
+        sql_data = (
+            apartment.hash,
+            apartment.short_hash,
+            apartment.title,
+            apartment.rooms,
+            apartment.floor,
+            apartment.price,
+            apartment.street,
+            apartment.enriched,
+            apartment.published.datetime,
+        )
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def _write_classified_house(self, house: lib.datastructures.House):
-        sql = """insert into houses 
-                (hash, short_hash, title, rooms, floor, 
-                price, street, enriched, published) 
+        sql = """insert into houses
+                (hash, short_hash, title, rooms, floor,
+                price, street, enriched, published)
                 values (?,?,?,?,?,?,?,?,?)"""
-        sql_data = (house.hash,house.short_hash,house.title,
-                    house.rooms,house.floor,house.price,
-                    house.street,house.enriched,house.published.datetime)
+        sql_data = (
+            house.hash,
+            house.short_hash,
+            house.title,
+            house.rooms,
+            house.floor,
+            house.price,
+            house.street,
+            house.enriched,
+            house.published.datetime,
+        )
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
-    
+
     def _write_classified_car(self, car: lib.datastructures.Car):
-        sql = """insert into cars 
-                (hash, short_hash, title, model, price, 
+        sql = """insert into cars
+                (hash, short_hash, title, model, price,
                 year, mileage, engine, first_seen, last_seen, enriched_time,
                 gearbox, color, inspection, description,
-                enriched, published) 
+                enriched, published)
                 values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
-        sql_data = (car.hash,car.short_hash,car.title,car.model,car.price, car.year,
-                    car.mileage, car.engine, car.first_seen.datetime, 
-                    car.last_seen.datetime, car.enriched_time.datetime,
-                    car.gearbox, car.color, car.inspection, car.description,
-                    car.enriched, car.published.datetime)
+        sql_data = (
+            car.hash,
+            car.short_hash,
+            car.title,
+            car.model,
+            car.price,
+            car.year,
+            car.mileage,
+            car.engine,
+            car.first_seen.datetime,
+            car.last_seen.datetime,
+            car.enriched_time.datetime,
+            car.gearbox,
+            car.color,
+            car.inspection,
+            car.description,
+            car.enriched,
+            car.published.datetime,
+        )
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
@@ -299,24 +326,57 @@ class ObjectStoreSqlite(ObjectStore):
             return True
         else:
             raise ValueError("Unsupported classified category")
-    
 
     def _update_classified_apartment(self, apartment: Apartment):
         sql = """update apartments set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ? where hash = ?"""
-        sql_data = (apartment.title, apartment.rooms, apartment.floor ,apartment.price, apartment.street, apartment.enriched, apartment.published.datetime, apartment.hash)
+        sql_data = (
+            apartment.title,
+            apartment.rooms,
+            apartment.floor,
+            apartment.price,
+            apartment.street,
+            apartment.enriched,
+            apartment.published.datetime,
+            apartment.hash,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def _update_classified_house(self, house: House):
         sql = """update houses set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ? where hash = ?"""
-        sql_data = (house.title, house.rooms, house.floor ,house.price, house.street, house.enriched, house.published.datetime, house.hash)
+        sql_data = (
+            house.title,
+            house.rooms,
+            house.floor,
+            house.price,
+            house.street,
+            house.enriched,
+            house.published.datetime,
+            house.hash,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
-
     def _update_classified_car(self, car: Car):
         sql = """update cars set title = ?, model = ?, price = ?, year = ?, mileage = ?, engine = ?, first_seen = ?, last_seen = ?, enriched_time = ?, gearbox = ?, color = ?, inspection = ?, description = ?, enriched = ?, published = ? where hash = ?"""
-        sql_data = (car.title,car.model,car.price, car.year,car.mileage,car.engine,car.first_seen.datetime,car.last_seen.datetime, car.enriched_time.datetime,car.gearbox,car.color, car.inspection,car.description,car.enriched,car.published.datetime,car.hash)
+        sql_data = (
+            car.title,
+            car.model,
+            car.price,
+            car.year,
+            car.mileage,
+            car.engine,
+            car.first_seen.datetime,
+            car.last_seen.datetime,
+            car.enriched_time.datetime,
+            car.gearbox,
+            car.color,
+            car.inspection,
+            car.description,
+            car.enriched,
+            car.published.datetime,
+            car.hash,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
 

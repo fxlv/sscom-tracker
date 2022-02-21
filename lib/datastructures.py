@@ -117,7 +117,7 @@ class Animal:
 
 class Car(Classified):
     category = "car"
-    
+
     def __init__(self, title):
         super().__init__(title)
         self.color = None

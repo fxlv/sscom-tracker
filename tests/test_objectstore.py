@@ -20,6 +20,7 @@ def object_store_sql(test_settings):
     obj_store = lib.objectstore.get_object_store("sqlite")(test_settings)
     return obj_store
 
+
 def object_store_files(test_settings):
     obj_store = lib.objectstore.get_object_store("files")(test_settings)
     return obj_store
@@ -34,6 +35,7 @@ def create_random_apartment_classified():
     classified.done()
     return classified
 
+
 def create_random_house_classified():
     random_short_hash = lib.helpers.get_random_short_hash()
     random_title = f"Some house_{random_short_hash}"
@@ -42,6 +44,7 @@ def create_random_house_classified():
     classified.price = "1000"
     classified.done()
     return classified
+
 
 def create_random_car_classified():
     random_short_hash = lib.helpers.get_random_short_hash()
@@ -54,21 +57,37 @@ def create_random_car_classified():
     classified.done()
     return classified
 
+
 class TestObjectstore:
     def test_init_fails_if_no_settings_provided(self):
         with pytest.raises(TypeError):
             obj_store = lib.objectstore.ObjectStoreFiles()
 
-
-    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
+    @pytest.mark.parametrize(
+        "object_store",
+        [object_store_files(test_settings()), object_store_sql(test_settings())],
+        ids=["Files", "SQLite"],
+    )
     def test_load_non_existant_classified(self, object_store):
         classified = create_random_apartment_classified()
         loaded_classified = object_store.get_classified(classified)
         # such classified does not exist yet, therefore we expect None
         assert loaded_classified is None
 
-    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
-    @pytest.mark.parametrize('random_classified', [create_random_apartment_classified(), create_random_house_classified(), create_random_car_classified()], ids=["Apartment", "House", "Car"])
+    @pytest.mark.parametrize(
+        "object_store",
+        [object_store_files(test_settings()), object_store_sql(test_settings())],
+        ids=["Files", "SQLite"],
+    )
+    @pytest.mark.parametrize(
+        "random_classified",
+        [
+            create_random_apartment_classified(),
+            create_random_house_classified(),
+            create_random_car_classified(),
+        ],
+        ids=["Apartment", "House", "Car"],
+    )
     def test_write_and_load(self, object_store: ObjectStore, random_classified):
         classified = random_classified
         loaded_classified = object_store.get_classified(classified)
@@ -80,16 +99,34 @@ class TestObjectstore:
         assert isinstance(loaded_classified, lib.datastructures.Classified)
         assert object_store.classified_exists(classified)
 
-    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
-    def test_load_all_classifieds_returns_a_list_of_classifieds(self, object_store: ObjectStore):
+    @pytest.mark.parametrize(
+        "object_store",
+        [object_store_files(test_settings()), object_store_sql(test_settings())],
+        ids=["Files", "SQLite"],
+    )
+    def test_load_all_classifieds_returns_a_list_of_classifieds(
+        self, object_store: ObjectStore
+    ):
         all_classifieds = object_store.get_all_classifieds("apartment")
-        #pytest.set_trace()
+        # pytest.set_trace()
         assert isinstance(all_classifieds, list)
         one_classified = all_classifieds[0]
         assert isinstance(one_classified, lib.datastructures.Classified)
 
-    @pytest.mark.parametrize('random_classified', [create_random_apartment_classified(), create_random_house_classified(), create_random_car_classified()], ids=["Apartment", "House", "Car"])
-    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
+    @pytest.mark.parametrize(
+        "random_classified",
+        [
+            create_random_apartment_classified(),
+            create_random_house_classified(),
+            create_random_car_classified(),
+        ],
+        ids=["Apartment", "House", "Car"],
+    )
+    @pytest.mark.parametrize(
+        "object_store",
+        [object_store_files(test_settings()), object_store_sql(test_settings())],
+        ids=["Files", "SQLite"],
+    )
     def test_update_classified(self, object_store, random_classified):
         """Create, save, change, save, load and verify."""
         classified = random_classified
@@ -99,7 +136,11 @@ class TestObjectstore:
         loaded_classified = object_store.get_classified(classified)
         assert loaded_classified.title == classified.title
 
-    @pytest.mark.parametrize('object_store', [object_store_files(test_settings()), object_store_sql(test_settings())],ids=["Files", "SQLite"] )
+    @pytest.mark.parametrize(
+        "object_store",
+        [object_store_files(test_settings()), object_store_sql(test_settings())],
+        ids=["Files", "SQLite"],
+    )
     def test_get_classified_by_hash(self, object_store):
         classified = create_random_apartment_classified()
         object_store.write_classified(classified)

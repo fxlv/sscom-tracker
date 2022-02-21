@@ -47,4 +47,3 @@ elif [[ $1 == "test" ]]; then
 else
     echo "Unsupported argument"
 fi
-
