@@ -31,13 +31,64 @@ class ObjectStoreSqlite(ObjectStore):
         self.s = settings
         self.con = sqlite3.connect(self.s.sqlite_db)
         self.cur = self.con.cursor()
+        self.stats = TrackerStats(self.s)
         logger.trace("ObjectStoreSqlite ready")
 
+    def __del__(self):
+        total = 0
+        for category in self.stats.data.categories:
+            count = self.get_classified_count(category)
+            total += count
+            self.stats.set_objects_files_count(category, count)
+        self.stats.set_objects_files_count("total", total)
+
     def get_classified_count(self, category) -> int:
-        pass
+        if category == "apartment":
+            return self._get_count_apartments()
+        elif category == "house":
+            return self._get_count_houses()
+        elif category == "car":
+            return self._get_count_cars()
+        elif category == "dog":
+            return self._get_count_dogs()
+        else:
+            raise ValueError("Unsupported classified category")
+
+    def _get_count_dogs(self) -> int:
+        self.cur.execute( "select count(*) from dogs"    )
+        results = self.cur.fetchall()
+        if len(results) == 1:
+            result = results[0]
+            return result[0]
+        else:
+            raise Exception("Unexpected result received from DB")
+    def _get_count_cars(self) -> int:
+        self.cur.execute( "select count(*) from cars"    )
+        results = self.cur.fetchall()
+        if len(results) == 1:
+            result = results[0]
+            return result[0]
+        else:
+            raise Exception("Unexpected result received from DB")
+    def _get_count_houses(self) -> int:
+        self.cur.execute( "select count(*) from houses"    )
+        results = self.cur.fetchall()
+        if len(results) == 1:
+            result = results[0]
+            return result[0]
+        else:
+            raise Exception("Unexpected result received from DB")
+    def _get_count_apartments(self) -> int:
+        self.cur.execute( "select count(*) from apartments"    )
+        results = self.cur.fetchall()
+        if len(results) == 1:
+            result = results[0]
+            return result[0]
+        else:
+            raise Exception("Unexpected result received from DB")
 
     def _get_classified_house(self, hash_string: str) -> lib.datastructures.Apartment:
-        self.cur.execute("select * from houses where hash = '%s'" % hash_string)
+        self.cur.execute("select * from houses where short_hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
@@ -50,7 +101,7 @@ class ObjectStoreSqlite(ObjectStore):
     def _get_classified_apartment(
         self, hash_string: str
     ) -> lib.datastructures.Apartment:
-        self.cur.execute("select * from apartments where hash = '%s'" % hash_string)
+        self.cur.execute("select * from apartments where short_hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
@@ -61,7 +112,7 @@ class ObjectStoreSqlite(ObjectStore):
             raise Exception("Unexpected number of database results returned")
 
     def _get_classified_car(self, hash_string: str) -> lib.datastructures.Car:
-        self.cur.execute("select * from cars where hash = '%s'" % hash_string)
+        self.cur.execute("select * from cars where short_hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
@@ -92,46 +143,56 @@ class ObjectStoreSqlite(ObjectStore):
 
     def _create_apartment_from_db_result(self, result) -> Apartment:
         """Takes a tuple and returns an instance of Apartment"""
-        a = Apartment(result[2], result[6])
+        a = Apartment(result[3], result[7])
         a.hash = result[0]
         a.short_hash = result[1]
-        a.published = arrow.get(result[8])
-        a.floor = result[4]
-        a.price = result[5]
-        a.rooms = result[3]
-        a.enriched = result[7]
+        a.link = result[2]
+        a.published = arrow.get(result[9])
+        a.floor = result[5]
+        a.price = result[6]
+        a.rooms = result[4]
+        a.enriched = result[8]
+        a.http_response_data = result[10]
+        a.http_response_code = result[11]
         return a
 
     def _create_house_from_db_result(self, result) -> House:
         """Takes a tuple and returns an instance of House"""
-        a = House(result[2], result[6])
+        a = House(result[3], result[7])
         a.hash = result[0]
         a.short_hash = result[1]
-        a.published = arrow.get(result[8])
-        a.floor = result[4]
-        a.rooms = result[3]
-        a.enriched = result[7]
+        a.link = result[2]
+        a.published = arrow.get(result[9])
+        a.floor = result[5]
+        a.rooms = result[4]
+        a.price = result[6]
+        a.enriched = result[8]
+        a.http_response_data = result[10]
+        a.http_response_code = result[11]
         return a
 
     def _create_car_from_db_result(self, result) -> Car:
         """Takes a tuple and returns an instance of Car"""
-        car = Car(title=result[2])
+        car = Car(title=result[3])
         car.hash = result[0]
         car.short_hash = result[1]
-        car.model = result[3]
-        car.price = result[4]
-        car.year = result[5]
-        car.mileage = result[6]
-        car.engine = result[7]
-        car.first_seen = arrow.get(result[8])
-        car.last_seen = arrow.get(result[9])
-        car.enriched_time = arrow.get(result[10])
-        car.gearbox = result[11]
-        car.color = result[12]
-        car.inspection = result[13]
-        car.description = result[14]
-        car.enriched = result[15]
-        car.published = arrow.get(result[16])
+        car.link = result[2]
+        car.model = result[4]
+        car.price = result[5]
+        car.year = result[6]
+        car.mileage = result[7]
+        car.engine = result[8]
+        car.first_seen = arrow.get(result[9])
+        car.last_seen = arrow.get(result[10])
+        car.enriched_time = arrow.get(result[11])
+        car.gearbox = result[12]
+        car.color = result[13]
+        car.inspection = result[14]
+        car.description = result[15]
+        car.enriched = result[16]
+        car.published = arrow.get(result[17])
+        car.http_response_data = result[18]
+        car.http_response_code = result[19]
         return car
 
     def _get_all_cars(self) -> list[Car]:
@@ -246,12 +307,13 @@ class ObjectStoreSqlite(ObjectStore):
 
     def _write_classified_apartment(self, apartment: lib.datastructures.Apartment):
         sql = """insert into apartments
-                (hash, short_hash, title, rooms, floor,
-                price, street, enriched, published)
-                values (?,?,?,?,?,?,?,?,?)"""
+                (hash, short_hash, link, title, rooms, floor,
+                price, street, enriched, published, http_response_data, http_response_code)
+                values (?,?,?,?,?,?,?,?,?,?,?,?)"""
         sql_data = (
             apartment.hash,
             apartment.short_hash,
+            apartment.link,
             apartment.title,
             apartment.rooms,
             apartment.floor,
@@ -259,6 +321,8 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.street,
             apartment.enriched,
             apartment.published.datetime,
+            apartment.http_response_data,
+            apartment.http_response_code
         )
 
         self.cur.execute(sql, sql_data)
@@ -266,12 +330,13 @@ class ObjectStoreSqlite(ObjectStore):
 
     def _write_classified_house(self, house: lib.datastructures.House):
         sql = """insert into houses
-                (hash, short_hash, title, rooms, floor,
-                price, street, enriched, published)
-                values (?,?,?,?,?,?,?,?,?)"""
+                (hash, short_hash, link, title, rooms, floor,
+                price, street, enriched, published, http_response_data, http_response_code)
+                values (?,?,?,?,?,?,?,?,?,?,?,?)"""
         sql_data = (
             house.hash,
             house.short_hash,
+            house.link,
             house.title,
             house.rooms,
             house.floor,
@@ -279,6 +344,8 @@ class ObjectStoreSqlite(ObjectStore):
             house.street,
             house.enriched,
             house.published.datetime,
+            house.http_response_code,
+            house.http_response_data
         )
 
         self.cur.execute(sql, sql_data)
@@ -286,14 +353,15 @@ class ObjectStoreSqlite(ObjectStore):
 
     def _write_classified_car(self, car: lib.datastructures.Car):
         sql = """insert into cars
-                (hash, short_hash, title, model, price,
+                (hash, short_hash, link, title, model, price,
                 year, mileage, engine, first_seen, last_seen, enriched_time,
                 gearbox, color, inspection, description,
-                enriched, published)
-                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+                enriched, published, http_response_data, http_response_code)
+                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
         sql_data = (
             car.hash,
             car.short_hash,
+            car.link,
             car.title,
             car.model,
             car.price,
@@ -309,12 +377,16 @@ class ObjectStoreSqlite(ObjectStore):
             car.description,
             car.enriched,
             car.published.datetime,
+            car.http_response_data,
+            car.http_response_code
         )
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
+
     def write_classified(self, classified: lib.datastructures.Classified):
+        self.stats.set_last_objects_update()
         if classified.category == "apartment":
             self._write_classified_apartment(classified)
             return True
@@ -328,7 +400,7 @@ class ObjectStoreSqlite(ObjectStore):
             raise ValueError("Unsupported classified category")
 
     def _update_classified_apartment(self, apartment: Apartment):
-        sql = """update apartments set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ? where hash = ?"""
+        sql = """update apartments set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ?, http_response_data = ?, http_response_code =? where hash = ?"""
         sql_data = (
             apartment.title,
             apartment.rooms,
@@ -337,13 +409,15 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.street,
             apartment.enriched,
             apartment.published.datetime,
-            apartment.hash,
+            apartment.http_response_data,
+            apartment.http_response_code,
+            apartment.hash
         )
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def _update_classified_house(self, house: House):
-        sql = """update houses set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ? where hash = ?"""
+        sql = """update houses set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ?, http_response_data = ?, http_response_code = ? where hash = ?"""
         sql_data = (
             house.title,
             house.rooms,
@@ -352,13 +426,15 @@ class ObjectStoreSqlite(ObjectStore):
             house.street,
             house.enriched,
             house.published.datetime,
-            house.hash,
+            house.http_response_data,
+            house.http_response_code,
+            house.hash
         )
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def _update_classified_car(self, car: Car):
-        sql = """update cars set title = ?, model = ?, price = ?, year = ?, mileage = ?, engine = ?, first_seen = ?, last_seen = ?, enriched_time = ?, gearbox = ?, color = ?, inspection = ?, description = ?, enriched = ?, published = ? where hash = ?"""
+        sql = """update cars set title = ?, model = ?, price = ?, year = ?, mileage = ?, engine = ?, first_seen = ?, last_seen = ?, enriched_time = ?, gearbox = ?, color = ?, inspection = ?, description = ?, enriched = ?, published = ?, http_response_data =?, http_response_code =? where hash = ?"""
         sql_data = (
             car.title,
             car.model,
@@ -375,12 +451,15 @@ class ObjectStoreSqlite(ObjectStore):
             car.description,
             car.enriched,
             car.published.datetime,
+            car.http_response_data,
+            car.http_response_code,
             car.hash,
         )
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
     def update_classified(self, classified: Classified):
+        logger.debug(f"Updating classified {classified.title} / {classified.short_hash}")
         if classified.category == "apartment":
             return self._update_classified_apartment(classified)
         elif classified.category == "house":

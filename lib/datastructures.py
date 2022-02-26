@@ -30,6 +30,8 @@ class Classified:
         self.title = self.title.replace("\r\n", "").replace("\n", "")
         self.enriched = False
         self.published = None
+        self.http_response_data = None
+        self.http_response_code = None
 
     def done(self):
         self._prepare()  # this method can and should be overriden by child classes
@@ -121,10 +123,10 @@ class Car(Classified):
     def __init__(self, title):
         super().__init__(title)
         self.color = None
-        self.gearbox = None
+        self.gearbox = "unknown"
         self.model = None
         self.description = None
-        self.inspection = None
+        self.inspection = "unknown"
         self.engine = None
         self.year = None
         self.mileage = None
