@@ -32,6 +32,7 @@ def create_random_apartment_classified():
     classified = lib.datastructures.Apartment(random_title, "Some street name")
     classified.published = arrow.now()
     classified.price = "100"
+    classified.link = "http://127.0.0.1/test_link"
     classified.done()
     return classified
 
@@ -42,6 +43,7 @@ def create_random_house_classified():
     classified = lib.datastructures.House(random_title, "Some street name")
     classified.published = arrow.now()
     classified.price = "1000"
+    classified.link = "http://127.0.0.1/test_link"
     classified.done()
     return classified
 
@@ -54,6 +56,7 @@ def create_random_car_classified():
     classified.price = "1000"
     classified.model = "test car"
     classified.color = "black"
+    classified.link = "http://127.0.0.1/test_link"
     classified.done()
     return classified
 

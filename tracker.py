@@ -70,7 +70,9 @@ def process(debug):
             )
             for classified in parsed_list:
                 if object_store.classified_exists(classified):
-                    object_store.update_classified(classified)
+                    # makes no sense to update it from rss data. if it exists already, let it be
+                    #object_store.update_classified(classified)
+                    pass
                 else:
                     object_store.write_classified(classified)
         logger.info("Processing run complete")
@@ -140,14 +142,16 @@ def enrich(debug, force):
                     )
                     logger.debug(f"[{classified.short_hash}] Begin enrichment...")
                     classified = enricher.enrich(classified)
-                    logger.debug(f"[{classified.short_hash}] Enrichment complete")
-                    object_store.update_classified(classified)
+                    if classified:
+                        logger.debug(f"[{classified.short_hash}] Enrichment complete")
+                        object_store.update_classified(classified)
             else:
                 if hasattr(classified, "http_response_data"):
                     logger.debug(f"[{classified.short_hash}] Begin enrichment...")
                     classified = enricher.enrich(classified)
-                    logger.debug(f"[{classified.short_hash}] Enrichment complete")
-                    object_store.update_classified(classified)
+                    if classified:
+                        logger.debug(f"[{classified.short_hash}] Enrichment complete")
+                        object_store.update_classified(classified)
                 else:
                     logger.debug(
                         f"[{classified.short_hash}] missing http response data, cannot enrich"
@@ -172,7 +176,8 @@ def stats(debug):
         for classified in object_store.get_all_classifieds("*"):
             count_all += 1
             if hasattr(classified, "http_response_data"):
-                count_has_http_response_data += 1
+                if classified.http_response_data != None:
+                    count_has_http_response_data += 1
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     enriched_count += 1
@@ -211,16 +216,21 @@ def retr(debug):
                         f"Object {classified.short_hash} already contains http response data, skipping"
                     )
                 else:
-                    classified.http_response_data = hr.retrieve_ss_data(classified.link)
+                    http_response = hr.retrieve_ss_data(classified.link)
+                    classified.http_response_data = http_response.response_content
+                    classified.http_response_code = http_response.response_code
                     object_store.update_classified(classified)
-                    randomsleep()
+                    #randomsleep()
             else:
                 logger.trace(
                     f"Object {classified.short_hash} does not have http_response_data, initiating retrieval"
                 )
-                classified.http_response_data = hr.retrieve_ss_data(classified.link)
+
+                http_response = hr.retrieve_ss_data(classified.link)
+                classified.http_response_data = http_response.response_content
+                classified.http_response_code = http_response.response_code
                 object_store.update_classified(classified)
-                randomsleep()
+                #randomsleep()
         del object_store
 
 

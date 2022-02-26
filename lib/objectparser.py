@@ -3,7 +3,7 @@ import re
 import arrow
 from bs4 import BeautifulSoup
 from loguru import logger
-
+import datetime
 import lib.datastructures
 import lib.log
 
@@ -16,9 +16,12 @@ class Enricher:
 
         # first task is to find the description
         # to do that, let' s strip the junk from the beginning
+        if car.http_response_data == None or car.http_response_code == 200:
+            logger.debug("HTTP data not present, skipping")
+            return False
 
         content = (
-            car.http_response_data.response_content
+            car.http_response_data
         )  # this is where the plain text data is
         content = content.split("Atgriezties uz sludinājumu sarakstu")[1].strip()
         try:
@@ -47,6 +50,7 @@ class Enricher:
                 gearbox = re.findall("Ātr.kārba:(.+)Krāsa:", details)[0]
         except:
             logger.warning(f"[{{car.short_hash }}] could not identify gearbox")
+            gearbox = "undetermined"
 
         try:
             color = re.findall("Krāsa:(.+)Virsbūves tips:", details)[0].strip()
@@ -62,6 +66,7 @@ class Enricher:
                 inspection = re.findall("Tehniskā apskate:(.+)Valsts", details)[0]
         except:
             logger.warning(f"[{{car.short_hash}}] Could not determine inspection")
+            inspection = "undetermined"
 
         car.engine = engine
 

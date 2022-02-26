@@ -61,7 +61,7 @@ def categoryfilter(model=None):
         )
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStats(settings)
         classifieds = object_store.get_all_classifieds(category)
         # check that model is not None and then filter by comparing lowercase
@@ -86,7 +86,7 @@ def classified(category=None, hash=None):
         logger.debug(f"Viewing classified {hash} from category {category}")
         settings = lib.settings.Settings()
         set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStoreFiles(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
         return render_template(
             "classified.html",
             category=category,

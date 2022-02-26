@@ -1,3 +1,4 @@
+from sys import breakpointhook
 import lib.settings
 from pathlib import Path
 from loguru import logger
@@ -52,17 +53,19 @@ class TrackerStats:
         self.data.enrichment_data = total_files, files_enriched
         self.save()
 
-    def set_last_objects_update(self, timestamp: datetime.datetime):
+    def set_last_objects_update(self):
         now = arrow.now()
         if self.data.last_objects_update is None:
             # it is a new stats database that has not been updated before
-            self.data.last_objects_update = timestamp
+            self.data.last_objects_update = now
             self.save()
-        elif (timestamp - self.data.last_objects_update).total_seconds() > 1:
+        elif (now - self.data.last_objects_update).total_seconds() > 1:
             # avoid saving the file too often,
             # hardcoding a 3 second delta here
-            self.data.last_objects_update = timestamp
+            self.data.last_objects_update = now
             self.save()
+        else:
+            logger.trace("Last object update not necessary")
 
     def gen_stats(self, object_store, rss_store):
         with logger.contextualize(task="Stats->Gen stats"):
