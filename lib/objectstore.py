@@ -88,7 +88,7 @@ class ObjectStoreSqlite(ObjectStore):
             raise Exception("Unexpected result received from DB")
 
     def _get_classified_house(self, hash_string: str) -> lib.datastructures.Apartment:
-        self.cur.execute("select * from houses where short_hash = '%s'" % hash_string)
+        self.cur.execute("select * from houses where hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
@@ -101,7 +101,7 @@ class ObjectStoreSqlite(ObjectStore):
     def _get_classified_apartment(
         self, hash_string: str
     ) -> lib.datastructures.Apartment:
-        self.cur.execute("select * from apartments where short_hash = '%s'" % hash_string)
+        self.cur.execute("select * from apartments where hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
@@ -112,7 +112,7 @@ class ObjectStoreSqlite(ObjectStore):
             raise Exception("Unexpected number of database results returned")
 
     def _get_classified_car(self, hash_string: str) -> lib.datastructures.Car:
-        self.cur.execute("select * from cars where short_hash = '%s'" % hash_string)
+        self.cur.execute("select * from cars where hash = '%s'" % hash_string)
         results = self.cur.fetchall()
         if len(results) == 0:
             return None
@@ -530,7 +530,7 @@ class ObjectStoreFiles(ObjectStore):
         file_handle = full_path.open(mode="wb")
         pickle.dump(classified, file_handle)
         file_handle.close()
-        self.stats.set_last_objects_update(arrow.now())
+        self.stats.set_last_objects_update()
         return True
 
     def get_classified(
