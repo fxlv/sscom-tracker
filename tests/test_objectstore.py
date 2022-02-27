@@ -115,6 +115,7 @@ class TestObjectstore:
         assert isinstance(all_classifieds, list)
         one_classified = all_classifieds[0]
         assert isinstance(one_classified, lib.datastructures.Classified)
+        del(object_store)
 
     @pytest.mark.parametrize(
         "random_classified",
@@ -138,6 +139,7 @@ class TestObjectstore:
         object_store.update_classified(classified)
         loaded_classified = object_store.get_classified(classified)
         assert loaded_classified.title == classified.title
+        del(object_store)
 
     @pytest.mark.parametrize(
         "object_store",

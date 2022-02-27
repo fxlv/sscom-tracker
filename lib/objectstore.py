@@ -34,14 +34,7 @@ class ObjectStoreSqlite(ObjectStore):
         self.stats = TrackerStats(self.s)
         logger.trace("ObjectStoreSqlite ready")
 
-    def __del__(self):
-        total = 0
-        for category in self.stats.data.categories:
-            count = self.get_classified_count(category)
-            total += count
-            self.stats.set_objects_files_count(category, count)
-        self.stats.set_objects_files_count("total", total)
-
+   
     def get_classified_count(self, category) -> int:
         if category == "apartment":
             return self._get_count_apartments()
@@ -594,10 +587,3 @@ class ObjectStoreFiles(ObjectStore):
     def get_classified_count(self, category="*") -> int:
         return sum(1 for i in self._get_all_files(category))
 
-    def __del__(self):
-        total = 0
-        for category in self.stats.data.categories:
-            count = self.get_classified_count(category)
-            total += count
-            self.stats.set_objects_files_count(category, count)
-        self.stats.set_objects_files_count("total", total)

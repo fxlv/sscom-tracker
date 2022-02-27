@@ -7,6 +7,7 @@
 # kaspars@fx.lv
 #
 import json
+from os import CLD_CONTINUED
 import sys
 import time
 import click
@@ -181,9 +182,13 @@ def stats(debug):
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     enriched_count += 1
-        # now we need to force the closing of the object store, as it also manipulates stats
-        del object_store
-        stats = TrackerStats(settings)
+        stats = TrackerStats(settings) 
+        total = 0
+        for category in stats.data.categories:
+            count = object_store.get_classified_count(category)
+            total += count
+            stats.set_objects_files_count(category, count)
+        stats.set_objects_files_count("total", total)
         stats.set_http_data_stats(count_all, count_has_http_response_data)
         stats.set_enrichment_stats(count_all, enriched_count)
         print(stats.data.enrichment_data)
@@ -216,7 +221,11 @@ def retr(debug):
                         f"Object {classified.short_hash} already contains http response data, skipping"
                     )
                 else:
-                    http_response = hr.retrieve_ss_data(classified.link)
+                    try:
+                        http_response = hr.retrieve_ss_data(classified.link)
+                    except:
+                        logger.warning("Could not retrieve HTTP data")
+                        continue
                     classified.http_response_data = http_response.response_content
                     classified.http_response_code = http_response.response_code
                     object_store.update_classified(classified)
