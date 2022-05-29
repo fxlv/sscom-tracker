@@ -72,7 +72,7 @@ def process(debug):
             for classified in parsed_list:
                 if object_store.classified_exists(classified):
                     # makes no sense to update it from rss data. if it exists already, let it be
-                    #object_store.update_classified(classified)
+                    # object_store.update_classified(classified)
                     pass
                 else:
                     object_store.write_classified(classified)
@@ -182,7 +182,7 @@ def stats(debug):
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     enriched_count += 1
-        stats = TrackerStats(settings) 
+        stats = TrackerStats(settings)
         total = 0
         for category in stats.data.categories:
             count = object_store.get_classified_count(category)
@@ -229,7 +229,7 @@ def retr(debug):
                     classified.http_response_data = http_response.response_content
                     classified.http_response_code = http_response.response_code
                     object_store.update_classified(classified)
-                    #randomsleep()
+                    # randomsleep()
             else:
                 logger.trace(
                     f"Object {classified.short_hash} does not have http_response_data, initiating retrieval"
@@ -239,7 +239,7 @@ def retr(debug):
                 classified.http_response_data = http_response.response_content
                 classified.http_response_code = http_response.response_code
                 object_store.update_classified(classified)
-                #randomsleep()
+                # randomsleep()
         del object_store
 
 

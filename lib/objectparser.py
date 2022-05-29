@@ -20,9 +20,7 @@ class Enricher:
             logger.debug("HTTP data not present, skipping")
             return False
 
-        content = (
-            car.http_response_data
-        )  # this is where the plain text data is
+        content = car.http_response_data  # this is where the plain text data is
         content = content.split("Atgriezties uz sludinājumu sarakstu")[1].strip()
         try:
             # now, find where the description ends

@@ -34,7 +34,6 @@ class ObjectStoreSqlite(ObjectStore):
         self.stats = TrackerStats(self.s)
         logger.trace("ObjectStoreSqlite ready")
 
-   
     def get_classified_count(self, category) -> int:
         if category == "apartment":
             return self._get_count_apartments()
@@ -48,31 +47,34 @@ class ObjectStoreSqlite(ObjectStore):
             raise ValueError("Unsupported classified category")
 
     def _get_count_dogs(self) -> int:
-        self.cur.execute( "select count(*) from dogs"    )
+        self.cur.execute("select count(*) from dogs")
         results = self.cur.fetchall()
         if len(results) == 1:
             result = results[0]
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
+
     def _get_count_cars(self) -> int:
-        self.cur.execute( "select count(*) from cars"    )
+        self.cur.execute("select count(*) from cars")
         results = self.cur.fetchall()
         if len(results) == 1:
             result = results[0]
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
+
     def _get_count_houses(self) -> int:
-        self.cur.execute( "select count(*) from houses"    )
+        self.cur.execute("select count(*) from houses")
         results = self.cur.fetchall()
         if len(results) == 1:
             result = results[0]
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
+
     def _get_count_apartments(self) -> int:
-        self.cur.execute( "select count(*) from apartments"    )
+        self.cur.execute("select count(*) from apartments")
         results = self.cur.fetchall()
         if len(results) == 1:
             result = results[0]
@@ -315,7 +317,7 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.enriched,
             apartment.published.datetime,
             apartment.http_response_data,
-            apartment.http_response_code
+            apartment.http_response_code,
         )
 
         self.cur.execute(sql, sql_data)
@@ -338,7 +340,7 @@ class ObjectStoreSqlite(ObjectStore):
             house.enriched,
             house.published.datetime,
             house.http_response_code,
-            house.http_response_data
+            house.http_response_data,
         )
 
         self.cur.execute(sql, sql_data)
@@ -371,12 +373,11 @@ class ObjectStoreSqlite(ObjectStore):
             car.enriched,
             car.published.datetime,
             car.http_response_data,
-            car.http_response_code
+            car.http_response_code,
         )
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
-
 
     def write_classified(self, classified: lib.datastructures.Classified):
         self.stats.set_last_objects_update()
@@ -404,7 +405,7 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.published.datetime,
             apartment.http_response_data,
             apartment.http_response_code,
-            apartment.hash
+            apartment.hash,
         )
         self.cur.execute(sql, sql_data)
         self.con.commit()
@@ -421,7 +422,7 @@ class ObjectStoreSqlite(ObjectStore):
             house.published.datetime,
             house.http_response_data,
             house.http_response_code,
-            house.hash
+            house.hash,
         )
         self.cur.execute(sql, sql_data)
         self.con.commit()
@@ -452,7 +453,9 @@ class ObjectStoreSqlite(ObjectStore):
         self.con.commit()
 
     def update_classified(self, classified: Classified):
-        logger.debug(f"Updating classified {classified.title} / {classified.short_hash}")
+        logger.debug(
+            f"Updating classified {classified.title} / {classified.short_hash}"
+        )
         if classified.category == "apartment":
             return self._update_classified_apartment(classified)
         elif classified.category == "house":
@@ -586,4 +589,3 @@ class ObjectStoreFiles(ObjectStore):
 
     def get_classified_count(self, category="*") -> int:
         return sum(1 for i in self._get_all_files(category))
-
