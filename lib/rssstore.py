@@ -82,12 +82,11 @@ class RSSStore(Store):
 
     def load_all(self):
         all_files = self.get_all_files()
-        all_files_unpickled = []
+        all_files_count = 0
         for file_name in all_files:
             if self._file_is_not_empty(file_name):
                 logger.debug(f"Opening file {file_name} for binary reading")
                 object = pickle.load(file_name.open(mode="rb"))
-                all_files_unpickled.append(object)
-        file_count = len(all_files_unpickled)
-        self.l.debug(f"{file_count} RSS files loaded")
-        return all_files_unpickled
+                all_files_count += 1
+                yield object
+        self.l.debug(f"{all_files_count} RSS files loaded")
