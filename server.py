@@ -51,7 +51,7 @@ def category(category=None):
         )
 
 @app.route("/category/<category>/all")
-def category(category=None):
+def category_all(category=None):
     with logger.contextualize(task="Web->Category"):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
