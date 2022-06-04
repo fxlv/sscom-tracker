@@ -36,8 +36,12 @@ class Enricher:
             details
         ).strip()  # merge list into a string, it could be that there are some junk whitespaces, so this join approch will ensure we only have one object to worry about.
 
-        # now search for conrete details, like engine, make, model etc in the 'details'
-        engine = re.findall("Motors:(.+)Ātr.kārba", details)[0]
+        try:
+            # now search for conrete details, like engine, make, model etc in the 'details'
+            engine = re.findall("Motors:(.+)Ātr.kārba", details)[0]
+        except IndexError:
+            logger.warning(f"Cannot determine engine type, details: {details}")
+            raise IndexError(f"Cannot determine engine type. See log for more details.")
 
         try:
             # sometimes, mileage is not specified, which makes the regex for gearbox have two options
