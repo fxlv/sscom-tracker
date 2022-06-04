@@ -190,16 +190,34 @@ class ObjectStoreSqlite(ObjectStore):
         car.http_response_code = result[19]
         return car
 
-    def _get_all_cars(self) -> list[Car]:
-        self.cur.execute("select * from cars order by published desc")
+    def _get_cars(self, limit=None) ->list[Car]:
+        if limit:
+            sql_query = f"select * from cars order by published desc limit {limit}"
+        else:
+            sql_query = "select * from cars order by published desc"
+
+        self.cur.execute(sql_query)
         results = self.cur.fetchall()
         cars_list = []
         for r in results:
             cars_list.append(self._create_car_from_db_result(r))
         return cars_list
 
+    def _get_all_cars(self) -> list[Car]:
+        return self._get_cars(limit=None)
+
+    def _get_latest_cars(self) -> list[Car]:
+        return self._get_cars(limit=100)
+
+    def _get_latest_houses(self) -> list[House]:
+        return self._get_houses(limit=100)
     def _get_all_houses(self) -> list[House]:
-        self.cur.execute("select * from houses order by published desc")
+        return self._get_houses(limit=None)
+    def _get_houses(self, limit=None) -> list[House]:
+        if limit:
+            self.cur.execute(f"select * from houses order by published desc limit {limit}")
+        else:
+            self.cur.execute("select * from houses order by published desc")
         results = self.cur.fetchall()
         houses_list = []
         for r in results:
@@ -207,7 +225,14 @@ class ObjectStoreSqlite(ObjectStore):
         return houses_list
 
     def _get_all_apartments(self) -> list[Apartment]:
-        self.cur.execute("select * from apartments order by published desc")
+        return self._get_apartments(limit=None)
+    def _get_latest_apartments(self) -> list[Apartment]:
+        return self._get_apartments(limit=100)
+    def _get_apartments(self, limit=None) -> list[Apartment]:
+        if limit:
+            self.cur.execute(f"select * from apartments order by published desc limit {limit}")
+        else:
+            self.cur.execute(f"select * from apartments order by published desc")
         results = self.cur.fetchall()
         apartments_list = []
         for r in results:
@@ -278,6 +303,25 @@ class ObjectStoreSqlite(ObjectStore):
             return self._classified_house_exists(classified)
         elif classified.category == "car":
             return self._classified_car_exists(classified)
+        else:
+            raise NotImplementedError()
+
+    def get_latest_classifieds(self, category="*") -> list:
+        """Returns a list of all classifieds."""
+        if not self._is_valid_category(category):
+            raise ValueError("Invalid category specified")
+        if category == "apartment":
+            return self._get_latest_apartments()
+        elif category == "house":
+            return self._get_latest_houses()
+        elif category == "car":
+            return self._get_latest_cars()
+        elif category == "*":
+            all_classifieds = []
+            all_classifieds.extend(self._get_latest_apartments())
+            all_classifieds.extend(self._get_latest_houses())
+            all_classifieds.extend(self._get_latest_cars())
+            return all_classifieds
         else:
             raise NotImplementedError()
 

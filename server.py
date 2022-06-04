@@ -47,9 +47,23 @@ def category(category=None):
             "category.html",
             stats=stats,
             category=category,
-            classifieds=object_store.get_all_classifieds(category),
+            classifieds=object_store.get_latest_classifieds(category),
         )
 
+@app.route("/category/<category>/all")
+def category(category=None):
+    with logger.contextualize(task="Web->Category"):
+        logger.debug(f"Returning category view for {category}")
+        settings = lib.settings.Settings()
+        set_up_logging(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
+        stats = lib.stats.TrackerStats(settings)
+        return render_template(
+            "category.html",
+            stats=stats,
+            category=category,
+            classifieds=object_store.get_all_classifieds(category),
+        )
 
 @app.route("/category/car/filter/<model>")
 def categoryfilter(model=None):
