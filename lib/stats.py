@@ -55,6 +55,7 @@ class TrackerStats:
 
     def set_last_objects_update(self):
         now = arrow.now()
+        logger.trace(f"set_last_object_update() called at: {now}")
         if self.data.last_objects_update is None:
             # it is a new stats database that has not been updated before
             self.data.last_objects_update = now
@@ -64,6 +65,7 @@ class TrackerStats:
             # hardcoding a 3 second delta here
             self.data.last_objects_update = now
             self.save()
+            logger.trace(f"Last object update set to: {now}")
         else:
             logger.trace("Last object update not necessary")
 
