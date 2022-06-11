@@ -13,6 +13,7 @@ from lib.log import func_log
 from lib.store import Store
 from lib.stats import TrackerStats
 
+from typing import Iterator
 
 class RSSStore(Store):
     def __init__(self, settings: lib.settings.Settings):
@@ -80,7 +81,7 @@ class RSSStore(Store):
     def get_files_count(self) -> int:
         return sum(1 for i in self.get_all_files())
 
-    def load_all(self):
+    def load_all(self) -> Iterator[object]:
         all_files = self.get_all_files()
         all_files_count = 0
         for file_name in all_files:

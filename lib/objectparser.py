@@ -7,6 +7,8 @@ import datetime
 import lib.datastructures
 import lib.log
 
+from lib.datastructures import Classified
+
 
 class Enricher:
     def __init__(self):
@@ -207,7 +209,7 @@ class ObjectParser:
         elif category == "car":
             return self._get_car_from_rss
 
-    def parse_object(self, rss_object):
+    def parse_object(self, rss_object) -> list[Classified]:
         retrieval_date = rss_object.retrieved_time.strftime("%d.%m.%y")
         retrieval_time = rss_object.retrieved_time.strftime("%H:%M:%S")
         logger.debug(

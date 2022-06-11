@@ -15,6 +15,7 @@ class Settings:
         self.pushover_api_token: str = None
         self.local_cache: str = None
         self.data_cache: str = None
+        self.zabbix_enabled: bool = False
         self.zabbix_server: str = None
         self.zabbix_trap_host: str = None
         self.zabbix_port: int = None
@@ -57,6 +58,7 @@ class Settings:
         self.cache_dir = self._get_setting("cache_dir")
         self.zabbix_server = self._get_setting("zabbix_server")
         self.zabbix_trap_host = self._get_setting("zabbix_trap_host")
+        self.zabbix_enabled = self._get_setting("zabbix_enabled")
         self.zabbix_port = int(self._get_setting("zabbix_port"))
         self.object_cache_dir = self._get_setting("object_cache_dir")
         self.log_dir = self._get_setting("log_dir")
