@@ -223,8 +223,8 @@ def retr(debug):
                 else:
                     try:
                         http_response = hr.retrieve_ss_data(classified.link)
-                    except:
-                        logger.warning("Could not retrieve HTTP data")
+                    except Exception as e:
+                        logger.warning(f"Could not retrieve HTTP data. {e=}")
                         continue
                     classified.http_response_data = http_response.response_content
                     classified.http_response_code = http_response.response_code
