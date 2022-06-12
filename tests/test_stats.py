@@ -35,7 +35,7 @@ def test_stats_data():
 def test_set_last_rss_update(stats):
     now = datetime.datetime.now()
     stats.set_last_rss_update(now)
-    assert stats.data.last_rss_update == now
+    assert stats.get_last_rss_update() == now
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
 def test_get_last_rss_update(stats):

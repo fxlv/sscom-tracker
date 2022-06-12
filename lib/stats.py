@@ -3,6 +3,7 @@ import pickle
 import sqlite3
 from pathlib import Path
 from sys import breakpointhook
+from unittest import result
 
 import arrow
 import portalocker
@@ -34,10 +35,16 @@ class TrackerStatsSql:
     
     def set_last_rss_update(self, timestamp: datetime.datetime):
         logger.trace("TrackerStatsSql: set_last_rss_update")
-        pass    
+        sql = "insert into stats_last_rss_update (last_update_timestamp) values (?)"
+        sql_data = (timestamp,)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
     
     def get_last_rss_update(self) -> datetime.datetime:
         logger.trace("TrackerStatsSql: get_last_rss_update")
+        sql = "select last_update_timestamp from stats_last_rss_update order by id desc limit 1"
+        self.cur.execute(sql)
+        result = self.cur.fetchone()[0]
         pass
 
     def set_rss_files_count(self, count: int):
