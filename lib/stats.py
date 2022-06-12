@@ -1,5 +1,6 @@
 import datetime
 import pickle
+import sqlite3
 from pathlib import Path
 from sys import breakpointhook
 
@@ -24,6 +25,47 @@ class StatsData:
         self.enrichment_data = None, None
 
 
+class TrackerStatsSql:
+    def __init__(self, settings: lib.settings.Settings):
+        self.settings = settings
+        self.con = sqlite3.connect(self.settings.sqlite_db)
+        self.cur = self.con.cursor()
+        logger.trace("TrackerStatsSql: __init__")
+    
+    def set_last_rss_update(self, timestamp: datetime.datetime):
+        logger.trace("TrackerStatsSql: set_last_rss_update")
+        pass    
+    
+    def get_last_rss_update(self) -> datetime.datetime:
+        logger.trace("TrackerStatsSql: get_last_rss_update")
+        pass
+
+    def set_rss_files_count(self, count: int):
+        logger.trace("TrackerStatsSql: set_rss_files_count")
+            
+    def get_rss_files_count(self) -> int:
+        logger.trace("TrackerStatsSql: get_rss_files_count")
+
+    def set_objects_files_count(self, category: str, count: int):
+        logger.trace("TrackerStatsSql: set_objects_files_count")
+    
+    def get_objects_files_count(self, category: str) -> int:
+        logger.trace("TrackerStatsSql: get_objects_files_count")
+    def set_http_data_stats(self, total_files, files_with_http_data):
+        logger.trace("TrackerStatsSql: set_http_data_stats")
+    
+    def get_http_data_stats(self) -> tuple:
+        logger.trace("TrackerStatsSql: get_http_data_stats")
+
+
+    def set_enrichment_stats(self, total_files, files_enriched):
+        logger.trace("TrackerStatsSql: set_enrichment_stats")
+    def get_enrichment_stats(self):
+        logger.trace("TrackerStatsSql: get_enrichment_stats")
+    def get_last_objects_update(self) -> datetime.datetime:
+        logger.trace("TrackerStatsSql: get_last_objects_update")
+    def set_last_objects_update(self):
+        logger.trace("TrackerStatsSql: set_last_objects_update")
 class TrackerStats:
     def __init__(self, settings: lib.settings.Settings):
         self.settings = settings
