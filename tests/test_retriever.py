@@ -15,7 +15,7 @@ class TestRSSStorage:
         store = lib.rssstore.RSSStore(settings)
         op = lib.objectparser.ObjectParser()
         object_store = lib.objectstore.ObjectStoreFiles(settings)
-        objects_list = store.load_all()
+        objects_list = store.load()
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
             for classified in parsed_list:

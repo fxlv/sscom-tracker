@@ -78,11 +78,25 @@ class RSSStore(Store):
         self.l.trace("Get all files")
         return Path(self.s.cache_dir).glob("*/*/*/*/*.rss")
 
+    def get_latest_files(self):
+        all_files = self.get_all_files()
+        # return files created within the last day only
+        now = arrow.now()
+        for file in all_files:
+            file_creation_time = arrow.get(file.stat().st_ctime)
+            delta = now - file_creation_time
+            if delta.days < 1: # return files less than 24h old
+                yield file
+
     def get_files_count(self) -> int:
         return sum(1 for i in self.get_all_files())
 
-    def load_all(self) -> Iterator[object]:
-        all_files = self.get_all_files()
+    def load(self, all=False) -> Iterator[object]:
+        self.l.trace("Load all")
+        if all:
+            all_files = self.get_all_files()
+        else:
+            all_files = self.get_latest_files()
         all_files_count = 0
         for file_name in all_files:
             if self._file_is_not_empty(file_name):

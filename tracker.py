@@ -54,16 +54,17 @@ def update(debug, category):
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-def process(debug):
+@click.option("--all", is_flag=True, default=False, help="Load all files, not just latest ones (default)")
+def process(debug, all):
     """Parse and store the downloaded RSS data."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Process"):
-        logger.info("Starting processing run...")
+        logger.info(f"Starting processing run...{all=}")
         store = lib.rssstore.RSSStore(settings)
         op = lib.objectparser.ObjectParser()
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        objects_list = store.load_all()
+        objects_list = store.load(all)
         for rss_object in objects_list:
             parsed_list = op.parse_object(rss_object)
             logger.debug(
