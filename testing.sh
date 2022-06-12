@@ -34,6 +34,9 @@ if [[ $1 == "all" ]];then
     echo "Running mypy"
     python3 -m mypy tracker.py
     echo
+    echo "Running bandit"
+    bandit lib/*
+    bandit tracker.py
 
     echo "Running pre-commit"
     pre-commit run  --all-files
