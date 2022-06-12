@@ -6,6 +6,7 @@ import pickle
 import datetime
 import lib.zabbix
 import arrow
+import portalocker
 
 
 class StatsData:
@@ -27,6 +28,7 @@ class TrackerStats:
         self.data: StatsData = self.load()
         self.data.categories = list(self.settings.tracking_list.keys())
         self.zabbix = lib.zabbix.Zabbix(settings)
+        self.lock_file = self.settings.stats_lock_file
 
     # def __del__(self):
     #   with logger.contextualize(task="Stats->Destructor"):
@@ -84,51 +86,52 @@ class TrackerStats:
             return stats_file
 
     def save(self):
-        with logger.contextualize(task="Stats->Save"):
-            logger.trace("Saving stats to pickle file")
-            fh = open(self._get_stats_file(), "wb")
-            pickle.dump(self.data, fh)
-            logger.trace("Saved stats to pickle file")
-            fh.close()
+        with portalocker.Lock(self.lock_file) as lock:
+            with logger.contextualize(task="Stats->Save"):
+                logger.trace("Saving stats to pickle file")
+                fh = open(self._get_stats_file(), "wb")
+                pickle.dump(self.data, fh)
+                logger.trace("Saved stats to pickle file")
+                fh.close()
 
-            logger.trace("Now updating zabbix")
-            metrics = []
-            metrics.append(
-                self.zabbix.get_zabbix_metric(
-                    "rss_files_count", self.data.rss_files_count
+                logger.trace("Now updating zabbix")
+                metrics = []
+                metrics.append(
+                    self.zabbix.get_zabbix_metric(
+                        "rss_files_count", self.data.rss_files_count
+                    )
                 )
-            )
 
-            stuff_to_update = ["house", "car", "dog", "apartment"]
-            for type_of_stuff in stuff_to_update:
-                if type_of_stuff in self.data.objects_files_count.keys():
+                stuff_to_update = ["house", "car", "dog", "apartment"]
+                for type_of_stuff in stuff_to_update:
+                    if type_of_stuff in self.data.objects_files_count.keys():
+                        metrics.append(
+                            self.zabbix.get_zabbix_metric(
+                                f"objects_{type_of_stuff}_count",
+                                self.data.objects_files_count[type_of_stuff],
+                            )
+                        )
+
+                if "total" in self.data.objects_files_count.keys():
                     metrics.append(
                         self.zabbix.get_zabbix_metric(
-                            f"objects_{type_of_stuff}_count",
-                            self.data.objects_files_count[type_of_stuff],
+                            "objects_count_total", self.data.objects_files_count["total"]
                         )
                     )
 
-            if "total" in self.data.objects_files_count.keys():
                 metrics.append(
                     self.zabbix.get_zabbix_metric(
-                        "objects_count_total", self.data.objects_files_count["total"]
+                        "objects_with_http_data_count", self.data.http_data[1]
                     )
                 )
-
-            metrics.append(
-                self.zabbix.get_zabbix_metric(
-                    "objects_with_http_data_count", self.data.http_data[1]
+                metrics.append(
+                    self.zabbix.get_zabbix_metric(
+                        "objects_enriched", self.data.enrichment_data[1]
+                    )
                 )
-            )
-            metrics.append(
-                self.zabbix.get_zabbix_metric(
-                    "objects_enriched", self.data.enrichment_data[1]
-                )
-            )
-            result = self.zabbix.send_zabbix_metrics(metrics)
-            logger.debug(f"Zabbix result: {result}")
-            print(result)
+                result = self.zabbix.send_zabbix_metrics(metrics)
+                logger.debug(f"Zabbix result: {result}")
+                print(result)
 
     def load(self):
         with logger.contextualize(task="Stats->Load"):

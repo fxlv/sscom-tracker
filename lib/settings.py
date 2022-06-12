@@ -20,6 +20,8 @@ class Settings:
         self.zabbix_trap_host: str = None
         self.zabbix_port: int = None
         self.log_dir: str = None
+        self.lock_file: str = "tracker.lock"
+        self.stats_lock_file: str = "stats.lock"
         self.log_file_name = "tracker.log"  # default, but can be overriden
         self.log_rotation: str = None
         self.cache_dir: str = None
@@ -57,6 +59,8 @@ class Settings:
         self.local_cache = self._get_setting("local_cache")
         self.cache_dir = self._get_setting("cache_dir")
         self.zabbix_server = self._get_setting("zabbix_server")
+        self.lock_file = self._get_setting("lock_file")
+        self.stats_lock_file = self._get_setting("stats_lock_file")
         self.zabbix_trap_host = self._get_setting("zabbix_trap_host")
         self.zabbix_enabled = self._get_setting("zabbix_enabled")
         self.zabbix_port = int(self._get_setting("zabbix_port"))
