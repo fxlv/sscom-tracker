@@ -1,12 +1,14 @@
+import os
+
+import feedparser
 import pytest
+
 import lib.cache
 import lib.objectparser
 import lib.objectstore
 import lib.retriever
 import lib.rssstore
 import lib.settings
-import feedparser
-import os
 
 
 class TestRSSStorage:

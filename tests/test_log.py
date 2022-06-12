@@ -1,10 +1,12 @@
-from loguru import logger
-import lib.settings
-import pytest
-import lib.log
 import datetime
 import os
 from pathlib import Path
+
+import pytest
+from loguru import logger
+
+import lib.log
+import lib.settings
 
 now = datetime.datetime.now()
 

@@ -4,14 +4,12 @@ import os
 import time
 
 import pytest
+from loguru import logger
 
 import lib.cache
 import lib.datastructures
 import lib.log
 import lib.settings
-
-from loguru import logger
-
 
 settings = lib.settings.TestSettings()
 

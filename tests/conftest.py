@@ -2,6 +2,7 @@
 # whith a small addition to remove all handlers instead of just one
 
 import logging
+
 import pytest
 from _pytest.logging import caplog as _caplog
 from loguru import logger

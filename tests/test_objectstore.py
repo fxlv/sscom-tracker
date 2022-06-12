@@ -1,13 +1,11 @@
 import arrow
 import pytest
-
-import lib.objectstore
-import lib.settings
-import lib.settings
-import lib.helpers
-import lib.datastructures
 from loguru import logger
 
+import lib.datastructures
+import lib.helpers
+import lib.objectstore
+import lib.settings
 from lib.store import ObjectStore
 
 

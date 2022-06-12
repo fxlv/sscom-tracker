@@ -1,8 +1,8 @@
-import lib.push
 import pytest
-import lib.log
-import lib.settings
 
+import lib.log
+import lib.push
+import lib.settings
 
 settings = lib.settings.TestSettings()
 lib.log.set_up_logging(settings, debug=True)

@@ -1,6 +1,8 @@
-import lib.settings
-import pytest
 import os
+
+import pytest
+
+import lib.settings
 
 
 class TestSettings:

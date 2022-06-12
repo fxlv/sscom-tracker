@@ -1,6 +1,6 @@
 import datetime
-import arrow
 
+import arrow
 import pytest
 
 import lib.settings
