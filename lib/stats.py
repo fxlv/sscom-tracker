@@ -58,6 +58,11 @@ class TrackerStats:
         self.save()
 
     def set_last_objects_update(self):
+        """Update the last objects update time
+        
+        To avoid having to update it too frequently, 
+        we only update it if it has been over a second since previous update
+        """
         now = arrow.now()
         logger.trace(f"set_last_object_update() called at: {now}")
         if self.data.last_objects_update is None:
@@ -73,19 +78,60 @@ class TrackerStats:
         else:
             logger.trace("Last object update not necessary")
 
-    def gen_stats(self, object_store, rss_store):
-        with logger.contextualize(task="Stats->Gen stats"):
-            logger.trace("Generating stats")
-            self.object_store = object_store
-            self.rss_store = rss_store
-            self.data.objects_count = object_store.get_classified_count()
-            self.data.rss_files_count = rss_store.get_classified_count()
+    #def gen_stats(self, object_store, rss_store):
+    #    with logger.contextualize(task="Stats->Gen stats"):
+    #       logger.trace("Generating stats")
+    #      self.object_store = object_store
+    #     self.rss_store = rss_store
+    #    self.data.objects_count = object_store.get_classified_count()
+    #   self.data.rss_files_count = rss_store.get_classified_count()
 
     def _get_stats_file(self):
         with logger.contextualize(task="Stats"):
             stats_file = Path(f"{self.settings.cache_dir}/stats.db")
             logger.trace(f"Returning stats file {stats_file}")
             return stats_file
+    
+    def _update_zabbix(self):
+
+        with logger.contextualize(task="Stats->_update_zabbix"):
+            logger.trace("Now updating zabbix")
+            metrics = []
+            metrics.append(
+                self.zabbix.get_zabbix_metric(
+                    "rss_files_count", self.data.rss_files_count
+                )
+            )
+
+            stuff_to_update = ["house", "car", "dog", "apartment"]
+            for type_of_stuff in stuff_to_update:
+                if type_of_stuff in self.data.objects_files_count.keys():
+                    metrics.append(
+                        self.zabbix.get_zabbix_metric(
+                            f"objects_{type_of_stuff}_count",
+                            self.data.objects_files_count[type_of_stuff],
+                        )
+                    )
+
+            if "total" in self.data.objects_files_count.keys():
+                metrics.append(
+                    self.zabbix.get_zabbix_metric(
+                        "objects_count_total", self.data.objects_files_count["total"]
+                    )
+                )
+
+            metrics.append(
+                self.zabbix.get_zabbix_metric(
+                    "objects_with_http_data_count", self.data.http_data[1]
+                )
+            )
+            metrics.append(
+                self.zabbix.get_zabbix_metric(
+                    "objects_enriched", self.data.enrichment_data[1]
+                )
+            )
+            result = self.zabbix.send_zabbix_metrics(metrics)
+            logger.debug(f"Zabbix result: {result}")
 
     def save(self):
         with portalocker.Lock(self.lock_file) as lock:
@@ -95,45 +141,9 @@ class TrackerStats:
                 pickle.dump(self.data, fh)
                 logger.trace("Saved stats to pickle file")
                 fh.close()
+            
+            self._update_zabbix()
 
-                logger.trace("Now updating zabbix")
-                metrics = []
-                metrics.append(
-                    self.zabbix.get_zabbix_metric(
-                        "rss_files_count", self.data.rss_files_count
-                    )
-                )
-
-                stuff_to_update = ["house", "car", "dog", "apartment"]
-                for type_of_stuff in stuff_to_update:
-                    if type_of_stuff in self.data.objects_files_count.keys():
-                        metrics.append(
-                            self.zabbix.get_zabbix_metric(
-                                f"objects_{type_of_stuff}_count",
-                                self.data.objects_files_count[type_of_stuff],
-                            )
-                        )
-
-                if "total" in self.data.objects_files_count.keys():
-                    metrics.append(
-                        self.zabbix.get_zabbix_metric(
-                            "objects_count_total", self.data.objects_files_count["total"]
-                        )
-                    )
-
-                metrics.append(
-                    self.zabbix.get_zabbix_metric(
-                        "objects_with_http_data_count", self.data.http_data[1]
-                    )
-                )
-                metrics.append(
-                    self.zabbix.get_zabbix_metric(
-                        "objects_enriched", self.data.enrichment_data[1]
-                    )
-                )
-                result = self.zabbix.send_zabbix_metrics(metrics)
-                logger.debug(f"Zabbix result: {result}")
-                print(result)
 
     def load(self):
         with logger.contextualize(task="Stats->Load"):
