@@ -7,10 +7,14 @@
 # kaspars@fx.lv
 #
 import json
-from os import CLD_CONTINUED
+import random
 import sys
 import time
+from os import CLD_CONTINUED
+
 import click
+from loguru import logger
+
 import lib.cache
 import lib.datastructures
 import lib.objectparser
@@ -18,14 +22,12 @@ import lib.objectstore
 import lib.push
 import lib.retriever
 import lib.rssstore
-from lib.stats import TrackerStats
+import lib.settings
 from lib.display import print_results_to_console
 from lib.filter import Filter
-import lib.settings
-from lib.log import func_log, set_up_logging, normalize
+from lib.log import func_log, normalize, set_up_logging
 from lib.push import send_push
-from loguru import logger
-import random
+from lib.stats import TrackerStats
 
 
 @click.group()

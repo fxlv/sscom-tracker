@@ -1,12 +1,11 @@
 import sys
 import time
+import unicodedata
 from pathlib import Path
 
 from loguru import logger
 
 import lib.settings
-import unicodedata
-
 from lib.helpers import strip_sscom
 
 

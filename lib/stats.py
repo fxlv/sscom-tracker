@@ -1,12 +1,14 @@
-from sys import breakpointhook
-import lib.settings
-from pathlib import Path
-from loguru import logger
-import pickle
 import datetime
-import lib.zabbix
+import pickle
+from pathlib import Path
+from sys import breakpointhook
+
 import arrow
 import portalocker
+from loguru import logger
+
+import lib.settings
+import lib.zabbix
 
 
 class StatsData:

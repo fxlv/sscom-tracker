@@ -1,12 +1,12 @@
+import datetime
 import re
 
 import arrow
 from bs4 import BeautifulSoup
 from loguru import logger
-import datetime
+
 import lib.datastructures
 import lib.log
-
 from lib.datastructures import Classified
 
 

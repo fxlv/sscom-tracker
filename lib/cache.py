@@ -5,7 +5,7 @@ import pickle
 from loguru import logger
 
 import lib.settings
-from lib.log import func_log, set_up_logging, normalize
+from lib.log import func_log, normalize, set_up_logging
 
 
 class Cache:

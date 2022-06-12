@@ -1,17 +1,17 @@
 import datetime
 import os
 import pickle
+import sqlite3
 from pathlib import Path
 
-from loguru import logger
 import arrow
+from loguru import logger
+
 import lib.datastructures
 import lib.settings
-from lib.datastructures import Apartment, Classified, House, Car
-from lib.store import ObjectStore
+from lib.datastructures import Apartment, Car, Classified, House
 from lib.stats import TrackerStats
-
-import sqlite3
+from lib.store import ObjectStore
 
 
 def get_object_store(storage_type: str):

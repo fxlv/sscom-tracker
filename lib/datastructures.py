@@ -1,10 +1,10 @@
 import hashlib
 
 import arrow
-from loguru import logger
-from lib.log import normalize
-
 from bs4 import BeautifulSoup
+from loguru import logger
+
+from lib.log import normalize
 
 
 class HttpResponse:

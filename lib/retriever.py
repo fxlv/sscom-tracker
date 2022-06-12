@@ -5,14 +5,14 @@ from abc import ABC, abstractmethod
 
 import feedparser
 import requests
+from bs4 import BeautifulSoup
 from loguru import logger
 from lxml import html
 
-from bs4 import BeautifulSoup
 import lib.settings
-from lib.datastructures import Apartment, House, Dog, HttpResponse
-from lib.log import func_log
+from lib.datastructures import Apartment, Dog, House, HttpResponse
 from lib.helpers import strip_sscom
+from lib.log import func_log
 from lib.rssstore import RSSStore
 
 

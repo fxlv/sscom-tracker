@@ -3,6 +3,7 @@ import hashlib
 import os
 import pickle
 from pathlib import Path
+from typing import Iterator
 
 import arrow
 from loguru import logger
@@ -10,10 +11,9 @@ from loguru import logger
 import lib.settings
 from lib.helpers import shorthash
 from lib.log import func_log
-from lib.store import Store
 from lib.stats import TrackerStats
+from lib.store import Store
 
-from typing import Iterator
 
 class RSSStore(Store):
     def __init__(self, settings: lib.settings.Settings):
@@ -22,6 +22,7 @@ class RSSStore(Store):
         self._create_cache_dir_if_not_exists()
         self.stats = TrackerStats(self.s)
         self.l = logger.bind(task="RSSStore")
+        self.l.trace("Initialized")
 
     @func_log
     def _hash(self, string: str):

@@ -1,4 +1,5 @@
 from pyzabbix import ZabbixMetric, ZabbixSender
+
 import lib.settings
 
 
