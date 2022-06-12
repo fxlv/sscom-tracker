@@ -6,6 +6,7 @@ import pytest
 import lib.settings
 import lib.stats
 
+RSS_FILES_COUNT = 5
 
 @pytest.fixture
 def stats():
@@ -30,31 +31,48 @@ def test_set_last_rss_update(stats):
     stats.set_last_rss_update(now)
     assert stats.data.last_rss_update == now
 
-
-def test_set_rss_files_count(stats):
+def test_get_last_rss_update(stats):
+    # requires set_last_rss_update to be called before
+    last = stats.get_last_rss_update()
     now = datetime.datetime.now()
-    stats.set_rss_files_count(now)
-    assert stats.data.rss_files_count == now
+    delta = now - last
+    assert delta.total_seconds() < 1
 
 
-def test_set_objects_files_count(stats):
-    now = datetime.datetime.now()
-    stats.set_objects_files_count("test", now)
-    assert stats.data.objects_files_count["test"] == now
+def test_set_get_rss_files_count(stats):
+    stats.set_rss_files_count(RSS_FILES_COUNT)
+    assert stats.get_rss_files_count() == RSS_FILES_COUNT
 
 
-def test_set_http_data_stats(stats):
+def test_set_get_objects_files_count(stats):
+    stats.set_objects_files_count("test", 7)
+    assert stats.get_objects_files_count("test") == 7
+
+
+def test_set_get_http_data_stats(stats):
     stats.set_http_data_stats(1, 1)
-    assert stats.data.http_data == (1, 1)
+    assert stats.get_http_data_stats() == (1, 1)
+
 
 
 def test_set_enrichment_stats(stats):
     stats.set_enrichment_stats(1, 1)
     assert stats.data.enrichment_data == (1, 1)
 
+def test_get_enrichment_stats(stats):
+    stats.set_enrichment_stats(1, 1)
+    assert stats.get_enrichment_stats() == (1, 1)
 
 def test_set_last_objects_update(stats):
     stats.set_last_objects_update()
     now = arrow.now()
-    delta = now - stats.data.last_objects_update
+    delta = now - stats.get_last_objects_update()
     assert delta.total_seconds() < 1
+
+def test_get_last_objects_update(stats):
+    stats.set_last_objects_update()
+    last = stats.get_last_objects_update()
+    now = arrow.now()
+    delta = now - last
+    assert delta.total_seconds() < 1
+

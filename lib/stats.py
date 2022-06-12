@@ -40,22 +40,41 @@ class TrackerStats:
     def set_last_rss_update(self, timestamp: datetime.datetime):
         self.data.last_rss_update = timestamp
         self.save()
+    
+    def get_last_rss_update(self) -> datetime.datetime:
+        return self.data.last_rss_update
 
     def set_rss_files_count(self, count: int):
         self.data.rss_files_count = count
         self.save()
+    
+    def get_rss_files_count(self) -> int:
+        return self.data.rss_files_count
 
     def set_objects_files_count(self, category: str, count: int):
         self.data.objects_files_count[category] = count
         self.save()
+    
+    def get_objects_files_count(self, category: str) -> int:
+        return self.data.objects_files_count[category]
 
     def set_http_data_stats(self, total_files, files_with_http_data):
         self.data.http_data = total_files, files_with_http_data
         self.save()
+    
+    def get_http_data_stats(self) -> tuple:
+        return self.data.http_data
+
 
     def set_enrichment_stats(self, total_files, files_enriched):
         self.data.enrichment_data = total_files, files_enriched
         self.save()
+    
+    def get_enrichment_stats(self):
+        return self.data.enrichment_data
+
+    def get_last_objects_update(self) -> datetime.datetime:
+        return self.data.last_objects_update
 
     def set_last_objects_update(self):
         """Update the last objects update time
@@ -157,6 +176,3 @@ class TrackerStats:
             else:
                 fh = open(stats_file, "rb")
                 return pickle.load(fh)
-
-    def get_object_count(self, category):
-        return self.object_store.get_classified_count(category)
