@@ -44,14 +44,23 @@ class TrackerStatsSql:
         logger.trace("TrackerStatsSql: get_last_rss_update")
         sql = "select last_update_timestamp from stats_last_rss_update order by id desc limit 1"
         self.cur.execute(sql)
-        result = self.cur.fetchone()[0]
-        pass
+        last_rss_update = self.cur.fetchone()[0]
+        return arrow.get(last_rss_update).datetime
 
     def set_rss_files_count(self, count: int):
         logger.trace("TrackerStatsSql: set_rss_files_count")
-            
+        sql = "insert into stats_rss_files_count (rss_files_count, last_update_timestamp) values (?,?)"
+        timestamp = arrow.now().datetime
+        sql_data = (count, timestamp,)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
+
     def get_rss_files_count(self) -> int:
         logger.trace("TrackerStatsSql: get_rss_files_count")
+        sql = "select rss_files_count from stats_rss_files_count order by id desc limit 1"
+        self.cur.execute(sql)
+        rss_files_count = self.cur.fetchone()[0]
+        return rss_files_count
 
     def set_objects_files_count(self, category: str, count: int):
         logger.trace("TrackerStatsSql: set_objects_files_count")

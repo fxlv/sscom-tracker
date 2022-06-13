@@ -33,15 +33,15 @@ def test_stats_data():
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
 def test_set_last_rss_update(stats):
-    now = datetime.datetime.now()
-    stats.set_last_rss_update(now)
+    now = arrow.now()
+    stats.set_last_rss_update(now.datetime)
     assert stats.get_last_rss_update() == now
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
 def test_get_last_rss_update(stats):
     # requires set_last_rss_update to be called before
     last = stats.get_last_rss_update()
-    now = datetime.datetime.now()
+    now = arrow.now()
     delta = now - last
     assert delta.total_seconds() < 1
 
