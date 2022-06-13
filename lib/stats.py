@@ -64,9 +64,19 @@ class TrackerStatsSql:
 
     def set_objects_files_count(self, category: str, count: int):
         logger.trace("TrackerStatsSql: set_objects_files_count")
-    
+        sql = "insert into stats_objects_files_count (objects_files_count,category,last_update_timestamp) values (?,?,?)"
+        timestamp = arrow.now().datetime
+        sql_data = (count, category, timestamp,)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
+
     def get_objects_files_count(self, category: str) -> int:
         logger.trace("TrackerStatsSql: get_objects_files_count")
+        sql = "select objects_files_count from stats_objects_files_count where category = '%s' order by id desc limit 1"
+        self.cur.execute(sql % category)
+        objects_files_count = self.cur.fetchone()[0]
+        return objects_files_count
+
     def set_http_data_stats(self, total_files, files_with_http_data):
         logger.trace("TrackerStatsSql: set_http_data_stats")
     
