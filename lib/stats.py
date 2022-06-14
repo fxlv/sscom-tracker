@@ -86,12 +86,29 @@ class TrackerStatsSql:
 
     def set_enrichment_stats(self, total_files, files_enriched):
         logger.trace("TrackerStatsSql: set_enrichment_stats")
+    
     def get_enrichment_stats(self):
         logger.trace("TrackerStatsSql: get_enrichment_stats")
+    
     def get_last_objects_update(self) -> datetime.datetime:
         logger.trace("TrackerStatsSql: get_last_objects_update")
+        sql = "select last_update_timestamp from stats_last_objects_update order by id desc limit 1"
+        self.cur.execute(sql)
+        last_objects_update = self.cur.fetchone()[0]
+        return arrow.get(last_objects_update).datetime
+
     def set_last_objects_update(self):
+        """Save the last time an object was updated.
+        
+        To avoid wasting resources, write to database not more often than once per second.
+        """
         logger.trace("TrackerStatsSql: set_last_objects_update")
+        timestamp = arrow.now().datetime
+        sql = "insert into stats_last_objects_update (last_update_timestamp) values (?)"
+        sql_data = (timestamp,)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
+
 class TrackerStats:
     def __init__(self, settings: lib.settings.Settings):
         self.settings = settings
