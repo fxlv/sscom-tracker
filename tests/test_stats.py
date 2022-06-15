@@ -66,14 +66,10 @@ def test_set_get_http_data_stats(stats):
 
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
-def test_set_enrichment_stats(stats):
-    stats.set_enrichment_stats(1, 1)
-    assert stats.data.enrichment_data == (1, 1)
-
-@pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
-def test_get_enrichment_stats(stats):
+def test_set_get_enrichment_stats(stats):
     stats.set_enrichment_stats(1, 1)
     assert stats.get_enrichment_stats() == (1, 1)
+
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
 def test_set_last_objects_update(stats):
