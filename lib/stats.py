@@ -26,11 +26,13 @@ class StatsData:
         self.enrichment_data = None, None
 
 
+
 class TrackerStatsSql:
     def __init__(self, settings: lib.settings.Settings):
         self.settings = settings
         self.con = sqlite3.connect(self.settings.sqlite_db)
         self.cur = self.con.cursor()
+        self.last_objects_update_timestamp = None # used for throttling
         logger.trace("TrackerStatsSql: __init__")
     
     def set_last_rss_update(self, timestamp: datetime.datetime):
@@ -122,6 +124,14 @@ class TrackerStatsSql:
         """
         logger.trace("TrackerStatsSql: set_last_objects_update")
         timestamp = arrow.now().datetime
+        # throttle updates to be not more often than once per minute
+        if self.last_objects_update_timestamp is None:
+            self.last_objects_update_timestamp = timestamp
+        else:
+            delta = timestamp - self.last_objects_update_timestamp
+            if delta.total_seconds() < 60:
+                # throttle and do nothing
+                return
         sql = "insert into stats_last_objects_update (last_update_timestamp) values (?)"
         sql_data = (timestamp,)
         self.cur.execute(sql, sql_data)
@@ -185,13 +195,13 @@ class TrackerStats:
         To avoid having to update it too frequently, 
         we only update it if it has been over a second since previous update
         """
-        now = arrow.now()
+        now = arrow.now().datetime
         logger.trace(f"set_last_object_update() called at: {now}")
         if self.data.last_objects_update is None:
             # it is a new stats database that has not been updated before
             self.data.last_objects_update = now
             self.save()
-        elif (now - self.data.last_objects_update).total_seconds() > 1:
+        elif (now - self.data.last_objects_update).total_seconds() > 3:
             # avoid saving the file too often,
             # hardcoding a 3 second delta here
             self.data.last_objects_update = now
