@@ -77,11 +77,20 @@ class TrackerStatsSql:
         objects_files_count = self.cur.fetchone()[0]
         return objects_files_count
 
-    def set_http_data_stats(self, total_files, files_with_http_data):
+    def set_http_data_stats(self, total_files_count, files_with_http_data_count):
         logger.trace("TrackerStatsSql: set_http_data_stats")
+        sql = "insert into stats_http_data_stats (total_files_count,files_with_http_data_count,last_update_timestamp) values (?,?,?)"
+        timestamp = arrow.now().datetime
+        sql_data = (total_files_count, files_with_http_data_count, timestamp,)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
     
     def get_http_data_stats(self) -> tuple:
         logger.trace("TrackerStatsSql: get_http_data_stats")
+        sql = "select total_files_count, files_with_http_data_count from stats_http_data_stats order by id desc limit 1"
+        self.cur.execute(sql)
+        enrichment_stats: tuple = self.cur.fetchone()
+        return enrichment_stats
 
 
     def set_enrichment_stats(self, total_files:int, enriched_files:int):
