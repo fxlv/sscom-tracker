@@ -27,7 +27,7 @@ from lib.display import print_results_to_console
 from lib.filter import Filter
 from lib.log import func_log, normalize, set_up_logging
 from lib.push import send_push
-from lib.stats import TrackerStats
+from lib.stats import TrackerStatsSql
 
 
 @click.group()
@@ -185,7 +185,7 @@ def stats(debug):
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     enriched_count += 1
-        stats = TrackerStats(settings)
+        stats = TrackerStatsSql(settings)
         total = 0
         for category in stats.data.categories:
             count = object_store.get_classified_count(category)

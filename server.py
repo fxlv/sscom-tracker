@@ -30,8 +30,7 @@ def index():
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         rss_store = lib.rssstore.RSSStore(settings)
-        stats = lib.stats.TrackerStats(settings)
-        print(stats.data.enrichment_data)
+        stats = lib.stats.TrackerStatsSql(settings)
         return render_template("index.html", stats=stats)
 
 
@@ -42,7 +41,7 @@ def category(category=None):
         settings = lib.settings.Settings()
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        stats = lib.stats.TrackerStats(settings)
+        stats = lib.stats.TrackerStatsSql(settings)
         return render_template(
             "category.html",
             stats=stats,
@@ -57,7 +56,7 @@ def category_all(category=None):
         settings = lib.settings.Settings()
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        stats = lib.stats.TrackerStats(settings)
+        stats = lib.stats.TrackerStatsSql(settings)
         return render_template(
             "category.html",
             stats=stats,
@@ -76,7 +75,7 @@ def categoryfilter(model=None):
         settings = lib.settings.Settings()
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        stats = lib.stats.TrackerStats(settings)
+        stats = lib.stats.TrackerStatsSql(settings)
         classifieds = object_store.get_all_classifieds(category)
         # check that model is not None and then filter by comparing lowercase
         # versions of models in storage and the model user supplied

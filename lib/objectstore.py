@@ -10,7 +10,7 @@ from loguru import logger
 import lib.datastructures
 import lib.settings
 from lib.datastructures import Apartment, Car, Classified, House
-from lib.stats import TrackerStats
+from lib.stats import TrackerStatsSql
 from lib.store import ObjectStore
 
 
@@ -31,7 +31,7 @@ class ObjectStoreSqlite(ObjectStore):
         self.s = settings
         self.con = sqlite3.connect(self.s.sqlite_db)
         self.cur = self.con.cursor()
-        self.stats = TrackerStats(self.s)
+        self.stats = TrackerStatsSql(self.s)
         logger.trace("ObjectStoreSqlite ready")
 
     def get_classified_count(self, category) -> int:
@@ -515,7 +515,7 @@ class ObjectStoreFiles(ObjectStore):
         self.s = settings
         self.object_cache_dir = self.s.object_cache_dir
         self._create_cache_dir_if_not_exists()
-        self.stats = TrackerStats(self.s)
+        self.stats = TrackerStatsSql(self.s)
         logger.trace("Object store ready")
 
     def _create_cache_dir_if_not_exists(self):

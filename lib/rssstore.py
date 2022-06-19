@@ -11,7 +11,7 @@ from loguru import logger
 import lib.settings
 from lib.helpers import shorthash
 from lib.log import func_log
-from lib.stats import TrackerStats
+from lib.stats import TrackerStatsSql
 from lib.store import Store
 
 
@@ -20,7 +20,7 @@ class RSSStore(Store):
         self.s = settings
         self.cache_dir = self.s.cache_dir
         self._create_cache_dir_if_not_exists()
-        self.stats = TrackerStats(self.s)
+        self.stats = TrackerStatsSql(self.s)
         self.l = logger.bind(task="RSSStore")
         self.l.trace("Initialized")
 
@@ -66,7 +66,7 @@ class RSSStore(Store):
         file_handle = full_path.open(mode="wb")
         pickle.dump(data, file_handle)
         file_handle.close()
-        self.stats.set_last_rss_update(arrow.now())
+        self.stats.set_last_rss_update(arrow.now().datetime)
 
     def __del__(self):
         self.l.trace("RSS destructor triggering RSS files count update")

@@ -1,5 +1,5 @@
 import datetime
-
+import time
 import arrow
 import pytest
 
@@ -10,7 +10,7 @@ RSS_FILES_COUNT = 5
 
 def stats_pickle():
     settings = lib.settings.Settings("settings.test.json")
-    stats = lib.stats.TrackerStats(settings)
+    stats = lib.stats.TrackerStatsPickle(settings)
     return stats
 
 def stats_sql():
@@ -32,18 +32,11 @@ def test_stats_data():
     assert data.enrichment_data == (None, None)
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
-def test_set_last_rss_update(stats):
+def test_set_get_last_rss_update(stats):
     now = arrow.now()
     stats.set_last_rss_update(now.datetime)
     assert stats.get_last_rss_update() == now
 
-@pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
-def test_get_last_rss_update(stats):
-    # requires set_last_rss_update to be called before
-    last = stats.get_last_rss_update()
-    now = arrow.now()
-    delta = now - last
-    assert delta.total_seconds() < 1
 
 
 @pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
@@ -86,3 +79,31 @@ def test_get_last_objects_update(stats):
     delta = now - last
     assert delta.total_seconds() < 1
 
+@pytest.mark.parametrize("stats", [stats_pickle(), stats_sql()], ids=["pickle", "sql"])
+def test_last_objects_update_throttling_works(stats):
+    """Last objects update is throttled to once per minute.
+    
+    In order to avoid spamming the database we set last 
+    object update not more than once per minute.
+    """
+    now = arrow.now()
+    stats.set_last_objects_update()
+    # at this point it is set and next updates should be noops
+    time.sleep(2)
+    stats.set_last_objects_update()
+    # despite the fact that it is one second later, 
+    # if we query for stats object update, it should return the initial value we set above
+    last = stats.get_last_objects_update()
+    delta = last - now
+    # subtracting last update from "now" should be 0 in terms of seconds
+    # if it is negative, then it means throttling did not work
+    assert delta.total_seconds() >= 0
+    assert delta.total_seconds() < 1
+
+# TODO:
+# update test parameters to set random data and also to set invorrect data and catch expceptions
+# this way - validating what should be the behavior when incorrect data is passed
+# as currently that is not defined behavior at all
+
+# TODO: write tests that verify types of timestamp. meaning that if it is arrow or vanilla datetime
+# how should the stats methods react

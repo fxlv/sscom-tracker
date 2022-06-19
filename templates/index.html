@@ -11,29 +11,29 @@
     </div>
     <div class="row">
         <div class="col">
-            <p>Objects count: {{ stats.data.objects_files_count['total']}}</p>
+            <p>Objects count: {{ stats.get_all_objects_files_count()}}</p>
         </div>
         <div class="col">
-            <p>RSS files count: {{ stats.data.rss_files_count}}</p>
+            <p>RSS files count: {{ stats.get_rss_files_count()}}</p>
         </div>
     </div>
     <div class="row">
         <div class="col">
 
-            <p> Enrichment: {{stats.data.enrichment_data[1]}} / {{stats.data.enrichment_data[0]}}
+            <p> Enrichment: {{stats.get_enrichment_stats()[1]}} / {{stats.get_enrichment_stats()[0]}}
 
             </p>
         </div>
         <div class="col">
             Details retrieved:
-            {{stats.data.http_data[1]}} / {{stats.data.http_data[0]}}
+            {{stats.get_http_data_stats()[1]}} / {{stats.get_http_data_stats()[0]}}
         </div>
     </div>
     <div class="row">
         <div class="col">
 
-            <p>Last RSS update was {{ stats.data.last_rss_update.humanize() }} </p>
-            <p>Last new object was added {{ stats.data.last_objects_update.humanize() }} </p>
+            <p>Last RSS update was {{ stats.get_last_rss_update().humanize() }} </p>
+            <p>Last new object was added {{ stats.get_last_objects_update().humanize() }} </p>
         </div>
     </div>
     <div class="row">
@@ -48,7 +48,7 @@
             <P>The following categories are tracked:</P>
             <ul>
                 {% for category in stats.data.categories %}
-                <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.data.objects_files_count[category]}} )</li>
+                <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.get_objects_files_count(category)}} )</li>
                 {% endfor %}
             </ul>
         </div>

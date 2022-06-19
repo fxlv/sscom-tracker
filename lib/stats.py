@@ -33,6 +33,8 @@ class TrackerStatsSql:
         self.con = sqlite3.connect(self.settings.sqlite_db)
         self.cur = self.con.cursor()
         self.last_objects_update_timestamp = None # used for throttling
+        self.data = StatsData()
+        self.data.categories = list(self.settings.tracking_list.keys())
         logger.trace("TrackerStatsSql: __init__")
     
     def set_last_rss_update(self, timestamp: datetime.datetime):
@@ -47,7 +49,7 @@ class TrackerStatsSql:
         sql = "select last_update_timestamp from stats_last_rss_update order by id desc limit 1"
         self.cur.execute(sql)
         last_rss_update = self.cur.fetchone()[0]
-        return arrow.get(last_rss_update).datetime
+        return arrow.get(last_rss_update)
 
     def set_rss_files_count(self, count: int):
         logger.trace("TrackerStatsSql: set_rss_files_count")
@@ -78,6 +80,16 @@ class TrackerStatsSql:
         self.cur.execute(sql % category)
         objects_files_count = self.cur.fetchone()[0]
         return objects_files_count
+    
+    def get_all_objects_files_count(self) -> int:
+        logger.trace("TrackerStatsSql: get_objects_files_count")
+        total = 0
+        for category in self.data.categories:
+            sql = "select objects_files_count from stats_objects_files_count where category = '%s' order by id desc limit 1"
+            self.cur.execute(sql % category)
+            objects_files_count = self.cur.fetchone()[0]
+            total += objects_files_count
+        return total
 
     def set_http_data_stats(self, total_files_count, files_with_http_data_count):
         logger.trace("TrackerStatsSql: set_http_data_stats")
@@ -115,7 +127,7 @@ class TrackerStatsSql:
         sql = "select last_update_timestamp from stats_last_objects_update order by id desc limit 1"
         self.cur.execute(sql)
         last_objects_update = self.cur.fetchone()[0]
-        return arrow.get(last_objects_update).datetime
+        return arrow.get(last_objects_update)
 
     def set_last_objects_update(self):
         """Save the last time an object was updated.
@@ -137,7 +149,7 @@ class TrackerStatsSql:
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
-class TrackerStats:
+class TrackerStatsPickle:
     def __init__(self, settings: lib.settings.Settings):
         self.settings = settings
         self.data: StatsData = self.load()

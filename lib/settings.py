@@ -93,6 +93,8 @@ class TestSettings(Settings):
         self.data_cache: str = None
         self.cache_validity_time: int = None
         self.cache_dir: str = None
+        self.lock_file: str = None
+        self.stats_lock_file: str = None
         self.object_cache_dir: str = None
         self.tracking_list: dict = None
         self.log_dir: str = "test_log"
