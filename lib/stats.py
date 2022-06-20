@@ -36,9 +36,18 @@ class TrackerStatsSql:
         self.data = StatsData()
         self.data.categories = list(self.settings.tracking_list.keys())
         logger.trace("TrackerStatsSql: __init__")
+
+    def _enforce_timestamp(self, timestamp_value):
+        "Throw exception in case 'timestamp_value' is not a valid timestamp"
+        if isinstance(timestamp_value, datetime.datetime):
+            return True
+        if isinstance(timestamp_value, arrow.Arrow):
+            return True
+        raise ValueError("Timestamp value is not a valid timestamp")
     
     def set_last_rss_update(self, timestamp: datetime.datetime):
         logger.trace("TrackerStatsSql: set_last_rss_update")
+        self._enforce_timestamp(timestamp)
         sql = "insert into stats_last_rss_update (last_update_timestamp) values (?)"
         sql_data = (timestamp,)
         self.cur.execute(sql, sql_data)
@@ -53,6 +62,7 @@ class TrackerStatsSql:
 
     def set_rss_files_count(self, count: int):
         logger.trace("TrackerStatsSql: set_rss_files_count")
+        self._enforce_acceptable_count_values(count)
         sql = "insert into stats_rss_files_count (rss_files_count, last_update_timestamp) values (?,?)"
         timestamp = arrow.now().datetime
         sql_data = (count, timestamp,)
@@ -66,8 +76,21 @@ class TrackerStatsSql:
         rss_files_count = self.cur.fetchone()[0]
         return rss_files_count
 
+    def _enforce_acceptable_count_values(self, integer: int):
+        """
+        Enforcing min/max acceptable values for integers.
+
+        Max acceptable value is 9223372036854775807 (due to sqlite3) and minimal is 0 
+        as there is no case I can imagine why would we ever set count to negative value.
+        """
+        if integer > 9223372036854775807:
+            raise ValueError("Files count integer is too big for sqlite3")
+        if integer < 0:
+            raise ValueError("Count cannot be negative.")
+
     def set_objects_files_count(self, category: str, count: int):
         logger.trace("TrackerStatsSql: set_objects_files_count")
+        self._enforce_acceptable_count_values(count)
         sql = "insert into stats_objects_files_count (objects_files_count,category,last_update_timestamp) values (?,?,?)"
         timestamp = arrow.now().datetime
         sql_data = (count, category, timestamp,)
@@ -91,8 +114,10 @@ class TrackerStatsSql:
             total += objects_files_count
         return total
 
-    def set_http_data_stats(self, total_files_count, files_with_http_data_count):
+    def set_http_data_stats(self, total_files_count: int, files_with_http_data_count: int):
         logger.trace("TrackerStatsSql: set_http_data_stats")
+        self._enforce_acceptable_count_values(total_files_count)
+        self._enforce_acceptable_count_values(files_with_http_data_count)
         sql = "insert into stats_http_data_stats (total_files_count,files_with_http_data_count,last_update_timestamp) values (?,?,?)"
         timestamp = arrow.now().datetime
         sql_data = (total_files_count, files_with_http_data_count, timestamp,)
@@ -109,6 +134,8 @@ class TrackerStatsSql:
 
     def set_enrichment_stats(self, total_files:int, enriched_files:int):
         logger.trace("TrackerStatsSql: set_enrichment_stats")
+        self._enforce_acceptable_count_values(total_files)
+        self._enforce_acceptable_count_values(enriched_files)
         sql = "insert into stats_enrichment_stats (total_files_count,enriched_files_count,last_update_timestamp) values (?,?,?)"
         timestamp = arrow.now().datetime
         sql_data = (total_files, enriched_files, timestamp,)
