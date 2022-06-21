@@ -105,7 +105,7 @@ class ObjectParser:
     """Parse the data and return it as one of the supported data structures."""
 
     def __init__(self):
-        self.supported_categories = ["apartment", "house", "car"]
+        self.supported_categories = ["apartment", "house", "car", "land"]
 
     def _get_apartment_from_rss(self, rss_entry) -> lib.datastructures.Apartment:
         summary = rss_entry.summary
@@ -201,6 +201,26 @@ class ObjectParser:
         house.done()
         return house
 
+
+    def _get_land_from_rss(self, rss_entry) -> lib.datastructures.House:
+        summary = rss_entry.summary
+        soup = BeautifulSoup(summary, "html.parser")
+        soup.a.extract()  # remove the first link as we don't use it
+        soup.a.extract()  # remove the second link
+        # now, strip all the hmtml and use regex to extract details from the remaining text
+        text = soup.text.strip()
+        title = rss_entry.title
+        link = rss_entry["link"]
+        m2 = self._try_get("m2: ([0-9]+) m", text)
+        price = self._try_get("Cena: (.+)  ", text)
+        land = lib.datastructures.Land(title, link)
+        land.area = m2
+        land.price = price
+        land.published = arrow.get(rss_entry["published_parsed"])
+        land.done()
+        return land
+
+
     def _parser_factory(self, category):
         if category == "apartment":
             return self._get_apartment_from_rss
@@ -208,6 +228,8 @@ class ObjectParser:
             return self._get_house_from_rss
         elif category == "car":
             return self._get_car_from_rss
+        elif category == "land":
+            return self._get_land_from_rss
 
     def parse_object(self, rss_object) -> list[Classified]:
         retrieval_date = rss_object.retrieved_time.strftime("%d.%m.%y")

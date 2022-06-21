@@ -41,7 +41,7 @@ def cli():
 @click.option("--category", default="*", help="Category of classifieds to update")
 def update(debug, category):
     """Update data from RSS feeds."""
-    if not category in ["house", "car", "dog", "apartment", "*"]:
+    if not category in ["house", "car", "dog", "apartment", "land", "*"]:
         click.echo("Unsupported category")
         sys.exit(1)
     settings = lib.settings.Settings()

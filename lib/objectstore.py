@@ -9,7 +9,7 @@ from loguru import logger
 
 import lib.datastructures
 import lib.settings
-from lib.datastructures import Apartment, Car, Classified, House
+from lib.datastructures import Apartment, Car, Classified, House, Land
 from lib.stats import TrackerStatsSql
 from lib.store import ObjectStore
 
@@ -43,11 +43,22 @@ class ObjectStoreSqlite(ObjectStore):
             return self._get_count_cars()
         elif category == "dog":
             return self._get_count_dogs()
+        elif category == "land":
+            return self._get_count_land()
         else:
             raise ValueError("Unsupported classified category")
 
     def _get_count_dogs(self) -> int:
         self.cur.execute("select count(*) from dogs")
+        results = self.cur.fetchall()
+        if len(results) == 1:
+            result = results[0]
+            return result[0]
+        else:
+            raise Exception("Unexpected result received from DB")
+
+    def _get_count_land(self) -> int:
+        self.cur.execute("select count(*) from land")
         results = self.cur.fetchall()
         if len(results) == 1:
             result = results[0]
@@ -117,6 +128,17 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected number of database results returned")
 
+    def _get_classified_land(self, hash_string: str) -> lib.datastructures.Land:
+        self.cur.execute("select * from land where hash = '%s'" % hash_string)
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return None
+        elif len(results) == 1:
+            result = results[0]
+            return self._create_land_from_db_result(result)
+        else:
+            raise Exception("Unexpected number of database results returned")
+
     def get_classified(self, classified: lib.datastructures.Classified) -> Classified:
         return self.get_classified_by_category_hash(
             classified.category, classified.hash
@@ -129,11 +151,13 @@ class ObjectStoreSqlite(ObjectStore):
             return self._get_classified_house(hash_string)
         elif category == "car":
             return self._get_classified_car(hash_string)
+        elif category == "land":
+            return self._get_classified_land(hash_string)
         else:
             raise ValueError("Unsupported classified category")
 
     def _is_valid_category(self, category_string) -> bool:
-        valid_categories = ["apartment", "car", "house", "dog", "*"]
+        valid_categories = ["apartment", "car", "house", "dog", "land", "*"]
         return category_string in valid_categories
 
     def _create_apartment_from_db_result(self, result) -> Apartment:
@@ -189,6 +213,26 @@ class ObjectStoreSqlite(ObjectStore):
         car.http_response_data = result[18]
         car.http_response_code = result[19]
         return car
+    
+    def _create_land_from_db_result(self, result) -> Land:
+        """Takes a tuple and returns an instance of Land"""
+        land = Land(title=result[3], link=result[2])
+        land.hash = result[0]
+        land.short_hash = result[1]
+        land.link = result[2]
+        land.district = result[6]
+        land.price = result[4]
+        land.area = result[5]
+        land.parish = result[7]
+        land.village = result[8]
+        land.street = result[9]
+        land.description = result[10]
+        land.cadastre = result[11]
+        land.enriched = result[12]
+        land.published = arrow.get(result[13])
+        land.http_response_data = result[14]
+        land.http_response_code = result[15]
+        return land
 
     def _get_cars(self, limit=None) ->list[Car]:
         if limit:
@@ -228,6 +272,7 @@ class ObjectStoreSqlite(ObjectStore):
         return self._get_apartments(limit=None)
     def _get_latest_apartments(self) -> list[Apartment]:
         return self._get_apartments(limit=100)
+
     def _get_apartments(self, limit=None) -> list[Apartment]:
         if limit:
             self.cur.execute(f"select * from apartments order by published desc limit {limit}")
@@ -238,6 +283,24 @@ class ObjectStoreSqlite(ObjectStore):
         for r in results:
             apartments_list.append(self._create_apartment_from_db_result(r))
         return apartments_list
+    
+    # land
+
+    def _get_land(self, limit=None) -> list[Land]:
+        if limit:
+            self.cur.execute(f"select * from land order by published desc limit {limit}")
+        else:
+            self.cur.execute(f"select * from land order by published desc")
+        results = self.cur.fetchall()
+        apartments_list = []
+        for r in results:
+            apartments_list.append(self._create_land_from_db_result(r))
+        return apartments_list
+    
+    def _get_all_land(self) -> list[Land]:
+        return self._get_land(limit=None)
+    def _get_latest_land(self) -> list[Land]:
+        return self._get_land(limit=100)
 
     def _classified_house_exists(self, classified: House) -> bool:
         self.cur.execute(
@@ -296,6 +359,25 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected number of database results returned")
 
+    def _classified_land_exists(self, classified: Land) -> bool:
+        self.cur.execute(
+            "select count(*) from  land where hash = '%s'" % classified.hash
+        )
+        results = self.cur.fetchall()
+        if len(results) == 0:
+            return False
+        elif len(results) == 1:
+            result = results[0]
+            if type(result) == tuple:
+                if result[0] == 0:
+                    return False
+                else:
+                    return True
+            else:
+                raise Exception("Unexpected result type encountered")
+        else:
+            raise Exception("Unexpected number of database results returned")
+
     def classified_exists(self, classified: Classified) -> bool:
         if classified.category == "apartment":
             return self._classified_apartment_exists(classified)
@@ -303,6 +385,8 @@ class ObjectStoreSqlite(ObjectStore):
             return self._classified_house_exists(classified)
         elif classified.category == "car":
             return self._classified_car_exists(classified)
+        elif classified.category == "land":
+            return self._classified_land_exists(classified)
         else:
             raise NotImplementedError()
 
@@ -316,11 +400,14 @@ class ObjectStoreSqlite(ObjectStore):
             return self._get_latest_houses()
         elif category == "car":
             return self._get_latest_cars()
+        elif category == "land":
+            return self._get_latest_land()
         elif category == "*":
             all_classifieds = []
             all_classifieds.extend(self._get_latest_apartments())
             all_classifieds.extend(self._get_latest_houses())
             all_classifieds.extend(self._get_latest_cars())
+            all_classifieds.extend(self._get_latest_land())
             return all_classifieds
         else:
             raise NotImplementedError()
@@ -335,11 +422,14 @@ class ObjectStoreSqlite(ObjectStore):
             return self._get_all_houses()
         elif category == "car":
             return self._get_all_cars()
+        elif category == "land":
+            return self._get_all_land()
         elif category == "*":
             all_classifieds = []
             all_classifieds.extend(self._get_all_apartments())
             all_classifieds.extend(self._get_all_houses())
             all_classifieds.extend(self._get_all_cars())
+            all_classifieds.extend(self._get_all_land())
             return all_classifieds
         else:
             raise NotImplementedError()
@@ -422,6 +512,34 @@ class ObjectStoreSqlite(ObjectStore):
 
         self.cur.execute(sql, sql_data)
         self.con.commit()
+    
+    def _write_classified_land(self, land: lib.datastructures.Land):
+        sql = """insert into land 
+                (hash, short_hash, link, title, price,
+                area, district, parish, village, street, description,
+                cadastre, enriched, published, http_response_data, http_response_code)
+                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+        sql_data = (
+            land.hash,
+            land.short_hash,
+            land.link,
+            land.title,
+            land.price,
+            land.area,
+            land.district,
+            land.parish,
+            land.village,
+            land.street,
+            land.description,
+            land.cadastre,
+            land.enriched,
+            land.published.datetime,
+            land.http_response_data,
+            land.http_response_code,
+        )
+
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
 
     def write_classified(self, classified: lib.datastructures.Classified):
         self.stats.set_last_objects_update()
@@ -433,6 +551,9 @@ class ObjectStoreSqlite(ObjectStore):
             return True
         elif classified.category == "car":
             self._write_classified_car(classified)
+            return True
+        elif classified.category == "land":
+            self._write_classified_land(classified)
             return True
         else:
             raise ValueError("Unsupported classified category")

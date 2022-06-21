@@ -59,6 +59,22 @@ def create_random_car_classified():
     return classified
 
 
+def create_random_land_classified():
+    random_short_hash = lib.helpers.get_random_short_hash()
+    random_title = f"Some land_{random_short_hash}"
+    link = "http://127.0.0.1/test_link"
+    classified = lib.datastructures.Land(random_title, link)
+    classified.published = arrow.now()
+    classified.price = "1000"
+    classified.area = "200m2"
+    classified.district = "Riga"
+    classified.street = "Test streeet 1"
+    classified.description = "selling some test land, really good one"
+    classified.done()
+    return classified
+
+
+
 class TestObjectstore:
     def test_init_fails_if_no_settings_provided(self):
         with pytest.raises(TypeError):
@@ -86,8 +102,10 @@ class TestObjectstore:
             create_random_apartment_classified(),
             create_random_house_classified(),
             create_random_car_classified(),
+            create_random_land_classified(),
+            
         ],
-        ids=["Apartment", "House", "Car"],
+        ids=["Apartment", "House", "Car", "Land"],
     )
     def test_write_and_load(self, object_store: ObjectStore, random_classified):
         classified = random_classified

@@ -117,6 +117,26 @@ class Animal:
         return hashlib.sha256(str(self.title + self.age).encode("utf-8")).hexdigest()
 
 
+class Land(Classified):
+    category: str = "land"
+
+    def __init__(self, title, link: str):
+        super().__init__(title)
+        self.link = link
+        self.district = None
+        self.parish = None
+        self.street = None
+        self.village = None
+        self.area = None
+        self.description = None
+        self.cadastre = None
+
+    def _prepare(self):
+        self.hash_string = self.title + self.link
+
+    def __str__(self):
+        return f"Land: {self.title}"
+
 class Car(Classified):
     category = "car"
 
