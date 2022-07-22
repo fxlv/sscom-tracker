@@ -616,6 +616,29 @@ class ObjectStoreSqlite(ObjectStore):
         )
         self.cur.execute(sql, sql_data)
         self.con.commit()
+    
+    
+    def _update_classified_land(self, land: lib.datastructures.Land):
+        sql = """update land set link = ?, title = ?, price = ?,
+                area = ?, district = ?, parish = ?, village = ?, street = ?, description = ?,
+                cadastre = ?, enriched = ?, published = ? where hash = ?"""
+        sql_data = (
+            land.link,
+            land.title,
+            land.price,
+            land.area,
+            land.district,
+            land.parish,
+            land.village,
+            land.street,
+            land.description,
+            land.cadastre,
+            land.enriched,
+            land.published.datetime,
+            land.hash
+        )
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
 
     def update_classified(self, classified: Classified):
         logger.debug(
@@ -627,6 +650,8 @@ class ObjectStoreSqlite(ObjectStore):
             return self._update_classified_house(classified)
         elif classified.category == "car":
             return self._update_classified_car(classified)
+        elif classified.category == "land":
+            return self._update_classified_land(classified)
         else:
             raise NotImplementedError()
 
