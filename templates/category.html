@@ -36,12 +36,25 @@
         {% elif category == "car" %}
         <td>Title</td>
         <td>Model</td>
-        <td><a href="/category/car/filter/{{model}}/mileage">Mileage</a></td>
+
+        <td><a href="
+            {% if model %}/category/car/filter/{{model}}/mileage
+            {% else %}/category/ordered/car/mileage{% endif %}
+            ">
+                Mileage</a>
+        
+        
+        
+        </td>
+        
         {% if debug %}
         <td>Mileage int</td>
         {% endif %}
         <td>Published</td>
-        <td><a href="/category/car/filter/{{model}}/price">Price</a></td>
+        <td><a href="
+            {% if model %}/category/car/filter/{{model}}/price
+            {% else %}/category/ordered/car/price{% endif %}
+            ">Price</a></td>
         {% if debug %}
         <td>Price int</td>
         {% endif %}
