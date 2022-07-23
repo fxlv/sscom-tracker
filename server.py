@@ -35,7 +35,11 @@ def index():
 
 
 @app.route("/category/<category>")
-def category(category=None):
+@app.route("/category/ordered/<category>/<order_by>")
+def category(category=None, order_by=None):
+    if order_by:
+        if order_by not in [ "mileage", "price"]:
+            order_by = None # basic attempt at filtering
     with logger.contextualize(task="Web->Category"):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
@@ -46,7 +50,7 @@ def category(category=None):
             "category.html",
             stats=stats,
             category=category,
-            classifieds=object_store.get_latest_classifieds(category),
+            classifieds=object_store.get_latest_classifieds(category, order_by),
         )
 
 @app.route("/category/<category>/all")
@@ -65,8 +69,14 @@ def category_all(category=None):
         )
 
 @app.route("/category/car/filter/<model>")
-def categoryfilter(model=None):
+@app.route("/category/car/filter/<model>/<order_by>")
+@app.route("/category/car/filter/<model>/<order_by>/<debug>")
+def categoryfilter(model=None, order_by=None, debug=False):
     with logger.contextualize(task="Web->Category"):
+        if debug == "debug":
+            debug = True
+        else:
+            debug = False
         category = "car"
         model = model.replace("_", " ")
         logger.debug(
@@ -76,7 +86,7 @@ def categoryfilter(model=None):
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
-        classifieds = object_store.get_all_classifieds(category)
+        classifieds = object_store.get_all_classifieds(category, order_by=order_by)
         # check that model is not None and then filter by comparing lowercase
         # versions of models in storage and the model user supplied
         classifieds = [
@@ -90,6 +100,7 @@ def categoryfilter(model=None):
             category=category,
             model=model,
             classifieds=classifieds,
+            debug=debug,
         )
 
 

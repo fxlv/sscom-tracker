@@ -36,9 +36,15 @@
         {% elif category == "car" %}
         <td>Title</td>
         <td>Model</td>
-        <td>Mileage</td>
+        <td><a href="/category/car/filter/{{model}}/mileage">Mileage</a></td>
+        {% if debug %}
+        <td>Mileage int</td>
+        {% endif %}
         <td>Published</td>
-        <td>Price</td>
+        <td><a href="/category/car/filter/{{model}}/price">Price</a></td>
+        {% if debug %}
+        <td>Price int</td>
+        {% endif %}
         {% else %}
         <td>Title</td>
         <td>Price</td>
@@ -73,8 +79,15 @@
         <td><a href="/category/{{category}}/{{classified.hash}}">{{classified.title}}</a></td>
         <td><a href="/category/car/filter/{{classified.model|replace(' ','_') }}">{{classified.model}}</a></td>
         <td>{{classified.mileage}}</td>
+
+        {% if debug %}
+        <td>{{ classified.mileage_int }}</td>
+        {% endif %}
         <td>{{classified.published.humanize()}}</td>
         <td>{{classified.price}}</td>
+        {% if debug %}
+        <td>{{ classified.price_int }}</td>
+        {% endif %}
         {% else %}
         <td>{{classified.title}}</td>
         <td>{{classified.price}}</td>

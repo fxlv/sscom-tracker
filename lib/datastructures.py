@@ -153,6 +153,8 @@ class Car(Classified):
         self.first_seen = arrow.now()
         self.last_seen = arrow.now()
         self.enriched_time = arrow.now()
+        self.price_int = None
+        self.mileage_int = None
 
     def _prepare(self):
         self.hash_string = self.title + self.price

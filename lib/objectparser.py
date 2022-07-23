@@ -88,9 +88,28 @@ class Enricher:
         car.color = color
         car.inspection = inspection
         car.description = description
+        car.price_int = self._get_car_price_int(car.price)
+        car.mileage_int = self._get_car_mileage_int(car.mileage)
         car.enriched = True
         return car
 
+    def _get_car_price_int(self, price_str: str) -> int:
+        price_str = price_str.replace(",","")
+        price_int = int(price_str)
+        logger.debug(f"Price str: {price_str} -> price int: {price_int}")
+        return price_int
+
+    def _get_car_mileage_int(self, mileage_str: str) -> int:
+        if mileage_str is None:
+            mileage_int = 0
+        logger.debug(f"converting mileage str: {mileage_str} to int")
+        try:
+            mileage_int = int(mileage_str)
+        except:
+            logger.warning(f"could not convert {mileage_str} to int")
+            return 0
+        return mileage_int
+    
     def enrich(self, classified: lib.datastructures.Classified):
         if classified.category == "car":
             classified = self._enrich_car(classified)
