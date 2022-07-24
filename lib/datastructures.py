@@ -74,6 +74,8 @@ class Dwelling(Classified):
         self.street = street
         self.rooms: int = 0
         self.floor: int = 0
+        self.city: str = "Unknown"
+        self.enriched_time = None
 
     def _prepare(self):
         if self.street is None:

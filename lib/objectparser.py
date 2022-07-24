@@ -14,6 +14,32 @@ class Enricher:
     def __init__(self):
         pass
 
+    def _get_city_from_apartment_description(self, description: str) -> str:
+        # first we look for the string "PārdodAtgriezties" as it should be present at the very beginnig
+        # if it is, we split by it and the city should be located within backslashes
+        # for example:
+        # 'Dzīvokļi / Liepāja un raj. / Liepāja / Pā'
+        # so in this case we further splity by backslashed and expect 4 splits and the 3rd one should be the city
+        city = "Undetermined"
+        if "rdodAtgriezties" in description:
+            description = description.split("rdodAtgriezties")[0]
+            description = description.split("/")
+            if len(description) == 4:
+                if description[1].strip() == "Rīga":
+                    city = "Rīga"
+                else:
+                    city = description[2].strip()
+
+        return city
+
+    def _enrich_apartment(self, apartment: lib.datastructures.Apartment):
+        if apartment.http_response_code != 200 or not apartment.http_response_data:
+            logger.debug(f"Apartment: {apartment} cannot be enriched due to missing http data")
+        city = self._get_city_from_apartment_description(apartment.http_response_data)
+        apartment.city = city
+        apartment.enriched_time = arrow.now()
+        apartment.enriched = True
+        return apartment
     def _enrich_car(self, car: lib.datastructures.Car):
 
         # first task is to find the description
@@ -113,6 +139,8 @@ class Enricher:
     def enrich(self, classified: lib.datastructures.Classified):
         if classified.category == "car":
             classified = self._enrich_car(classified)
+        elif classified.category == "apartment":
+            classified = self._enrich_apartment(classified)
         else:
             logger.debug(
                 f"[{classified.short_hash}] Category: {classified.category} not supported for enrichment"

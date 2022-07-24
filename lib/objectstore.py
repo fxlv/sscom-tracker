@@ -173,6 +173,12 @@ class ObjectStoreSqlite(ObjectStore):
         a.enriched = result[8]
         a.http_response_data = result[10]
         a.http_response_code = result[11]
+        a.city = result[12]
+        enriched_time = result[13]
+        if enriched_time:
+            a.enriched_time = arrow.get(enriched_time)
+        else:
+            a.enriched_time = None
         return a
 
     def _create_house_from_db_result(self, result) -> House:
@@ -447,8 +453,8 @@ class ObjectStoreSqlite(ObjectStore):
     def _write_classified_apartment(self, apartment: lib.datastructures.Apartment):
         sql = """insert into apartments
                 (hash, short_hash, link, title, rooms, floor,
-                price, street, enriched, published, http_response_data, http_response_code)
-                values (?,?,?,?,?,?,?,?,?,?,?,?)"""
+                price, street, enriched, published, http_response_data, http_response_code, city, enriched_time)
+                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
         sql_data = (
             apartment.hash,
             apartment.short_hash,
@@ -462,6 +468,8 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.published.datetime,
             apartment.http_response_data,
             apartment.http_response_code,
+            apartment.city,
+            apartment.enriched_time
         )
 
         self.cur.execute(sql, sql_data)
@@ -571,7 +579,7 @@ class ObjectStoreSqlite(ObjectStore):
             raise ValueError("Unsupported classified category")
 
     def _update_classified_apartment(self, apartment: Apartment):
-        sql = """update apartments set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ?, http_response_data = ?, http_response_code =? where hash = ?"""
+        sql = """update apartments set title = ?, rooms = ?, floor = ?, price = ?, street = ?, enriched = ?, published = ?, http_response_data = ?, http_response_code =?, city = ?, enriched_time = ? where hash = ?"""
         sql_data = (
             apartment.title,
             apartment.rooms,
@@ -582,6 +590,8 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.published.datetime,
             apartment.http_response_data,
             apartment.http_response_code,
+            apartment.city,
+            apartment.enriched_time.datetime,
             apartment.hash,
         )
         self.cur.execute(sql, sql_data)

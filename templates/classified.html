@@ -18,6 +18,7 @@
 
         {% if category == "apartment"%}
 <p><b>Title</b>{{classified.title}}</p>
+<p><b>City</b> {{classified.city}} </p>
 <p><b>Street</b> {{classified.street}} </p>
 <p><b>Rooms</b> {{classified.rooms}}</p>
 
@@ -27,6 +28,7 @@
 <p><b> Published: </b>{{classified.published}}</p>
 <p><b> Retrieved: </b>{{classified.retrieved}}</p>
 <p><b> Last seen: </b>{{classified.last_seen}}</p>
+<p><b> Enriched: </b>{{classified.enriched_time}}</p>
 <p><a href="{{classified.link}}" rel="noreferrer" >Link to SS.com ad</a></p>
 {% elif category == "house"%}
 <p><b>Title</b>{{classified.title}}</p>
