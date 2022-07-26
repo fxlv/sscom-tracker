@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 from lxml import html
 
+import re
 import lib.settings
 from lib.datastructures import Apartment, Dog, House, HttpResponse
 from lib.helpers import strip_sscom
@@ -111,6 +112,21 @@ class HttpRetriever:
 
     def get_content(self, soup):
         return soup.table.table.text
+    
+    def retrieve_coordinates_from_raw_http_data(self, http_data:bytes) -> str:
+        http_data = http_data.decode("utf-8")
+        http_data = http_data.split(".html?mode=1&c=")
+        # look for string like this "TgTeF4QAzt4FD4eFFM=.html?mode=1&c=56.50529250912661,21.007822751998905,17');"
+        # and extract the coordinates
+        if len(http_data) < 2:
+            logger.warning("Http data split did not return expected amount of groups")
+            return "Undeterminable"
+        rr = re.match("([0-9]{1,2}\.[0-9]+),\s?([0-9]{1,2}\.[0-9]+),.+", http_data[1])
+        groups = rr.groups()
+        if len(groups) !=2:
+            logger.warning("Regex match for coordinates happened, but did not return the two expected groups")
+            return "Undeterminable"
+        return  f"{groups[0]} {groups[1]}"
 
     def retrieve_ss_data(self, url: str) -> HttpResponse:
         """Retrieve SS.COM data.

@@ -203,7 +203,8 @@ def stats(debug):
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
-def retr(debug):
+@click.option("--force", is_flag=True, default=False, help="Force the retrieval, even if it was already previously retrieved")
+def retr(debug, force):
     """Retrieve the per-classified details using HTTP."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
@@ -219,7 +220,7 @@ def retr(debug):
                 logger.trace(
                     f"Object {classified.short_hash} already has http_response_data"
                 )
-                if classified.http_response_data != None:
+                if classified.http_response_data != None and not force:
                     logger.trace(
                         f"Object {classified.short_hash} already contains http response data, skipping"
                     )
@@ -231,6 +232,8 @@ def retr(debug):
                         continue
                     classified.http_response_data = http_response.response_content
                     classified.http_response_code = http_response.response_code
+                    if classified.category == "apartment":
+                        classified.coordinates = hr.retrieve_coordinates_from_raw_http_data(http_response.response_raw)
                     object_store.update_classified(classified)
                     # randomsleep()
             else:

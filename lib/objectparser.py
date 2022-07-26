@@ -33,13 +33,15 @@ class Enricher:
         return city
 
     def _enrich_apartment(self, apartment: lib.datastructures.Apartment):
-        if apartment.http_response_code != 200 or not apartment.http_response_data:
+        if apartment.http_response_code != '200' or not apartment.http_response_data:
             logger.debug(f"Apartment: {apartment} cannot be enriched due to missing http data")
+            return apartment
         city = self._get_city_from_apartment_description(apartment.http_response_data)
         apartment.city = city
         apartment.enriched_time = arrow.now()
         apartment.enriched = True
         return apartment
+    
     def _enrich_car(self, car: lib.datastructures.Car):
 
         # first task is to find the description
