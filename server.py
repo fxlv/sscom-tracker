@@ -33,6 +33,21 @@ def index():
         stats = lib.stats.TrackerStatsSql(settings)
         return render_template("index.html", stats=stats)
 
+@app.route("/apartments")
+@app.route("/apartments/by-city/<city>")
+def apartments(city=None):
+    with logger.contextualize(task="Web->Apartments"):
+        logger.debug("Returning apartments view")
+        settings = lib.settings.Settings()
+        set_up_logging(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
+        stats = lib.stats.TrackerStatsSql(settings)
+        return render_template("apartments.html",
+            stats=stats,
+            category="apartment",
+            city = city,
+            city_coordinates = object_store.get_city_coordinates(city),
+            classifieds=object_store._get_latest_apartments(city=city))
 
 @app.route("/category/<category>")
 @app.route("/category/ordered/<category>/<order_by>")

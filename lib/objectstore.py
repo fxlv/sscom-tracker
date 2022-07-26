@@ -32,6 +32,7 @@ class ObjectStoreSqlite(ObjectStore):
         self.con = sqlite3.connect(self.s.sqlite_db)
         self.cur = self.con.cursor()
         self.stats = TrackerStatsSql(self.s)
+        self.known_cities = {"Liepāja":(56.5142, 21.0126), "Rīga":(56.9850539, 24.200413)}
         logger.trace("ObjectStoreSqlite ready")
 
     def get_classified_count(self, category) -> int:
@@ -291,14 +292,36 @@ class ObjectStoreSqlite(ObjectStore):
 
     def _get_all_apartments(self, order_by=None) -> list[Apartment]:
         return self._get_apartments(limit=None, order_by=None)
-    def _get_latest_apartments(self, order_by = None) -> list[Apartment]:
-        return self._get_apartments(limit=100, order_by=None)
+    def _get_latest_apartments(self, order_by = None, city = None) -> list[Apartment]:
+        return self._get_apartments(limit=100, order_by=order_by, city = city)
+    
 
-    def _get_apartments(self, limit=None, order_by=None) -> list[Apartment]:
-        if limit:
-            self.cur.execute(f"select * from apartments order by published desc limit {limit}")
+
+    def get_cities(self) -> list:
+        return self.known_cities.keys()
+
+    def is_a_known_city(self, city):
+        return city in self.get_cities()
+
+    def get_city_coordinates(self,city):
+        if self.is_a_known_city(city):
+            return self.known_cities[city]
         else:
-            self.cur.execute(f"select * from apartments order by published desc")
+            return None
+
+    def _get_apartments(self, limit=None, order_by=None, city=None) -> list[Apartment]:
+        sql = "select * from apartments"
+        if city:
+            if self.is_a_known_city(city):
+                sql += f" where city = '{city}'"
+            else:
+                logger.warning(f"Unknow city '{{city}}' requested")
+
+        sql += " order by published desc"
+        if limit:
+            sql += f" limit {limit}"
+        logger.debug(f"Executing SQL: {sql}")
+        self.cur.execute(sql)
         results = self.cur.fetchall()
         apartments_list = []
         for r in results:

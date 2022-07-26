@@ -233,7 +233,7 @@ def retr(debug, force):
                     classified.http_response_data = http_response.response_content
                     classified.http_response_code = http_response.response_code
                     if classified.category == "apartment":
-                        classified.coordinates = hr.retrieve_coordinates_from_raw_http_data(http_response.response_raw)
+                        classified.coordinates_string = hr.retrieve_coordinates_from_raw_http_data(http_response.response_raw)
                     object_store.update_classified(classified)
                     # randomsleep()
             else:

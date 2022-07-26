@@ -126,7 +126,9 @@ class HttpRetriever:
         if len(groups) !=2:
             logger.warning("Regex match for coordinates happened, but did not return the two expected groups")
             return "Undeterminable"
-        return  f"{groups[0]} {groups[1]}"
+        coordinates = f"{groups[0]} {groups[1]}"
+        logger.trace(f"Returning coordinates: {coordinates}")
+        return coordinates
 
     def retrieve_ss_data(self, url: str) -> HttpResponse:
         """Retrieve SS.COM data.
