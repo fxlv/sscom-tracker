@@ -16,7 +16,7 @@
 
 {% block content %}
 
-        {% if category == "apartment"%}
+{% if category == "apartment"%}
 <p><b>Title</b>{{classified.title}}</p>
 <p><b>City</b> {{classified.city}} </p>
 <p><b>Street</b> {{classified.street}} </p>
@@ -31,6 +31,20 @@
 <p><b> Last seen: </b>{{classified.last_seen}}</p>
 <p><b> Enriched: </b>{{classified.enriched_time}}</p>
 <p><a href="{{classified.link}}" rel="noreferrer" >Link to SS.com ad</a></p>
+
+{% if classified.coordinates_string %}
+<div id="map"></div>
+<script>
+    var map = L.map('map').setView([{{classified.coordinates[0]}}, {{classified.coordinates[1]}}], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+}).addTo(map);
+var marker = L.marker([{{classified.coordinates[0]}}, {{classified.coordinates[1]}}]).addTo(map);
+
+</script>
+{% endif %}
+
 {% elif category == "house"%}
 <p><b>Title</b>{{classified.title}}</p>
 <p><b>Location</b>...</p>

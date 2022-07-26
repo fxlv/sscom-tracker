@@ -19,7 +19,7 @@ from flask import render_template
 from flask import Flask, request
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 
 @app.route("/")

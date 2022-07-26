@@ -179,7 +179,11 @@ class ObjectStoreSqlite(ObjectStore):
             a.enriched_time = arrow.get(enriched_time)
         else:
             a.enriched_time = None
-        a.coordinates = result[14]
+        a.coordinates_string = result[14]
+        if a.coordinates_string:
+            coord_split = a.coordinates_string.split()
+            if len(coord_split) ==2:
+                a.coordinates = (float(coord_split[0]), float(coord_split[1]))
         return a
 
     def _create_house_from_db_result(self, result) -> House:
@@ -471,7 +475,7 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.http_response_code,
             apartment.city,
             apartment.enriched_time,
-            apartment.coordinates
+            apartment.coordinates_string
         )
 
         self.cur.execute(sql, sql_data)
@@ -597,7 +601,7 @@ class ObjectStoreSqlite(ObjectStore):
             apartment.http_response_code,
             apartment.city,
             enriched_time,
-            apartment.coordinates,
+            apartment.coordinates_string,
             apartment.hash,
         )
         self.cur.execute(sql, sql_data)
