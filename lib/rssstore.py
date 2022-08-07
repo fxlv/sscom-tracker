@@ -3,6 +3,7 @@ import hashlib
 import os
 import pickle
 from pathlib import Path
+from re import A
 from typing import Iterator
 
 import arrow
@@ -13,6 +14,7 @@ from lib.helpers import shorthash
 from lib.log import func_log
 from lib.stats import TrackerStatsSql
 from lib.store import Store
+from lib.zabbix import Zabbix, ZabbixStopwatch
 
 
 class RSSStore(Store):
@@ -23,6 +25,7 @@ class RSSStore(Store):
         self.stats = TrackerStatsSql(self.s)
         self.l = logger.bind(task="RSSStore")
         self.l.trace("Initialized")
+        self.zabbix = Zabbix(settings)
 
     @func_log
     def _hash(self, string: str):
@@ -93,6 +96,8 @@ class RSSStore(Store):
         return sum(1 for i in self.get_all_files())
 
     def load(self, all=False) -> Iterator[object]:
+        load_stopwatch = ZabbixStopwatch(self.zabbix, "rss_files_load_time_seconds")
+
         self.l.trace("Load all")
         if all:
             all_files = self.get_all_files()
@@ -106,3 +111,4 @@ class RSSStore(Store):
                 all_files_count += 1
                 yield object
         self.l.debug(f"{all_files_count} RSS files loaded")
+        load_stopwatch.done()

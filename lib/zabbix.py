@@ -1,3 +1,4 @@
+from datetime import datetime
 from pyzabbix import ZabbixMetric, ZabbixSender
 
 import lib.settings
@@ -24,3 +25,16 @@ class Zabbix:
         metric = self.get_zabbix_metric(key, value)
         logger.trace(f"Sending zabbix metric {metric}")
         self.send_zabbix_metric(metric)
+
+class ZabbixStopwatch:
+    def __init__(self, zabbix_instance: Zabbix, key: str):
+        self.start = datetime.now()
+        self.z = zabbix_instance
+        self.key = key
+    def done(self):
+        self.done = datetime.now()
+        delta = self.done - self.start
+        delta_seconds = delta.total_seconds()
+        self.z.send_int_to_zabbix(self.key, delta_seconds)
+
+

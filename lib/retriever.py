@@ -16,6 +16,8 @@ from lib.helpers import strip_sscom
 from lib.log import func_log
 from lib.rssstore import RSSStore
 
+from lib.zabbix import Zabbix, ZabbixStopwatch
+
 
 class RetrieverManager:
     def __init__(self, settings: lib.settings.Settings):
@@ -26,8 +28,10 @@ class RetrieverManager:
         self.hashfunc = self.rss_store._hash
         lib.log.set_up_logging(settings, debug=True)
         self.logger = logger.bind(task="RetrieverManager")
+        self.zabbix = Zabbix(settings)
 
     def update_all(self, update_category):
+        update_stopwatch = ZabbixStopwatch(self.zabbix, "update_time_seconds")
         now = datetime.datetime.now()
         for category in self.s.tracking_list:
             if not update_category == "*" and not update_category == category:
@@ -63,6 +67,7 @@ class RetrieverManager:
                         self.rss_store.write_classified(item["url"], fresh_data)
                 else:
                     logger.debug(f"[{item_hash}] unsupported retrieval method")
+        update_stopwatch.done()
 
 
 class Retriever(ABC):

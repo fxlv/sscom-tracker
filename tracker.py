@@ -29,6 +29,8 @@ from lib.log import func_log, normalize, set_up_logging
 from lib.push import send_push
 from lib.stats import TrackerStatsSql
 
+from lib.zabbix import Zabbix, ZabbixStopwatch
+
 
 @click.group()
 def cli():
@@ -47,11 +49,14 @@ def update(debug, category):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Update"):
+        z = Zabbix(settings)
+        update_stopwatch = ZabbixStopwatch(z,"update_time_seconds")
         logger.info(f"Updating '{category}'...")
         rm = lib.retriever.RetrieverManager(settings)
         rm.update_all(category)
         del(rm) # destructors are unreliable
         logger.info("Updating run complete")
+        update_stopwatch.done()
 
 
 @func_log
@@ -62,7 +67,11 @@ def process(debug, all):
     """Parse and store the downloaded RSS data."""
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
+
     with logger.contextualize(task="Process"):
+        z = Zabbix(settings)
+        process_stopwatch = ZabbixStopwatch(z,"processing_time_seconds")
+
         logger.info(f"Starting processing run...{all=}")
         store = lib.rssstore.RSSStore(settings)
         op = lib.objectparser.ObjectParser()
@@ -83,6 +92,7 @@ def process(debug, all):
         logger.info("Processing run complete")
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
         del store
+        process_stopwatch.done()
 
 
 @func_log
@@ -121,6 +131,8 @@ def enrich(debug, force):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Enricher"):
+        z = Zabbix(settings)
+        enrich_stopwatch = ZabbixStopwatch(z,"enrichment_time_seconds")
         logger.debug("Running enricher...")
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         enricher = lib.objectparser.Enricher()
@@ -163,6 +175,7 @@ def enrich(debug, force):
                         f"[{classified.short_hash}] missing http response data, cannot enrich"
                     )
         del object_store
+        enrich_stopwatch.done()
 
 
 @func_log
@@ -212,6 +225,8 @@ def retr(debug, force):
     set_up_logging(settings, debug)
     with logger.contextualize(task="URL retriever"):
         logger.debug("Running retriever...")
+        z = Zabbix(settings)
+        retr_stopwatch = ZabbixStopwatch(z,"retrieval_time_seconds")
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         hr = lib.retriever.HttpRetriever()
         # iterate over all objects
@@ -249,6 +264,7 @@ def retr(debug, force):
                 object_store.update_classified(classified)
                 # randomsleep()
         del object_store
+        retr_stopwatch.done()
 
 
 if __name__ == "__main__":
