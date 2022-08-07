@@ -77,8 +77,13 @@ def process(debug, all):
         op = lib.objectparser.ObjectParser()
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         objects_list = store.load(all)
+        object_parsing_stats = []
+        object_processing_stats = []
         for rss_object in objects_list:
+            object_stopwatch = ZabbixStopwatch(z, "rss_object_processing")
             parsed_list = op.parse_object(rss_object)
+            logger.trace(f"Object parsed in {object_stopwatch.get()} seconds")
+            object_parsing_stats.append(object_stopwatch.get())
             logger.debug(
                 f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
             )
@@ -89,7 +94,14 @@ def process(debug, all):
                     pass
                 else:
                     object_store.write_classified(classified)
+            logger.trace(f"Object processing complete in {object_stopwatch.get()} seconds")
+            object_processing_stats.append(object_stopwatch.get())
+
         logger.info("Processing run complete")
+        z.send_int_to_zabbix("object_processing_time_min", min(object_processing_stats))
+        z.send_int_to_zabbix("object_parsing_time_min", min(object_parsing_stats))
+        z.send_int_to_zabbix("object_processing_time_max", max(object_processing_stats))
+        z.send_int_to_zabbix("object_parsing_time_max", max(object_parsing_stats))
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
         del store
         process_stopwatch.done()

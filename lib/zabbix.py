@@ -31,10 +31,14 @@ class ZabbixStopwatch:
         self.start = datetime.now()
         self.z = zabbix_instance
         self.key = key
-    def done(self):
+
+    def get(self):
         self.done = datetime.now()
         delta = self.done - self.start
         delta_seconds = delta.total_seconds()
-        self.z.send_int_to_zabbix(self.key, delta_seconds)
+        return delta_seconds
+
+    def done(self):
+        self.z.send_int_to_zabbix(self.key, self.get())
 
 
