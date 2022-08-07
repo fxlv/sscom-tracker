@@ -50,6 +50,7 @@ def update(debug, category):
         logger.info(f"Updating '{category}'...")
         rm = lib.retriever.RetrieverManager(settings)
         rm.update_all(category)
+        del(rm) # destructors are unreliable
         logger.info("Updating run complete")
 
 
