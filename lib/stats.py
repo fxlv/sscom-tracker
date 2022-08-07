@@ -35,6 +35,7 @@ class TrackerStatsSql:
         self.last_objects_update_timestamp = None # used for throttling
         self.data = StatsData()
         self.data.categories = list(self.settings.tracking_list.keys())
+        self.zabbix = lib.zabbix.Zabbix(settings)
         logger.trace("TrackerStatsSql: __init__")
 
     def _enforce_timestamp(self, timestamp_value):
@@ -68,6 +69,7 @@ class TrackerStatsSql:
         sql_data = (count, timestamp,)
         self.cur.execute(sql, sql_data)
         self.con.commit()
+        self.zabbix.send_int_to_zabbix("rss_files_count", count)
 
     def get_rss_files_count(self) -> int:
         logger.trace("TrackerStatsSql: get_rss_files_count")
@@ -96,6 +98,7 @@ class TrackerStatsSql:
         sql_data = (count, category, timestamp,)
         self.cur.execute(sql, sql_data)
         self.con.commit()
+        self.zabbix.send_int_to_zabbix(f"objects_{category}_count", count)
 
     def get_objects_files_count(self, category: str) -> int:
         logger.trace("TrackerStatsSql: get_objects_files_count")
@@ -123,6 +126,7 @@ class TrackerStatsSql:
         sql_data = (total_files_count, files_with_http_data_count, timestamp,)
         self.cur.execute(sql, sql_data)
         self.con.commit()
+        self.zabbix.send_int_to_zabbix("objects_with_http_data_count", files_with_http_data_count)
     
     def get_http_data_stats(self) -> tuple:
         logger.trace("TrackerStatsSql: get_http_data_stats")
@@ -141,6 +145,7 @@ class TrackerStatsSql:
         sql_data = (total_files, enriched_files, timestamp,)
         self.cur.execute(sql, sql_data)
         self.con.commit()
+        self.zabbix.send_int_to_zabbix("objects_enriched", enriched_files)
     
     def get_enrichment_stats(self):
         logger.trace("TrackerStatsSql: get_enrichment_stats")
