@@ -59,6 +59,34 @@ def update(debug, category):
         update_stopwatch.done()
 
 
+
+#def object_processor(rss_object_queue,settings,z):
+def object_processor(work_queue):
+    if work_queue is False:
+        return True
+    (rss_object, settings) = work_queue
+
+    z = Zabbix(settings)
+    op = lib.objectparser.ObjectParser()
+    object_store = lib.objectstore.ObjectStoreSqlite(settings)
+    logger.trace("Trying to get object from the queue")
+    object_stopwatch = ZabbixStopwatch(z, "rss_object_processing")
+    parsed_list = op.parse_object(rss_object)
+    logger.trace(f"Object parsed in {object_stopwatch.get()} seconds")
+    #object_parsing_stats.append(object_stopwatch.get())
+    logger.debug(
+        f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
+    )
+    for classified in parsed_list:
+        if object_store.classified_exists(classified):
+            # makes no sense to update it from rss data. if it exists already, let it be
+            # object_store.update_classified(classified)
+            pass
+        else:
+            object_store.write_classified(classified)
+    logger.trace(f"Object processing complete in {object_stopwatch.get()} seconds")
+    #object_processing_stats.append(object_stopwatch.get())
+
 @func_log
 @cli.command()
 @click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
@@ -79,29 +107,21 @@ def process(debug, all):
         objects_list = store.load(all)
         object_parsing_stats = []
         object_processing_stats = []
+        from multiprocessing import Pool,Queue, Process
+        q = []
         for rss_object in objects_list:
-            object_stopwatch = ZabbixStopwatch(z, "rss_object_processing")
-            parsed_list = op.parse_object(rss_object)
-            logger.trace(f"Object parsed in {object_stopwatch.get()} seconds")
-            object_parsing_stats.append(object_stopwatch.get())
-            logger.debug(
-                f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
-            )
-            for classified in parsed_list:
-                if object_store.classified_exists(classified):
-                    # makes no sense to update it from rss data. if it exists already, let it be
-                    # object_store.update_classified(classified)
-                    pass
-                else:
-                    object_store.write_classified(classified)
-            logger.trace(f"Object processing complete in {object_stopwatch.get()} seconds")
-            object_processing_stats.append(object_stopwatch.get())
+            q.append((rss_object, settings))
+        q.append(False) # signaling end of queue
+        p = Pool(2)
+        p.map(object_processor,q)
+        
+        #object_processor(rss_object,object_store,op,z)
 
         logger.info("Processing run complete")
-        z.send_int_to_zabbix("object_processing_time_min", min(object_processing_stats))
-        z.send_int_to_zabbix("object_parsing_time_min", min(object_parsing_stats))
-        z.send_int_to_zabbix("object_processing_time_max", max(object_processing_stats))
-        z.send_int_to_zabbix("object_parsing_time_max", max(object_parsing_stats))
+        #z.send_int_to_zabbix("object_processing_time_min", min(object_processing_stats))
+        #z.send_int_to_zabbix("object_parsing_time_min", min(object_parsing_stats))
+        #z.send_int_to_zabbix("object_processing_time_max", max(object_processing_stats))
+        #z.send_int_to_zabbix("object_parsing_time_max", max(object_parsing_stats))
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
         del store
         process_stopwatch.done()
