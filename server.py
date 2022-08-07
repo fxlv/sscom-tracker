@@ -17,6 +17,7 @@ from lib.push import send_push
 from loguru import logger
 from flask import render_template
 from flask import Flask, request
+from lib.zabbix import Zabbix, ZabbixStopwatch
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -27,11 +28,15 @@ def index():
     with logger.contextualize(task="Web->Index"):
         logger.debug("Returning index")
         settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        render_stopwatch = ZabbixStopwatch(z,"index_page_rendering_time_seconds")
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         rss_store = lib.rssstore.RSSStore(settings)
         stats = lib.stats.TrackerStatsSql(settings)
-        return render_template("index.html", stats=stats)
+        result = render_template("index.html", stats=stats)
+        render_stopwatch.done()
+        return result
 
 @app.route("/apartments")
 @app.route("/apartments/by-city/<city>")
@@ -39,15 +44,19 @@ def apartments(city=None):
     with logger.contextualize(task="Web->Apartments"):
         logger.debug("Returning apartments view")
         settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        render_stopwatch = ZabbixStopwatch(z,"apartments_page_rendering_time_seconds")
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
-        return render_template("apartments.html",
+        result =  render_template("apartments.html",
             stats=stats,
             category="apartment",
             city = city,
             city_coordinates = object_store.get_city_coordinates(city),
             classifieds=object_store._get_latest_apartments(city=city))
+        render_stopwatch.done()
+        return result
 
 @app.route("/category/<category>")
 @app.route("/category/ordered/<category>/<order_by>")
@@ -58,30 +67,38 @@ def category(category=None, order_by=None):
     with logger.contextualize(task="Web->Category"):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        render_stopwatch = ZabbixStopwatch(z,"category_page_rendering_time_seconds")
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
-        return render_template(
+        result = render_template(
             "category.html",
             stats=stats,
             category=category,
             classifieds=object_store.get_latest_classifieds(category, order_by),
         )
+        render_stopwatch.done()
+        return result
 
 @app.route("/category/<category>/all")
 def category_all(category=None):
     with logger.contextualize(task="Web->Category"):
         logger.debug(f"Returning category view for {category}")
         settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        render_stopwatch = ZabbixStopwatch(z,"category_all_page_rendering_time_seconds")
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
-        return render_template(
+        result = render_template(
             "category.html",
             stats=stats,
             category=category,
             classifieds=object_store.get_all_classifieds(category),
         )
+        render_stopwatch.done()
+        return result
 
 @app.route("/category/car/filter/<model>")
 @app.route("/category/car/filter/<model>/<order_by>")
@@ -98,6 +115,8 @@ def categoryfilter(model=None, order_by=None, debug=False):
             f"Returning filtered category view for {category} and model {model}"
         )
         settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        render_stopwatch = ZabbixStopwatch(z,"car_filter_page_rendering_time_seconds")
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
@@ -109,7 +128,7 @@ def categoryfilter(model=None, order_by=None, debug=False):
             for c in classifieds
             if c.model is not None and c.model.lower() == model.lower()
         ]
-        return render_template(
+        result =  render_template(
             "category.html",
             stats=stats,
             category=category,
@@ -117,6 +136,8 @@ def categoryfilter(model=None, order_by=None, debug=False):
             classifieds=classifieds,
             debug=debug,
         )
+        render_stopwatch.done()
+        return result
 
 
 @app.route("/category/<category>/<hash>")
@@ -124,13 +145,17 @@ def classified(category=None, hash=None):
     with logger.contextualize(task="Web->Classified"):
         logger.debug(f"Viewing classified {hash} from category {category}")
         settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        render_stopwatch = ZabbixStopwatch(z,"classified_page_rendering_time_seconds")
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        return render_template(
+        result = render_template(
             "classified.html",
             category=category,
             classified=object_store.get_classified_by_category_hash(category, hash),
         )
+        render_stopwatch.done()
+        return result
 
 
 @app.route("/retrieve", methods=["POST"])
