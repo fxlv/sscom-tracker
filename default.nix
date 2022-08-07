@@ -7,5 +7,6 @@ mkShell {
   python3Full
   gnupg
   git-crypt
+  lnav
   ];
 }
