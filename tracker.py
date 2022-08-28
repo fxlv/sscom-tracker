@@ -27,7 +27,7 @@ from lib.display import print_results_to_console
 from lib.filter import Filter
 from lib.log import func_log, normalize, set_up_logging
 from lib.push import send_push
-from lib.stats import TrackerStatsSql
+import lib.stats
 
 from lib.zabbix import Zabbix, ZabbixStopwatch
 
@@ -114,7 +114,7 @@ def process(debug, all):
         q.append(False) # signaling end of queue
         p = Pool(2)
         p.map(object_processor,q)
-        
+
         #object_processor(rss_object,object_store,op,z)
 
         logger.info("Processing run complete")
@@ -218,33 +218,7 @@ def stats(debug):
     settings = lib.settings.Settings()
     set_up_logging(settings, debug)
     with logger.contextualize(task="Statistics"):
-        logger.debug("Running statistics generator...")
-        object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        # lets generate some statistics
-        count_all = 0
-        enriched_count = 0
-        count_has_http_response_data = 0
-        for classified in object_store.get_all_classifieds("*"):
-            count_all += 1
-            if hasattr(classified, "http_response_data"):
-                if classified.http_response_data != None:
-                    count_has_http_response_data += 1
-            if hasattr(classified, "enriched"):
-                if classified.enriched:
-                    enriched_count += 1
-        stats = TrackerStatsSql(settings)
-        total = 0
-        for category in stats.data.categories:
-            count = object_store.get_classified_count(category)
-            total += count
-            stats.set_objects_files_count(category, count)
-        stats.set_objects_files_count("total", total)
-        stats.set_http_data_stats(count_all, count_has_http_response_data)
-        stats.set_enrichment_stats(count_all, enriched_count)
-        print(stats.data.enrichment_data)
-        logger.debug(
-            f"Stats. Classifieds: {count_all} With HTTP data: {count_has_http_response_data} Enriched: {enriched_count}"
-        )
+        lib.stats.generate_stats(settings)
 
 
 @func_log

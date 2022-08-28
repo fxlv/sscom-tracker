@@ -4,7 +4,8 @@ import sqlite3
 from pathlib import Path
 from sys import breakpointhook
 from unittest import result
-
+from xml.dom.expatbuilder import ParseEscape
+import lib.objectstore
 import arrow
 import portalocker
 from loguru import logger
@@ -13,6 +14,36 @@ import lib.settings
 import lib.zabbix
 
 
+
+
+def generate_stats(settings: lib.settings.Settings):
+    logger.debug("Running statistics generator...")
+    object_store = lib.objectstore.ObjectStoreSqlite(settings)
+    # lets generate some statistics
+    count_all = 0
+    enriched_count = 0
+    count_has_http_response_data = 0
+    for classified in object_store.get_all_classifieds("*"):
+        count_all += 1
+        if hasattr(classified, "http_response_data"):
+            if classified.http_response_data != None:
+                count_has_http_response_data += 1
+        if hasattr(classified, "enriched"):
+            if classified.enriched:
+                enriched_count += 1
+    stats = TrackerStatsSql(settings)
+    total = 0
+    for category in stats.data.categories:
+        count = object_store.get_classified_count(category)
+        total += count
+        stats.set_objects_files_count(category, count)
+    stats.set_objects_files_count("total", total)
+    stats.set_http_data_stats(count_all, count_has_http_response_data)
+    stats.set_enrichment_stats(count_all, enriched_count)
+    print(stats.data.enrichment_data)
+    logger.debug(
+        f"Stats. Classifieds: {count_all} With HTTP data: {count_has_http_response_data} Enriched: {enriched_count}"
+    )
 class StatsData:
     def __init__(self):
         self.objects_files_count = {}
@@ -45,7 +76,7 @@ class TrackerStatsSql:
         if isinstance(timestamp_value, arrow.Arrow):
             return True
         raise ValueError("Timestamp value is not a valid timestamp")
-    
+
     def set_last_rss_update(self, timestamp: datetime.datetime):
         logger.trace("TrackerStatsSql: set_last_rss_update")
         self._enforce_timestamp(timestamp)
@@ -53,7 +84,7 @@ class TrackerStatsSql:
         sql_data = (timestamp,)
         self.cur.execute(sql, sql_data)
         self.con.commit()
-    
+
     def get_last_rss_update(self) -> datetime.datetime:
         logger.trace("TrackerStatsSql: get_last_rss_update")
         sql = "select last_update_timestamp from stats_last_rss_update order by id desc limit 1"
@@ -82,7 +113,7 @@ class TrackerStatsSql:
         """
         Enforcing min/max acceptable values for integers.
 
-        Max acceptable value is 9223372036854775807 (due to sqlite3) and minimal is 0 
+        Max acceptable value is 9223372036854775807 (due to sqlite3) and minimal is 0
         as there is no case I can imagine why would we ever set count to negative value.
         """
         if integer > 9223372036854775807:
@@ -106,7 +137,7 @@ class TrackerStatsSql:
         self.cur.execute(sql % category)
         objects_files_count = self.cur.fetchone()[0]
         return objects_files_count
-    
+
     def get_all_objects_files_count(self) -> int:
         logger.trace("TrackerStatsSql: get_objects_files_count")
         total = 0
@@ -127,7 +158,7 @@ class TrackerStatsSql:
         self.cur.execute(sql, sql_data)
         self.con.commit()
         self.zabbix.send_int_to_zabbix("objects_with_http_data_count", files_with_http_data_count)
-    
+
     def get_http_data_stats(self) -> tuple:
         logger.trace("TrackerStatsSql: get_http_data_stats")
         sql = "select total_files_count, files_with_http_data_count from stats_http_data_stats order by id desc limit 1"
@@ -146,14 +177,14 @@ class TrackerStatsSql:
         self.cur.execute(sql, sql_data)
         self.con.commit()
         self.zabbix.send_int_to_zabbix("objects_enriched", enriched_files)
-    
+
     def get_enrichment_stats(self):
         logger.trace("TrackerStatsSql: get_enrichment_stats")
         sql = "select total_files_count, enriched_files_count from stats_enrichment_stats order by id desc limit 1"
         self.cur.execute(sql)
         enrichment_stats: tuple = self.cur.fetchone()
         return enrichment_stats
-    
+
     def get_last_objects_update(self) -> datetime.datetime:
         logger.trace("TrackerStatsSql: get_last_objects_update")
         sql = "select last_update_timestamp from stats_last_objects_update order by id desc limit 1"
@@ -163,7 +194,7 @@ class TrackerStatsSql:
 
     def set_last_objects_update(self):
         """Save the last time an object was updated.
-        
+
         To avoid wasting resources, write to database not more often than once per second.
         """
         logger.trace("TrackerStatsSql: set_last_objects_update")
