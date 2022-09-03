@@ -66,26 +66,35 @@ def object_processor(work_queue):
         return True
     (rss_object, settings) = work_queue
 
-    z = Zabbix(settings)
-    op = lib.objectparser.ObjectParser()
-    object_store = lib.objectstore.ObjectStoreSqlite(settings)
-    logger.trace("Trying to get object from the queue")
-    object_stopwatch = ZabbixStopwatch(z, "rss_object_processing")
-    parsed_list = op.parse_object(rss_object)
-    logger.trace(f"Object parsed in {object_stopwatch.get()} seconds")
-    #object_parsing_stats.append(object_stopwatch.get())
-    logger.debug(
-        f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
-    )
-    for classified in parsed_list:
-        if object_store.classified_exists(classified):
-            # makes no sense to update it from rss data. if it exists already, let it be
-            # object_store.update_classified(classified)
-            pass
-        else:
-            object_store.write_classified(classified)
-    logger.trace(f"Object processing complete in {object_stopwatch.get()} seconds")
-    #object_processing_stats.append(object_stopwatch.get())
+    set_up_logging(settings, True)
+    with logger.contextualize(task="Object processor"):
+        z = Zabbix(settings)
+        op = lib.objectparser.ObjectParser()
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
+        logger.trace("Trying to get object from the queue")
+        object_stopwatch = ZabbixStopwatch(z, "rss_object_processing")
+        stats = lib.stats.TrackerStatsSql(settings)
+        rss_object_hash = lib.helpers.hash(str(rss_object.url_hash)+str(rss_object.updated))
+        if stats.check_if_rss_file_was_parsed(rss_object_hash):
+            logger.debug("This RSS object has been parsed already, skipping")
+            return True
+        logger.debug("Parsing a new RSS object")
+        parsed_list = op.parse_object(rss_object)
+        logger.trace(f"Object parsed in {object_stopwatch.get()} seconds")
+        #object_parsing_stats.append(object_stopwatch.get())
+        logger.debug(
+            f"[{rss_object.url_hash[:10]}] RSS object parsed, now writing/updating classifieds"
+        )
+        for classified in parsed_list:
+            if object_store.classified_exists(classified):
+                # makes no sense to update it from rss data. if it exists already, let it be
+                # object_store.update_classified(classified)
+                pass
+            else:
+                object_store.write_classified(classified)
+        logger.trace(f"Object processing complete in {object_stopwatch.get()} seconds")
+        stats.mark_rss_file_as_parsed(rss_object_hash)
+        #object_processing_stats.append(object_stopwatch.get())
 
 @func_log
 @cli.command()

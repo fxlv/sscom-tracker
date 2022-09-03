@@ -1,5 +1,6 @@
 import datetime
 import pickle
+from re import L
 import sqlite3
 from pathlib import Path
 from sys import breakpointhook
@@ -57,7 +58,6 @@ class StatsData:
         self.enrichment_data = None, None
 
 
-
 class TrackerStatsSql:
     def __init__(self, settings: lib.settings.Settings):
         self.settings = settings
@@ -101,6 +101,24 @@ class TrackerStatsSql:
         self.cur.execute(sql, sql_data)
         self.con.commit()
         self.zabbix.send_int_to_zabbix("rss_files_count", count)
+    
+    def mark_rss_file_as_parsed(self, rss_file_name: str):
+        logger.trace("TrackerStatsSql: mark_rss_file_as_parsed")
+        sql = "insert into stats_processed_rss_objects_list (processed_time, rss_file_name ) values (?,?)"
+        timestamp = arrow.now().datetime
+        sql_data = (timestamp,rss_file_name,)
+        self.cur.execute(sql, sql_data)
+        self.con.commit()
+
+
+    def check_if_rss_file_was_parsed(self, rss_file_name: str) -> bool:
+        logger.trace("TrackerStatsSql: check_if_rss_file_was_parsed")
+        sql = "select count(*) from stats_processed_rss_objects_list where rss_file_name = '%s'"
+        self.cur.execute(sql % rss_file_name)
+        objects_files_count = self.cur.fetchone()[0]
+        if objects_files_count == 1:
+            return True
+        return False
 
     def get_rss_files_count(self) -> int:
         logger.trace("TrackerStatsSql: get_rss_files_count")
