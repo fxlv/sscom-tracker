@@ -179,7 +179,7 @@ def enrich(debug, force):
         enricher = lib.objectparser.Enricher()
         # iterate over all saved classifieds, depending on classified type, update attributes with
         # data retrieved by the http retriever
-        for classified in object_store.get_all_classifieds("*"):
+        for classified in object_store.get_all_classifieds(category="*", for_enrichment=True):
             if hasattr(classified, "enriched"):
                 if classified.enriched:
                     if force:
