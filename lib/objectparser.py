@@ -41,7 +41,7 @@ class Enricher:
         apartment.enriched_time = arrow.now()
         apartment.enriched = True
         return apartment
-    
+
     def _enrich_car(self, car: lib.datastructures.Car):
 
         # first task is to find the description
@@ -54,7 +54,7 @@ class Enricher:
         content = content.split("Atgriezties uz sludinājumu sarakstu")[1].strip()
         try:
             # now, find where the description ends
-            end_of_desc = re.findall("(Marka.+Izlaiduma gads:.+Motors)", content)[0]
+            end_of_desc = re.findall("(Marka.+Izlaiduma gads:)", content)[0]
         except IndexError:
             logger.debug(
                 f"The classified is missing car details. Possibly this is not a sales classified. Skipping it."
@@ -76,7 +76,7 @@ class Enricher:
                 engine = engine[0]
             else:
                 logger.warning(f"Cannot determine engine type, details: {details}")
-                raise IndexError(f"Cannot determine engine type. See log for more details.")
+                engine = "Undetermined"
 
         try:
             # sometimes, mileage is not specified, which makes the regex for gearbox have two options
@@ -137,7 +137,7 @@ class Enricher:
             logger.warning(f"could not convert {mileage_str} to int")
             return 0
         return mileage_int
-    
+
     def enrich(self, classified: lib.datastructures.Classified):
         if classified.category == "car":
             classified = self._enrich_car(classified)
