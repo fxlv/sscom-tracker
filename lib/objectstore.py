@@ -292,9 +292,11 @@ class ObjectStoreSqlite(ObjectStore):
 
     def _get_latest_houses(self, order_by=None) -> list[House]:
         return self._get_houses(limit=100, order_by=None)
-    def _get_all_houses(self, order_by) -> list[House]:
-        return self._get_houses(limit=None, order_by=None)
-    def _get_houses(self, limit=None, order_by=None) -> list[House]:
+    def _get_all_houses(self, order_by, for_encichment=False) -> list[House]:
+        return self._get_houses(limit=None, order_by=None, for_enrichment=for_encichment)
+    def _get_houses(self, limit=None, order_by=None, for_enrichment=False) -> list[House]:
+        if for_enrichment:
+            return [] # enrichment for houses is not supported
         if limit:
             self.cur.execute(f"select * from houses order by published desc limit {limit}")
         else:
@@ -369,7 +371,9 @@ class ObjectStoreSqlite(ObjectStore):
 
     # land
 
-    def _get_land(self, limit=None, order_by=None) -> list[Land]:
+    def _get_land(self, limit=None, order_by=None, for_enrichment=False) -> list[Land]:
+        if for_enrichment:
+            return [] # enrichment not supported for land
         if limit:
             self.cur.execute(f"select * from land order by published desc limit {limit}")
         else:
@@ -380,8 +384,8 @@ class ObjectStoreSqlite(ObjectStore):
             apartments_list.append(self._create_land_from_db_result(r))
         return apartments_list
 
-    def _get_all_land(self, order_by=None) -> list[Land]:
-        return self._get_land(limit=None, order_by=order_by)
+    def _get_all_land(self, order_by=None, for_enrichment=False) -> list[Land]:
+        return self._get_land(limit=None, order_by=order_by, for_enrichment=for_enrichment)
     def _get_latest_land(self, order_by=None) -> list[Land]:
         return self._get_land(limit=100, order_by=order_by)
 
@@ -502,17 +506,17 @@ class ObjectStoreSqlite(ObjectStore):
         if category == "apartment":
             return self._get_all_apartments(order_by, for_enrichment)
         elif category == "house":
-            return self._get_all_houses(order_by)
+            return self._get_all_houses(order_by, for_enrichment)
         elif category == "car":
             return self._get_all_cars(order_by, for_enrichment)
         elif category == "land":
-            return self._get_all_land(order_by)
+            return self._get_all_land(order_by, for_enrichment)
         elif category == "*":
             all_classifieds = []
             all_classifieds.extend(self._get_all_apartments(order_by, for_enrichment))
-            all_classifieds.extend(self._get_all_houses(order_by))
+            all_classifieds.extend(self._get_all_houses(order_by, for_enrichment))
             all_classifieds.extend(self._get_all_cars(order_by, for_enrichment))
-            all_classifieds.extend(self._get_all_land(order_by))
+            all_classifieds.extend(self._get_all_land(order_by, for_enrichment))
             return all_classifieds
         else:
             raise NotImplementedError()
