@@ -62,8 +62,6 @@ class Enricher:
             if len(re.findall("(Pērkam)", content))>0:
                 logger.debug("This is not a sales classified, but rather an offer to buy cars. Ingoring and marking as fake.")
                 car.fake_ad = True
-                car.enriched_time = arrow.now()
-                car.enriched = True
             return car
         description = content.split(end_of_desc)[0]
         details = content.split(description)
