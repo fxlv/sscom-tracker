@@ -59,6 +59,8 @@ class Enricher:
             logger.debug(
                 f"The classified is missing car details. Possibly this is not a sales classified. Skipping it."
             )
+            if len(re.findall("(Pērkam)", content))>0:
+                logger.debug("This is not a sales classified, but rather an offer to buy cars. Ingoring and marking as fake.")
             logger.debug(content)
             return car
         description = content.split(end_of_desc)[0]
