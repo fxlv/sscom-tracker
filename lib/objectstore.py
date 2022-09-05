@@ -253,11 +253,11 @@ class ObjectStoreSqlite(ObjectStore):
         Returns SQL query string for apartments that have not been enriched
         and contain http_data  therefore making them suitable for enrichment.
         """
-        sql = "select * from cars where enriched = 0 and http_response_data is not null"
+        sql = "select * from cars where fake_ad = 0 and enriched = 0 and http_response_data is not null"
         return sql
 
     def _get_sql_cars(self, limit = None, order_by = None ):
-        sql = "select * from cars"
+        sql = "select * from cars where fake_ad = 0"
 
         if order_by and order_by == "mileage":
             sql += " order by mileage_int asc, published desc"
@@ -575,8 +575,8 @@ class ObjectStoreSqlite(ObjectStore):
                 (hash, short_hash, link, title, model, price,
                 year, mileage, engine, first_seen, last_seen, enriched_time,
                 gearbox, color, inspection, description,
-                enriched, published, http_response_data, http_response_code, price_int, mileage_int)
-                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
+                enriched, published, http_response_data, http_response_code, price_int, mileage_int, fake_ad)
+                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"""
         sql_data = (
             car.hash,
             car.short_hash,
@@ -599,7 +599,8 @@ class ObjectStoreSqlite(ObjectStore):
             car.http_response_data,
             car.http_response_code,
             car.price_int,
-            car.mileage_int
+            car.mileage_int,
+            car.fake_ad
         )
 
         self.cur.execute(sql, sql_data)
@@ -691,7 +692,7 @@ class ObjectStoreSqlite(ObjectStore):
         self.con.commit()
 
     def _update_classified_car(self, car: Car):
-        sql = """update cars set title = ?, model = ?, price = ?, year = ?, mileage = ?, engine = ?, first_seen = ?, last_seen = ?, enriched_time = ?, gearbox = ?, color = ?, inspection = ?, description = ?, enriched = ?, published = ?, http_response_data =?, http_response_code =?, price_int = ?, mileage_int = ? where hash = ?"""
+        sql = """update cars set title = ?, model = ?, price = ?, year = ?, mileage = ?, engine = ?, first_seen = ?, last_seen = ?, enriched_time = ?, gearbox = ?, color = ?, inspection = ?, description = ?, enriched = ?, published = ?, http_response_data =?, http_response_code =?, price_int = ?, mileage_int = ?, fake_ad = ? where hash = ?"""
         sql_data = (
             car.title,
             car.model,
@@ -712,6 +713,7 @@ class ObjectStoreSqlite(ObjectStore):
             car.http_response_code,
             car.price_int,
             car.mileage_int,
+            car.fake_ad,
             car.hash
         )
         self.cur.execute(sql, sql_data)

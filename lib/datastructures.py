@@ -159,6 +159,7 @@ class Car(Classified):
         self.enriched_time = arrow.now()
         self.price_int = None
         self.mileage_int = None
+        self.fake_ad = 0
 
     def _prepare(self):
         self.hash_string = self.title + self.price
