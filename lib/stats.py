@@ -24,20 +24,22 @@ def generate_stats(settings: lib.settings.Settings):
     count_all = 0
     enriched_count = 0
     count_has_http_response_data = 0
-    for classified in object_store.get_all_classifieds("*"):
-        count_all += 1
-        if hasattr(classified, "http_response_data"):
-            if classified.http_response_data != None:
-                count_has_http_response_data += 1
-        if hasattr(classified, "enriched"):
-            if classified.enriched:
-                enriched_count += 1
     stats = TrackerStatsSql(settings)
     total = 0
     for category in stats.data.categories:
         count = object_store.get_classified_count(category)
         total += count
         stats.set_objects_files_count(category, count)
+    http_data_count = 0
+    http_data_count+= object_store._get_count_http_data_land_classifieds()
+    http_data_count+= object_store._get_count_http_data_cars_classifieds()
+    http_data_count+= object_store._get_count_http_data_houses_classifieds()
+    http_data_count+= object_store._get_count_http_data_apartments_classifieds()
+    enriched_count+= object_store._get_count_enriched_land_classifieds()
+    enriched_count+= object_store._get_count_enriched_cars_classifieds()
+    enriched_count+= object_store._get_count_enriched_houses_classifieds()
+    enriched_count+= object_store._get_count_enriched_apartments_classifieds()
+
     stats.set_objects_files_count("total", total)
     stats.set_http_data_stats(count_all, count_has_http_response_data)
     stats.set_enrichment_stats(count_all, enriched_count)
