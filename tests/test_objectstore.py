@@ -103,7 +103,7 @@ class TestObjectstore:
             create_random_house_classified(),
             create_random_car_classified(),
             create_random_land_classified(),
-            
+
         ],
         ids=["Apartment", "House", "Car", "Land"],
     )

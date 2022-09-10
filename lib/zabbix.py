@@ -20,8 +20,8 @@ class Zabbix:
 
     def send_zabbix_metric(self, metric):
         return self.send_zabbix_metrics([metric])
-    
-    def send_int_to_zabbix(self, key: str, value: int): 
+
+    def send_int_to_zabbix(self, key: str, value: int):
         metric = self.get_zabbix_metric(key, value)
         logger.trace(f"Sending zabbix metric {metric}")
         self.send_zabbix_metric(metric)
@@ -40,5 +40,3 @@ class ZabbixStopwatch:
 
     def done(self):
         self.z.send_int_to_zabbix(self.key, self.get())
-
-

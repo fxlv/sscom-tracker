@@ -117,7 +117,7 @@ class HttpRetriever:
 
     def get_content(self, soup):
         return soup.table.table.text
-    
+
     def retrieve_coordinates_from_raw_http_data(self, http_data:bytes) -> str:
         http_data = http_data.decode("utf-8")
         http_data = http_data.split(".html?mode=1&c=")
@@ -126,7 +126,7 @@ class HttpRetriever:
         if len(http_data) < 2:
             logger.warning("Http data split did not return expected amount of groups")
             return "Undeterminable"
-        rr = re.match("([0-9]{1,2}\.[0-9]+),\s?([0-9]{1,2}\.[0-9]+),.+", http_data[1])
+        rr = re.match(r"([0-9]{1,2}\.[0-9]+),\s?([0-9]{1,2}\.[0-9]+),.+", http_data[1])
         groups = rr.groups()
         if len(groups) !=2:
             logger.warning("Regex match for coordinates happened, but did not return the two expected groups")

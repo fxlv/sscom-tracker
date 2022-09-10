@@ -86,8 +86,8 @@ def test_get_last_objects_update(stats):
 
 def test_last_objects_update_throttling_works(stats):
     """Last objects update is throttled to once per minute.
-    
-    In order to avoid spamming the database we set last 
+
+    In order to avoid spamming the database we set last
     object update not more than once per minute.
     """
     stats.last_objects_update_timestamp = None #reste throttling to default state
@@ -96,7 +96,7 @@ def test_last_objects_update_throttling_works(stats):
     # at this point it is set and next updates should be noops
     time.sleep(2)
     stats.set_last_objects_update()
-    # despite the fact that it is one second later, 
+    # despite the fact that it is one second later,
     # if we query for stats object update, it should return the initial value we set above
     last = stats.get_last_objects_update()
     delta = last - now
