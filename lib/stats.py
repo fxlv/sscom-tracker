@@ -15,8 +15,6 @@ import lib.settings
 import lib.zabbix
 
 
-
-
 def generate_stats(settings: lib.settings.Settings):
     logger.debug("Running statistics generator...")
     object_store = lib.objectstore.ObjectStoreSqlite(settings)
@@ -31,14 +29,18 @@ def generate_stats(settings: lib.settings.Settings):
         total += count
         stats.set_objects_files_count(category, count)
     count_has_http_response_data = 0
-    count_has_http_response_data+= object_store._get_count_http_data_land_classifieds()
-    count_has_http_response_data+= object_store._get_count_http_data_cars_classifieds()
-    count_has_http_response_data+= object_store._get_count_http_data_houses_classifieds()
-    count_has_http_response_data+= object_store._get_count_http_data_apartments_classifieds()
-    enriched_count+= object_store._get_count_enriched_land_classifieds()
-    enriched_count+= object_store._get_count_enriched_cars_classifieds()
-    enriched_count+= object_store._get_count_enriched_houses_classifieds()
-    enriched_count+= object_store._get_count_enriched_apartments_classifieds()
+    count_has_http_response_data += object_store._get_count_http_data_land_classifieds()
+    count_has_http_response_data += object_store._get_count_http_data_cars_classifieds()
+    count_has_http_response_data += (
+        object_store._get_count_http_data_houses_classifieds()
+    )
+    count_has_http_response_data += (
+        object_store._get_count_http_data_apartments_classifieds()
+    )
+    enriched_count += object_store._get_count_enriched_land_classifieds()
+    enriched_count += object_store._get_count_enriched_cars_classifieds()
+    enriched_count += object_store._get_count_enriched_houses_classifieds()
+    enriched_count += object_store._get_count_enriched_apartments_classifieds()
 
     stats.set_objects_files_count("total", total)
     stats.set_http_data_stats(count_all, count_has_http_response_data)
@@ -47,6 +49,8 @@ def generate_stats(settings: lib.settings.Settings):
     logger.debug(
         f"Stats. Classifieds: {count_all} With HTTP data: {count_has_http_response_data} Enriched: {enriched_count}"
     )
+
+
 class StatsData:
     def __init__(self):
         self.objects_files_count = {}
@@ -65,7 +69,7 @@ class TrackerStatsSql:
         self.settings = settings
         self.con = sqlite3.connect(self.settings.sqlite_db)
         self.cur = self.con.cursor()
-        self.last_objects_update_timestamp = None # used for throttling
+        self.last_objects_update_timestamp = None  # used for throttling
         self.data = StatsData()
         self.data.categories = list(self.settings.tracking_list.keys())
         self.zabbix = lib.zabbix.Zabbix(settings)
@@ -99,19 +103,24 @@ class TrackerStatsSql:
         self._enforce_acceptable_count_values(count)
         sql = "insert into stats_rss_files_count (rss_files_count, last_update_timestamp) values (?,?)"
         timestamp = arrow.now().datetime
-        sql_data = (count, timestamp,)
+        sql_data = (
+            count,
+            timestamp,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
         self.zabbix.send_int_to_zabbix("rss_files_count", count)
-    
+
     def mark_rss_file_as_parsed(self, rss_file_name: str):
         logger.trace("TrackerStatsSql: mark_rss_file_as_parsed")
         sql = "insert into stats_processed_rss_objects_list (processed_time, rss_file_name ) values (?,?)"
         timestamp = arrow.now().datetime
-        sql_data = (timestamp,rss_file_name,)
+        sql_data = (
+            timestamp,
+            rss_file_name,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
-
 
     def check_if_rss_file_was_parsed(self, rss_file_name: str) -> bool:
         logger.trace("TrackerStatsSql: check_if_rss_file_was_parsed")
@@ -124,7 +133,9 @@ class TrackerStatsSql:
 
     def get_rss_files_count(self) -> int:
         logger.trace("TrackerStatsSql: get_rss_files_count")
-        sql = "select rss_files_count from stats_rss_files_count order by id desc limit 1"
+        sql = (
+            "select rss_files_count from stats_rss_files_count order by id desc limit 1"
+        )
         self.cur.execute(sql)
         rss_files_count = self.cur.fetchone()[0]
         return rss_files_count
@@ -146,7 +157,11 @@ class TrackerStatsSql:
         self._enforce_acceptable_count_values(count)
         sql = "insert into stats_objects_files_count (objects_files_count,category,last_update_timestamp) values (?,?,?)"
         timestamp = arrow.now().datetime
-        sql_data = (count, category, timestamp,)
+        sql_data = (
+            count,
+            category,
+            timestamp,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
         self.zabbix.send_int_to_zabbix(f"objects_{category}_count", count)
@@ -168,16 +183,24 @@ class TrackerStatsSql:
             total += objects_files_count
         return total
 
-    def set_http_data_stats(self, total_files_count: int, files_with_http_data_count: int):
+    def set_http_data_stats(
+        self, total_files_count: int, files_with_http_data_count: int
+    ):
         logger.trace("TrackerStatsSql: set_http_data_stats")
         self._enforce_acceptable_count_values(total_files_count)
         self._enforce_acceptable_count_values(files_with_http_data_count)
         sql = "insert into stats_http_data_stats (total_files_count,files_with_http_data_count,last_update_timestamp) values (?,?,?)"
         timestamp = arrow.now().datetime
-        sql_data = (total_files_count, files_with_http_data_count, timestamp,)
+        sql_data = (
+            total_files_count,
+            files_with_http_data_count,
+            timestamp,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
-        self.zabbix.send_int_to_zabbix("objects_with_http_data_count", files_with_http_data_count)
+        self.zabbix.send_int_to_zabbix(
+            "objects_with_http_data_count", files_with_http_data_count
+        )
 
     def get_http_data_stats(self) -> tuple:
         logger.trace("TrackerStatsSql: get_http_data_stats")
@@ -186,14 +209,17 @@ class TrackerStatsSql:
         enrichment_stats: tuple = self.cur.fetchone()
         return enrichment_stats
 
-
-    def set_enrichment_stats(self, total_files:int, enriched_files:int):
+    def set_enrichment_stats(self, total_files: int, enriched_files: int):
         logger.trace("TrackerStatsSql: set_enrichment_stats")
         self._enforce_acceptable_count_values(total_files)
         self._enforce_acceptable_count_values(enriched_files)
         sql = "insert into stats_enrichment_stats (total_files_count,enriched_files_count,last_update_timestamp) values (?,?,?)"
         timestamp = arrow.now().datetime
-        sql_data = (total_files, enriched_files, timestamp,)
+        sql_data = (
+            total_files,
+            enriched_files,
+            timestamp,
+        )
         self.cur.execute(sql, sql_data)
         self.con.commit()
         self.zabbix.send_int_to_zabbix("objects_enriched", enriched_files)
