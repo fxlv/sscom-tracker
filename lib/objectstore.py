@@ -58,7 +58,7 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected result received from DB")
 
-    def _get_count_http_data_land_classifieds(self) -> int:
+    def get_count_http_data_land_classifieds(self) -> int:
         self.cur.execute("select count(*) from land where http_response_data is not null")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -67,7 +67,7 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected result received from DB")
 
-    def _get_count_http_data_apartments_classifieds(self) -> int:
+    def get_count_http_data_apartments_classifieds(self) -> int:
         self.cur.execute("select count(*) from apartments where http_response_data is not null")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -75,7 +75,7 @@ class ObjectStoreSqlite(ObjectStore):
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
-    def _get_count_http_data_houses_classifieds(self) -> int:
+    def get_count_http_data_houses_classifieds(self) -> int:
         self.cur.execute("select count(*) from houses where http_response_data is not null")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -83,7 +83,7 @@ class ObjectStoreSqlite(ObjectStore):
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
-    def _get_count_http_data_cars_classifieds(self) -> int:
+    def get_count_http_data_cars_classifieds(self) -> int:
         self.cur.execute("select count(*) from cars where http_response_data is not null")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -92,7 +92,7 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected result received from DB")
 
-    def _get_count_enriched_land_classifieds(self) -> int:
+    def get_count_enriched_land_classifieds(self) -> int:
         self.cur.execute("select count(*) from land where enriched = 1")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -101,7 +101,7 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise Exception("Unexpected result received from DB")
 
-    def _get_count_enriched_apartments_classifieds(self) -> int:
+    def get_count_enriched_apartments_classifieds(self) -> int:
         self.cur.execute("select count(*) from apartments where enriched = 1")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -109,7 +109,7 @@ class ObjectStoreSqlite(ObjectStore):
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
-    def _get_count_enriched_houses_classifieds(self) -> int:
+    def get_count_enriched_houses_classifieds(self) -> int:
         self.cur.execute("select count(*) from houses where enriched = 1")
         results = self.cur.fetchall()
         if len(results) == 1:
@@ -117,7 +117,7 @@ class ObjectStoreSqlite(ObjectStore):
             return result[0]
         else:
             raise Exception("Unexpected result received from DB")
-    def _get_count_enriched_cars_classifieds(self) -> int:
+    def get_count_enriched_cars_classifieds(self) -> int:
         self.cur.execute("select count(*) from cars where enriched = 1")
         results = self.cur.fetchall()
         if len(results) == 1:

@@ -1,14 +1,7 @@
 import datetime
-import pickle
-from re import L
 import sqlite3
-from pathlib import Path
-from sys import breakpointhook
-from unittest import result
-from xml.dom.expatbuilder import ParseEscape
 import lib.objectstore
 import arrow
-import portalocker
 from loguru import logger
 
 import lib.settings
@@ -21,7 +14,6 @@ def generate_stats(settings: lib.settings.Settings):
     # lets generate some statistics
     count_all = 0
     enriched_count = 0
-    count_has_http_response_data = 0
     stats = TrackerStatsSql(settings)
     total = 0
     for category in stats.data.categories:
@@ -29,18 +21,18 @@ def generate_stats(settings: lib.settings.Settings):
         total += count
         stats.set_objects_files_count(category, count)
     count_has_http_response_data = 0
-    count_has_http_response_data += object_store._get_count_http_data_land_classifieds()
-    count_has_http_response_data += object_store._get_count_http_data_cars_classifieds()
+    count_has_http_response_data += object_store.get_count_http_data_land_classifieds()
+    count_has_http_response_data += object_store.get_count_http_data_cars_classifieds()
     count_has_http_response_data += (
-        object_store._get_count_http_data_houses_classifieds()
+        object_store.get_count_http_data_houses_classifieds()
     )
     count_has_http_response_data += (
-        object_store._get_count_http_data_apartments_classifieds()
+        object_store.get_count_http_data_apartments_classifieds()
     )
-    enriched_count += object_store._get_count_enriched_land_classifieds()
-    enriched_count += object_store._get_count_enriched_cars_classifieds()
-    enriched_count += object_store._get_count_enriched_houses_classifieds()
-    enriched_count += object_store._get_count_enriched_apartments_classifieds()
+    enriched_count += object_store.get_count_enriched_land_classifieds()
+    enriched_count += object_store.get_count_enriched_cars_classifieds()
+    enriched_count += object_store.get_count_enriched_houses_classifieds()
+    enriched_count += object_store.get_count_enriched_apartments_classifieds()
 
     stats.set_objects_files_count("total", total)
     stats.set_http_data_stats(count_all, count_has_http_response_data)
@@ -76,7 +68,7 @@ class TrackerStatsSql:
         logger.trace("TrackerStatsSql: __init__")
 
     def _enforce_timestamp(self, timestamp_value):
-        "Throw exception in case 'timestamp_value' is not a valid timestamp"
+        """Throw exception in case 'timestamp_value' is not a valid timestamp"""
         if isinstance(timestamp_value, datetime.datetime):
             return True
         if isinstance(timestamp_value, arrow.Arrow):
@@ -91,7 +83,7 @@ class TrackerStatsSql:
         self.cur.execute(sql, sql_data)
         self.con.commit()
 
-    def get_last_rss_update(self) -> datetime.datetime:
+    def get_last_rss_update(self) -> arrow.Arrow:
         logger.trace("TrackerStatsSql: get_last_rss_update")
         sql = "select last_update_timestamp from stats_last_rss_update order by id desc limit 1"
         self.cur.execute(sql)
@@ -231,7 +223,7 @@ class TrackerStatsSql:
         enrichment_stats: tuple = self.cur.fetchone()
         return enrichment_stats
 
-    def get_last_objects_update(self) -> datetime.datetime:
+    def get_last_objects_update(self) -> arrow.Arrow:
         logger.trace("TrackerStatsSql: get_last_objects_update")
         sql = "select last_update_timestamp from stats_last_objects_update order by id desc limit 1"
         self.cur.execute(sql)
