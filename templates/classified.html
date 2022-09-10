@@ -141,6 +141,9 @@ var marker = L.marker([{{classified.coordinates[0]}}, {{classified.coordinates[1
         {% else %}
 <p><b>Title</b>{{classified.title}}</p>
 <p><b>       Price</b>
-{{classified.price}}
+<p><b>Area</b> {{classified.area}}</p>
+<p><b>Description</b> {{classified.description}}</p>
+<p><b>Price</b> {{classified.price}}</p>
+<p><a href="{{classified.link}}" rel="noreferrer" >Link to SS.com ad</a></p>
         {% endif %}
 {% endblock %}

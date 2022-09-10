@@ -59,10 +59,12 @@
         {% if debug %}
         <td>Price int</td>
         {% endif %}
+
         {% else %}
         <td>Title</td>
         <td>Price</td>
         {% endif %}
+
     </tr>
 
     {% if category == "car" %}
@@ -104,7 +106,7 @@
         <td>{{ classified.price_int }}</td>
         {% endif %}
         {% else %}
-        <td>{{classified.title}}</td>
+        <td><a href="/category/{{category}}/{{classified.hash}}">{{classified.title}}</a></td>
         <td>{{classified.price}}</td>
         {% endif %}
     </tr>

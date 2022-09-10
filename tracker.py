@@ -272,7 +272,6 @@ def retr(debug, force):
                 classified.http_response_data = http_response.response_content
                 classified.http_response_code = http_response.response_code
                 object_store.update_classified(classified)
-                # randomsleep()
         del object_store
         retr_stopwatch.done()
 

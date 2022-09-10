@@ -836,7 +836,7 @@ class ObjectStoreSqlite(ObjectStore):
     def _update_classified_land(self, land: lib.datastructures.Land):
         sql = """update land set link = ?, title = ?, price = ?,
                 area = ?, district = ?, parish = ?, village = ?, street = ?, description = ?,
-                cadastre = ?, enriched = ?, published = ? where hash = ?"""
+                cadastre = ?, enriched = ?, published = ?, http_response_data = ?, http_response_code = ? where hash = ?"""
         sql_data = (
             land.link,
             land.title,
@@ -850,6 +850,8 @@ class ObjectStoreSqlite(ObjectStore):
             land.cadastre,
             land.enriched,
             land.published.datetime,
+            land.http_response_data,
+            land.http_response_code,
             land.hash
         )
         self.cur.execute(sql, sql_data)
