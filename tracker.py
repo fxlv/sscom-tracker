@@ -247,7 +247,11 @@ def retr(debug, force):
         # iterate over all objects
         # for each of them, check if http_response_date is present,
         # if it is not, call HttpRetriever and save the response into the object
-        for classified in object_store.get_all_classifieds("*"):
+
+        # get all classifieds that do not have http_response_data
+
+
+        for classified in object_store.get_all_classifieds("*", for_retrieval=True):
             if hasattr(classified, "http_response_data"):
                 logger.trace(
                     f"Object {classified.short_hash} already has http_response_data"

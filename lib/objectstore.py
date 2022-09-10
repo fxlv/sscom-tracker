@@ -323,6 +323,13 @@ class ObjectStoreSqlite(ObjectStore):
         sql = "select * from cars where fake_ad = 0 and enriched = 0 and http_response_data is not null"
         return sql
 
+    def _get_sql_cars_suitable_for_retrieval(self) -> str:
+        """
+        Returns SQL query string for cars that don't have http_data, making them suitable for reterieval.
+        """
+        sql = "select * from cars where http_response_data is null"
+        return sql
+
     def _get_sql_cars(self, limit = None, order_by = None ):
         sql = "select * from cars where fake_ad = 0"
 
@@ -337,10 +344,12 @@ class ObjectStoreSqlite(ObjectStore):
             sql += f" limit {limit}"
         return sql
 
-    def _get_cars(self, limit=None, order_by=None, for_enrichment: bool = False) ->list[Car]:
+    def _get_cars(self, limit=None, order_by=None, for_enrichment: bool = False, for_retrieval: bool = False) ->list[Car]:
 
         if for_enrichment:
             sql = self._get_sql_cars_suitable_for_enrichment()
+        elif for_retrieval:
+            sql = self._get_sql_cars_suitable_for_retrieval()
         else:
             sql = self._get_sql_cars(limit, order_by)
 
@@ -351,19 +360,23 @@ class ObjectStoreSqlite(ObjectStore):
             cars_list.append(self._create_car_from_db_result(r))
         return cars_list
 
-    def _get_all_cars(self, order_by=None, for_enrichment: bool = False) -> list[Car]:
-        return self._get_cars(limit=None, order_by=order_by, for_enrichment=for_enrichment)
+    def _get_all_cars(self, order_by=None, for_enrichment: bool = False, for_retrieval:bool = False) -> list[Car]:
+        return self._get_cars(limit=None, order_by=order_by, for_enrichment=for_enrichment, for_retrieval=for_retrieval)
 
     def _get_latest_cars(self, order_by=None) -> list[Car]:
         return self._get_cars(limit=100, order_by=order_by)
 
     def _get_latest_houses(self, order_by=None) -> list[House]:
         return self._get_houses(limit=100, order_by=None)
-    def _get_all_houses(self, order_by, for_encichment=False) -> list[House]:
-        return self._get_houses(limit=None, order_by=None, for_enrichment=for_encichment)
-    def _get_houses(self, limit=None, order_by=None, for_enrichment=False) -> list[House]:
+    def _get_all_houses(self, order_by, for_encichment: bool=False, for_retrieval: bool = False) -> list[House]:
+        return self._get_houses(limit=None, order_by=None, for_enrichment=for_encichment, for_retrieval=for_retrieval)
+
+    def _get_houses(self, limit=None, order_by=None, for_enrichment=False, for_retrieval: bool = False) -> list[House]:
         if for_enrichment:
             return [] # enrichment for houses is not supported
+        elif for_retrieval:
+            sql = self._get_sql_houses_suitable_for_retrieval()
+            self.cur.execute(sql)
         if limit:
             self.cur.execute(f"select * from houses order by published desc limit {limit}")
         else:
@@ -374,8 +387,8 @@ class ObjectStoreSqlite(ObjectStore):
             houses_list.append(self._create_house_from_db_result(r))
         return houses_list
 
-    def _get_all_apartments(self, order_by=None, for_enrichment: bool = False) -> list[Apartment]:
-        return self._get_apartments(limit=None, order_by=None, for_enrichment = for_enrichment)
+    def _get_all_apartments(self, order_by=None, for_enrichment: bool = False, for_retrieval:bool = False) -> list[Apartment]:
+        return self._get_apartments(limit=None, order_by=None, for_enrichment = for_enrichment, for_retrieval = for_retrieval)
 
     def _get_latest_apartments(self, order_by = None, city = None) -> list[Apartment]:
         return self._get_apartments(limit=100, order_by=order_by, city = city)
@@ -402,6 +415,28 @@ class ObjectStoreSqlite(ObjectStore):
         sql = "select * from apartments where enriched = 0 and http_response_data is not null"
         return sql
 
+    def _get_sql_apartments_suitable_for_retrieval(self) -> str:
+        """
+        Returns SQL query string for apartments that don't have http_data yet,
+        making them suitable for retrieval.
+        """
+        sql = "select * from apartments where http_response_data is null"
+        return sql
+    def _get_sql_land_suitable_for_retrieval(self) -> str:
+        """
+        Returns SQL query string for land that don't have http_data yet,
+        making them suitable for retrieval.
+        """
+        sql = "select * from land where http_response_data is null"
+        return sql
+
+    def _get_sql_houses_suitable_for_retrieval(self) -> str:
+        """
+        Returns SQL query string for houses that don't have http_data yet,
+        making them suitable for retrieval.
+        """
+        sql = "select * from houses where http_response_data is null"
+        return sql
     def _get_sql_cars_suitable_for_encirhment(self) -> str:
         """
         Returns SQL query string for apartments that have not been enriched
@@ -423,9 +458,11 @@ class ObjectStoreSqlite(ObjectStore):
             sql += f" limit {limit}"
         return sql
 
-    def _get_apartments(self, limit=None, order_by=None, city=None, for_enrichment: bool = False) -> list[Apartment]:
+    def _get_apartments(self, limit=None, order_by=None, city=None, for_enrichment: bool = False, for_retrieval: bool = False) -> list[Apartment]:
         if for_enrichment:
             sql = self._get_sql_apartments_suitable_for_enrichment()
+        elif for_retrieval:
+            sql = self._get_sql_apartments_suitable_for_retrieval()
         else:
             sql = self._get_sql_apartments(limit, order_by, city)
         logger.debug(f"Executing SQL: {sql}")
@@ -438,9 +475,12 @@ class ObjectStoreSqlite(ObjectStore):
 
     # land
 
-    def _get_land(self, limit=None, order_by=None, for_enrichment=False) -> list[Land]:
+    def _get_land(self, limit=None, order_by=None, for_enrichment=False, for_retrieval:bool = False) -> list[Land]:
         if for_enrichment:
             return [] # enrichment not supported for land
+        elif for_retrieval:
+            sql = self._get_sql_land_suitable_for_retrieval()
+            self.cur.execute(sql)
         if limit:
             self.cur.execute(f"select * from land order by published desc limit {limit}")
         else:
@@ -451,8 +491,8 @@ class ObjectStoreSqlite(ObjectStore):
             apartments_list.append(self._create_land_from_db_result(r))
         return apartments_list
 
-    def _get_all_land(self, order_by=None, for_enrichment=False) -> list[Land]:
-        return self._get_land(limit=None, order_by=order_by, for_enrichment=for_enrichment)
+    def _get_all_land(self, order_by=None, for_enrichment=False, for_retrieval: bool = False) -> list[Land]:
+        return self._get_land(limit=None, order_by=order_by, for_enrichment=for_enrichment, for_retrieval=for_retrieval)
     def _get_latest_land(self, order_by=None) -> list[Land]:
         return self._get_land(limit=100, order_by=order_by)
 
@@ -566,24 +606,30 @@ class ObjectStoreSqlite(ObjectStore):
         else:
             raise NotImplementedError()
 
-    def get_all_classifieds(self, category:str ="*", order_by = None, for_enrichment: bool=False) -> list:
-        """Returns a list of all classifieds."""
+    def get_all_classifieds(self, category:str ="*", order_by:str = None, for_enrichment: bool=False, for_retrieval: bool = False) -> list[Classified]:
+        """Returns a list of all classifieds.
+        :param category: [Apartment | House | Car | Land | Dog ]
+        :param order_by: A column to order by.
+        :param for_enrichment: Only return results suitable for enrichment
+        :param for_retrieval: Only return results suitable for retrieval
+        :return: Returns a list of classifieds
+        """
         if not self._is_valid_category(category):
             raise ValueError("Invalid category specified")
         if category == "apartment":
-            return self._get_all_apartments(order_by, for_enrichment)
+            return self._get_all_apartments(order_by, for_enrichment, for_retrieval)
         elif category == "house":
-            return self._get_all_houses(order_by, for_enrichment)
+            return self._get_all_houses(order_by, for_enrichment, for_retrieval)
         elif category == "car":
-            return self._get_all_cars(order_by, for_enrichment)
+            return self._get_all_cars(order_by, for_enrichment, for_retrieval)
         elif category == "land":
-            return self._get_all_land(order_by, for_enrichment)
+            return self._get_all_land(order_by, for_enrichment, for_retrieval)
         elif category == "*":
             all_classifieds = []
-            all_classifieds.extend(self._get_all_apartments(order_by, for_enrichment))
-            all_classifieds.extend(self._get_all_houses(order_by, for_enrichment))
-            all_classifieds.extend(self._get_all_cars(order_by, for_enrichment))
-            all_classifieds.extend(self._get_all_land(order_by, for_enrichment))
+            all_classifieds.extend(self._get_all_apartments(order_by, for_enrichment, for_retrieval))
+            all_classifieds.extend(self._get_all_houses(order_by, for_enrichment, for_retrieval))
+            all_classifieds.extend(self._get_all_cars(order_by, for_enrichment, for_retrieval))
+            all_classifieds.extend(self._get_all_land(order_by, for_enrichment, for_retrieval))
             return all_classifieds
         else:
             raise NotImplementedError()
