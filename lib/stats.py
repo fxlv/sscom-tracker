@@ -30,11 +30,11 @@ def generate_stats(settings: lib.settings.Settings):
         count = object_store.get_classified_count(category)
         total += count
         stats.set_objects_files_count(category, count)
-    http_data_count = 0
-    http_data_count+= object_store._get_count_http_data_land_classifieds()
-    http_data_count+= object_store._get_count_http_data_cars_classifieds()
-    http_data_count+= object_store._get_count_http_data_houses_classifieds()
-    http_data_count+= object_store._get_count_http_data_apartments_classifieds()
+    count_has_http_response_data = 0
+    count_has_http_response_data+= object_store._get_count_http_data_land_classifieds()
+    count_has_http_response_data+= object_store._get_count_http_data_cars_classifieds()
+    count_has_http_response_data+= object_store._get_count_http_data_houses_classifieds()
+    count_has_http_response_data+= object_store._get_count_http_data_apartments_classifieds()
     enriched_count+= object_store._get_count_enriched_land_classifieds()
     enriched_count+= object_store._get_count_enriched_cars_classifieds()
     enriched_count+= object_store._get_count_enriched_houses_classifieds()
