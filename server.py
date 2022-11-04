@@ -92,7 +92,10 @@ def json_category(category=None, order_by=None):
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
         classifieds=object_store.get_latest_classifieds(category, order_by),
-        classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"street":c.street, "published": c.published.humanize()} for c in classifieds[0]]
+        if category == "land":
+            classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"street":c.street, "published": c.published.humanize()} for c in classifieds[0]]
+        if category == "car":
+            classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"model":c.model, "mileage": c.mileage, "engine":c.engine, "published": c.published.humanize()} for c in classifieds[0]]
         render_stopwatch.done()
         return jsonify(classifieds)
 
