@@ -13,6 +13,7 @@
   <body>
 
   <div id="nav"><a href="/">Back to Index</a></div>
+
     <table id="table" data-toggle="table" data-search="true" data-query-params="queryParams" data-pagination="true" data-page-size="20" data-url="/json/category/car{% if model %}/model/{{model}}{% endif %}">
         <thead>
           <tr>
@@ -37,7 +38,11 @@
 
 
  function queryParams(params) {
-    params.search = 8
+   {% if model %}
+    params.limit = 100
+   {% else %}
+   params.limit = 200
+   {% endif %}
     return params
   }
     </script>

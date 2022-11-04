@@ -105,8 +105,11 @@ def json_category(category=None, order_by=None, model=None):
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
         if category == "car":
-            debug(model)
-            classifieds = object_store._get_cars(model_filter=model)
+            if "limit" in request.args:
+                limit = request.args["limit"]
+            else:
+                limit = 10
+            classifieds = object_store._get_cars(model_filter=model, limit=limit)
         else:
             classifieds=object_store.get_latest_classifieds(category, order_by),
         if category == "land":
