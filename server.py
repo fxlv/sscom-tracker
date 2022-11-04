@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask import render_template
 from loguru import logger
 
+import re
 import lib.cache
 import lib.datastructures
 import lib.objectstore
@@ -53,6 +54,17 @@ def apartments(city=None):
         render_stopwatch.done()
         return result
 
+@app.route("/cars")
+@app.route("/cars/model/<model>")
+def cars(model=None):
+    with logger.contextualize(task="Web->Cars"):
+        logger.debug("Returning cars view")
+        settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        set_up_logging(settings)
+        result = render_template("car.html",
+                                 model=model)
+        return result
 
 @app.route("/category/<category>")
 @app.route("/category/ordered/<category>/<order_by>")
@@ -77,8 +89,9 @@ def category(category=None, order_by=None):
         render_stopwatch.done()
         return result
 @app.route("/json/category/<category>")
+@app.route("/json/category/<category>/model/<model>")
 @app.route("/json/category/ordered/<category>/<order_by>")
-def json_category(category=None, order_by=None):
+def json_category(category=None, order_by=None, model=None):
     if order_by:
         if order_by not in ["mileage", "price"]:
             order_by = None  # basic attempt at filtering
@@ -91,11 +104,15 @@ def json_category(category=None, order_by=None):
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
-        classifieds=object_store.get_latest_classifieds(category, order_by),
+        if category == "car":
+            debug(model)
+            classifieds = object_store._get_cars(model_filter=model)
+        else:
+            classifieds=object_store.get_latest_classifieds(category, order_by),
         if category == "land":
             classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"street":c.street, "published": c.published.humanize()} for c in classifieds[0]]
         if category == "car":
-            classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"model":c.model, "mileage": c.mileage, "engine":c.engine, "published": c.published.humanize()} for c in classifieds[0]]
+            classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"model":c.model, "mileage": c.mileage, "engine":c.engine, "published": c.published.humanize()} for c in classifieds]
         render_stopwatch.done()
         return jsonify(classifieds)
 
@@ -115,46 +132,6 @@ def category_all(category=None):
             stats=stats,
             category=category,
             classifieds=object_store.get_all_classifieds(category),
-        )
-        render_stopwatch.done()
-        return result
-
-
-@app.route("/category/car/filter/<model>")
-@app.route("/category/car/filter/<model>/<order_by>")
-@app.route("/category/car/filter/<model>/<order_by>/<debug>")
-def categoryfilter(model=None, order_by=None, debug=False):
-    with logger.contextualize(task="Web->Category"):
-        if debug == "debug":
-            debug = True
-        else:
-            debug = False
-        category = "car"
-        model = model.replace("_", " ")
-        logger.debug(
-            f"Returning filtered category view for {category} and model {model}"
-        )
-        settings = lib.settings.Settings()
-        z = Zabbix(settings)
-        render_stopwatch = ZabbixStopwatch(z, "car_filter_page_rendering_time_seconds")
-        set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        stats = lib.stats.TrackerStatsSql(settings)
-        classifieds = object_store.get_all_classifieds(category, order_by=order_by)
-        # check that model is not None and then filter by comparing lowercase
-        # versions of models in storage and the model user supplied
-        classifieds = [
-            c
-            for c in classifieds
-            if c.model is not None and c.model.lower() == model.lower()
-        ]
-        result = render_template(
-            "category.html",
-            stats=stats,
-            category=category,
-            model=model,
-            classifieds=classifieds,
-            debug=debug,
         )
         render_stopwatch.done()
         return result

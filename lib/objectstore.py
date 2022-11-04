@@ -335,9 +335,10 @@ class ObjectStoreSqlite(ObjectStore):
         sql = "select * from cars where http_response_data is null"
         return sql
 
-    def _get_sql_cars(self, limit=None, order_by=None):
+    def _get_sql_cars(self, limit=None, order_by=None, model_filter= None):
         sql = "select * from cars where fake_ad = 0"
-
+        if model_filter:
+            sql += f" and model = '{model_filter}'"
         if order_by and order_by == "mileage":
             sql += " order by mileage_int asc, published desc"
         elif order_by and order_by == "price":
@@ -349,7 +350,7 @@ class ObjectStoreSqlite(ObjectStore):
             sql += f" limit {limit}"
         return sql
 
-    def _get_cars(self, limit=None, order_by=None, for_enrichment: bool = False, for_retrieval: bool = False) -> list[
+    def _get_cars(self, limit=None, order_by=None, for_enrichment: bool = False, for_retrieval: bool = False, model_filter: str = None) -> list[
         Car]:
 
         if for_enrichment:
@@ -357,7 +358,7 @@ class ObjectStoreSqlite(ObjectStore):
         elif for_retrieval:
             sql = self._get_sql_cars_suitable_for_retrieval()
         else:
-            sql = self._get_sql_cars(limit, order_by)
+            sql = self._get_sql_cars(limit, order_by, model_filter)
 
         self.cur.execute(sql)
         results = self.cur.fetchall()

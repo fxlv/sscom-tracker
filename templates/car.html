@@ -13,7 +13,7 @@
   <body>
 
   <div id="nav"><a href="/">Back to Index</a></div>
-    <table id="table" data-toggle="table" data-search="true" data-query-params="queryParams" data-pagination="true" data-page-size="20" data-url="/json/category/car">
+    <table id="table" data-toggle="table" data-search="true" data-query-params="queryParams" data-pagination="true" data-page-size="20" data-url="/json/category/car{% if model %}/model/{{model}}{% endif %}">
         <thead>
           <tr>
             <th data-field="title" data-formatter="linkFormatter">Title</th>
@@ -32,7 +32,7 @@
   return "<a href='" + row.link + "'>" + row.title + "</a>";
   }
       function carLinkFormatter(value, row) {
-        return "<a href='/category/car/filter/"+row.model+ "'>" + row.model + "</a>";
+        return "<a href='/cars/model/"+row.model+ "'>" + row.model + "</a>";
       }
 
 

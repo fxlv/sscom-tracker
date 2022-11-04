@@ -53,7 +53,7 @@
                 {% elif category == "land" %}
                 <li><a href="/static/land.html">Land</a> ( {{stats.get_objects_files_count(category)}} )</li>
                 {% elif category == "car" %}
-                <li><a href="/static/car.html">Cars</a> ( {{stats.get_objects_files_count(category)}} )</li>
+                <li><a href="/cars">Cars</a> ( {{stats.get_objects_files_count(category)}} )</li>
                 {% else %}
                 <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.get_objects_files_count(category)}} )</li>
                 {% endif %}
