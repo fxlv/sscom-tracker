@@ -50,6 +50,8 @@
                 {% for category in stats.data.categories %}
                 {% if category == "apartment" %}
                 <li><a href="/apartments">Apartments</a> ( {{stats.get_objects_files_count(category)}} )</li>
+                {% elif category == "land" %}
+                <li><a href="/static/land.html">Land</a> ( {{stats.get_objects_files_count(category)}} )</li>
                 {% else %}
                 <li><a href="/category/{{ category }}">{{category}}</a> ( {{stats.get_objects_files_count(category)}} )</li>
                 {% endif %}

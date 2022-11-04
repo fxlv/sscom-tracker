@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask import render_template
 from loguru import logger
 
@@ -12,6 +12,7 @@ import lib.settings
 import lib.stats
 from lib.log import set_up_logging
 from lib.zabbix import Zabbix, ZabbixStopwatch
+from devtools import debug
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -75,6 +76,25 @@ def category(category=None, order_by=None):
         )
         render_stopwatch.done()
         return result
+@app.route("/json/category/<category>")
+@app.route("/json/category/ordered/<category>/<order_by>")
+def json_category(category=None, order_by=None):
+    if order_by:
+        if order_by not in ["mileage", "price"]:
+            order_by = None  # basic attempt at filtering
+    with logger.contextualize(task="Web->Category"):
+        logger.debug(f"Returning JSON data for {category}")
+        settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        debug(request.args)
+        render_stopwatch = ZabbixStopwatch(z, "category_page_rendering_time_seconds")
+        set_up_logging(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
+        stats = lib.stats.TrackerStatsSql(settings)
+        classifieds=object_store.get_latest_classifieds(category, order_by),
+        classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"street":c.street, "published": c.published.humanize()} for c in classifieds[0]]
+        render_stopwatch.done()
+        return jsonify(classifieds)
 
 
 @app.route("/category/<category>/all")
