@@ -34,26 +34,6 @@ def index():
         return result
 
 
-@app.route("/apartments")
-@app.route("/apartments/by-city/<city>")
-def apartments(city=None):
-    with logger.contextualize(task="Web->Apartments"):
-        logger.debug("Returning apartments view")
-        settings = lib.settings.Settings()
-        z = Zabbix(settings)
-        render_stopwatch = ZabbixStopwatch(z, "apartments_page_rendering_time_seconds")
-        set_up_logging(settings)
-        object_store = lib.objectstore.ObjectStoreSqlite(settings)
-        stats = lib.stats.TrackerStatsSql(settings)
-        result = render_template("apartments.html",
-                                 stats=stats,
-                                 category="apartment",
-                                 city=city,
-                                 city_coordinates=object_store.get_city_coordinates(city),
-                                 classifieds=object_store._get_latest_apartments(city=city))
-        render_stopwatch.done()
-        return result
-
 @app.route("/cars")
 @app.route("/cars/model/<model>")
 def cars(model=None):
@@ -64,6 +44,20 @@ def cars(model=None):
         set_up_logging(settings)
         result = render_template("car.html",
                                  model=model)
+        return result
+@app.route("/apartments")
+@app.route("/apartments/city/<city>")
+def apartments(city=None):
+    with logger.contextualize(task="Web->Apartments"):
+        logger.debug("Returning apartments view")
+        settings = lib.settings.Settings()
+        z = Zabbix(settings)
+        set_up_logging(settings)
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
+        city_coordinates = object_store.get_city_coordinates(city)
+        result = render_template("apartments.html",
+                                 city=city, city_coordinates=city_coordinates)
+        debug(city_coordinates)
         return result
 
 @app.route("/category/<category>")
@@ -90,8 +84,9 @@ def category(category=None, order_by=None):
         return result
 @app.route("/json/category/<category>")
 @app.route("/json/category/<category>/model/<model>")
+@app.route("/json/category/<category>/city/<city>")
 @app.route("/json/category/ordered/<category>/<order_by>")
-def json_category(category=None, order_by=None, model=None):
+def json_category(category=None, order_by=None, model=None, city=None):
     if order_by:
         if order_by not in ["mileage", "price"]:
             order_by = None  # basic attempt at filtering
@@ -104,14 +99,18 @@ def json_category(category=None, order_by=None, model=None):
         set_up_logging(settings)
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         stats = lib.stats.TrackerStatsSql(settings)
+        if "limit" in request.args:
+            limit = request.args["limit"]
+        else:
+            limit = 10
         if category == "car":
-            if "limit" in request.args:
-                limit = request.args["limit"]
-            else:
-                limit = 10
             classifieds = object_store._get_cars(model_filter=model, limit=limit)
+        elif category == "apartment":
+            classifieds = object_store._get_apartments(limit=limit, city=city)
         else:
             classifieds=object_store.get_latest_classifieds(category, order_by),
+        if category == "apartment":
+            classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"street":c.street,"city":c.city, "coordinates":c.coordinates, "rooms":c.rooms,"floor":c.floor, "published": c.published.humanize()} for c in classifieds]
         if category == "land":
             classifieds = [ {"title":c.title,"price":c.price,"link": c.link,"street":c.street, "published": c.published.humanize()} for c in classifieds[0]]
         if category == "car":

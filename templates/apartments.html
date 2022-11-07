@@ -1,68 +1,71 @@
+
 {% extends "base.html" %}
-{% block title %}Category: {{category}}{% endblock %}
-
-<div id="nav"><a href="/">Back to Index</a></div>
-
-
-
-
-
+{% block title %}Apartments{% endblock %}
 
 
 {% block content %}
+
+
+
 {% if city %}
-<div id="city_map"></div>
-{%endif%}
-{% if city %}
-    <div id="nav"><a href="/apartments">Back to all latest apartments</a></div>
-    <h2>Apartments in {{city}}</h2>
-    {% if city_coordinates %}
-        <script>
-            var map = L.map('city_map', {fullscreenControl: {pseudoFullscreen: true},}).setView([{{city_coordinates[0]}}, {{city_coordinates[1]}}], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-        </script>
-    {% endif %}
-{% else %}
-    <h2>Apartments</h2>
-{% endif %}
-<table class="table">
-    <tr>
-        <td>Title</td>
-        {% if not city %}
-        <td>City</td>
+  <div id="city_map"></div>
+  {%endif%}
+  {% if city %}
+  <div id="nav"><a href="/apartments">Back to all latest apartments</a></div>
+  <h2>Apartments in {{city}}</h2>
+  {% if city_coordinates %}
+  <script>
+    var map = L.map('city_map', {fullscreenControl: {pseudoFullscreen: true},}).setView([{{city_coordinates[0]}}, {{city_coordinates[1]}}], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+  </script>
+  {% endif %}
+  {% else %}
+  <h2>Apartments</h2>
+  {% endif %}
+
+    <table id="table" data-toggle="table" data-search="true" data-query-params="queryParams" data-pagination="true" data-page-size="25" data-url="/json/category/apartment{% if city %}/city/{{city}}{% endif %}">
+        <thead>
+          <tr>
+            <th data-field="title" data-formatter="linkFormatter">Title</th>
+            <th data-field="city" data-formatter="cityLinkFormatter" data-sortable="true">City</th>
+            <th data-field="street" data-sortable="true">Street</th>
+            <th data-field="rooms" data-sortable="true">Rooms</th>
+            <th data-field="floor" data-sortable="true">Floor</th>
+            <th data-field="coordinates" data-sortable="true">Coordinates</th>
+            <th data-field="price" data-sortable="true">Price</th>
+            <th data-field="published">Published</th>
+          </tr>
+        </thead>
+      </table>
+
+
+    <script>
+
+
+      function linkFormatter(value, row) {
+  return "<a href='" + row.link + "'>" + row.title + "</a>";
+  }
+
+      function cityLinkFormatter(value, row) {
+
+        {% if city_coordinates %}
+        var marker = L.marker([row.coordinates[0],row.coordinates[1]]).addTo(map);
         {% endif %}
-        <td>Street</td>
-        <td>Rooms</td>
-        <td>Floor</td>
-        <td>M2</td>
-        <td>Published</td>
-        <td>Price</td>
-    </tr>
+        return "<a href='/apartments/city/"+row.city+ "'>" + row.city + "</a>";
+      }
 
-{% for classified in classifieds %}
-    <tr>
-        <td><a href="/category/{{category}}/{{classified.hash}}">{{classified.title}}</a></td>
+ function queryParams(params) {
+   {% if city %}
+    params.limit = 200
+   {% else %}
+   params.limit = 300
+   {% endif %}
+    return params
+  }
+    </script>
 
 
-        {% if not city %}
-        <td><a href="/apartments/by-city/{{classified.city}}">{{classified.city}}</a></td>
-        {% else %}
-        <script>
-        var marker = L.marker([{{classified.coordinates[0]}}, {{classified.coordinates[1]}}]).addTo(map);
-        marker.bindPopup("<p><a href='/category/{{category}}/{{classified.hash}}'>{{classified.title}}</a></p><p>Address: {{classified.street}}</p><p>Price: {{classified.price}}</p>");
-        </script>
-        {% endif %}
-        <td>{{classified.street}}</td>
-        <td>{{classified.rooms}}</td>
-        <td>{{classified.floor}}</td>
-        <td>{{classified.m2}}</td>
-        <td>{{classified.published.humanize()}}</td>
-        <td>{{classified.price}}</td>
-    </tr>
-{% endfor %}
-
-</table>
 {% endblock %}

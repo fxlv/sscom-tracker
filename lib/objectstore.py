@@ -364,7 +364,9 @@ class ObjectStoreSqlite(ObjectStore):
         results = self.cur.fetchall()
         cars_list = []
         for r in results:
-            cars_list.append(self._create_car_from_db_result(r))
+            car = self._create_car_from_db_result(r)
+            cars_list.append(car)
+
         return cars_list
 
     def _get_all_cars(self, order_by=None, for_enrichment: bool = False, for_retrieval: bool = False) -> list[Car]:
