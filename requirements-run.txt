@@ -6,7 +6,7 @@ attrs==21.2.0
 arrow
 Flask
 backports.entry-points-selectable==1.1.0
-certifi==2021.5.30
+certifi==2022.12.7
 cfgv==3.3.0
 chardet==4.0.0
 charset-normalizer==2.0.3
