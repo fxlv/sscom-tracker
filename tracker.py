@@ -26,6 +26,9 @@ from lib.display import print_results_to_console
 from lib.log import func_log, set_up_logging
 from lib.zabbix import Zabbix, ZabbixStopwatch
 
+import requests
+import json
+
 
 @click.group()
 def cli():
@@ -140,6 +143,58 @@ def view(debug, category):
         object_store = lib.objectstore.ObjectStoreSqlite(settings)
         print_results_to_console(object_store.get_all_classifieds(category), category)
         del object_store  # exlplicitly deleting object calls its destructor and we are making sure to do that while still within the logging context
+
+@func_log
+@cli.command()
+@click.option("--debug", is_flag=True, default=False, help="Print DEBUG log to screen")
+@click.option("--category", default="*", help="Category of classifieds to view")
+def send_to_classy_over_http(debug, category):
+    """Send classifieds to Classy over HTTP"""
+    settings = lib.settings.Settings()
+    set_up_logging(settings, debug)
+    with logger.contextualize(task="Send to Classy over HTTP"):
+        object_store = lib.objectstore.ObjectStoreSqlite(settings)
+        apartments_list = object_store.get_all_classifieds("apartment")
+        for apartment in apartments_list:
+
+            # do few transformantions so that we can send the data safely to Classy
+            # namely, handle cases when data is not yet enriched, and avoid sending None values
+            if apartment.enriched:
+                enriched_time = apartment.enriched_time.datetime
+            else:
+                enriched_time = None
+            
+            if apartment.http_response_data is None:
+                apartment.http_response_data = ""
+            if apartment.http_response_code is None:
+                apartment.http_response_code = 101 #non-existant HTTP code
+
+
+            url = "http://127.0.0.1:8000/classifieds/apartments/add/"
+            data = {"title": apartment.title, 
+                    "description": "", 
+                    "price_str": apartment.price, 
+                    "link": apartment.link, 
+                    "hash": apartment.hash,
+                    "short_hash": apartment.short_hash,
+                    "floor": apartment.floor,
+                    "street": apartment.street,
+                    "enriched": apartment.enriched,
+                    "http_response_data": apartment.http_response_data,
+                    "http_response_code": apartment.http_response_code,
+                    "city": apartment.city,
+                    "coordinates_lat": apartment.coordinates[0],
+                    "coordinates_long": apartment.coordinates[1],
+                    "enriched_time": enriched_time,
+                    "rooms": apartment.rooms,
+                    }
+            print()
+            print(data)
+            jdata = json.dumps(data, default=str)
+            headers = {'Content-type': 'application/json'}
+            response = requests.post(url, headers=headers, data=jdata)
+            print(response.status_code)
+
 
 
 def randomsleep():
